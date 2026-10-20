@@ -1,0 +1,7 @@
+fecha_dato,fuente,url,ruta,concepto,valor_min_usd,valor_max_usd,unidad,tipo_fuente,nota
+2026-06,Sino Shipping (agente de carga),https://www.sino-shipping.com/shipping-from-china-to-bolivia/,China -> Bolivia via Arica/Iquique/Callao,FCL 20GP maritimo,4797,5870,USD por contenedor,cotizacion indicativa de proveedor (secundaria),"pagina modificada 2026-06-02; dice estable desde mayo"
+2026-06,Sino Shipping (agente de carga),https://www.sino-shipping.com/shipping-from-china-to-bolivia/,China -> Bolivia via Arica/Iquique/Callao,FCL 40GP maritimo,5327,6532,USD por contenedor,cotizacion indicativa de proveedor (secundaria),idem
+2026-06,Sino Shipping (agente de carga),https://www.sino-shipping.com/shipping-from-china-to-bolivia/,China -> Bolivia,LCL maritimo,93,93,USD por m3,cotizacion indicativa de proveedor (secundaria),idem
+2026-06,Sino Shipping (agente de carga),https://www.sino-shipping.com/shipping-from-china-to-bolivia/,China -> Bolivia,aereo,11,11,USD por kg,cotizacion indicativa de proveedor (secundaria),idem
+2026-06,Sino Shipping (agente de carga),https://www.sino-shipping.com/shipping-from-china-to-bolivia/,China -> Bolivia,express,18.76,18.76,USD por kg,cotizacion indicativa de proveedor (secundaria),idem
+2026-10-09,Shanghai Shipping Exchange SCFI,https://en.sse.net.cn/currentIndex?indexName=scfi,Shanghai -> mundo (compuesto),indice compuesto SCFI,3664.1088,3664.1088,puntos de indice,primaria (indice),"valor anterior 2026-09-30: 3662.2965; las rutas South America (Santos) y WCSA (Manzanillo) vienen en null sin registro"

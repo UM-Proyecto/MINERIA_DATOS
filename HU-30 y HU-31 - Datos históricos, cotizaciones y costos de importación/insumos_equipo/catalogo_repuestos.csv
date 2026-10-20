@@ -1,0 +1,21 @@
+﻿id_registro,codigo_repuesto,descripcion,marca,modelo_vehiculo,categoria
+1,FIL-001,Filtro de aceite,Toyota,Hilux,Filtros
+2,TOY-F001,Filtro aceite Toyota Hilux,Toyota,Hilux,Filtros
+3,FIL-002,Filtro de aire,Toyota,Hilux,Filtros
+4,TOY-FA01,Filtro aire Hilux,Toyota,Hilux,Filtros
+5,PAS-001,Pastillas de freno delanteras,Toyota,Corolla,Frenos
+6,TOY-PF01,Pastillas freno delanteras Corolla,Toyota,Corolla,Frenos
+7,AMO-001,Amortiguador delantero derecho,Toyota,Hilux,Suspensión
+8,TOY-AM01,Amortiguador delantero RH Hilux,Toyota,Hilux,Suspensión
+9,BAT-001,Batería 12V 70Ah,Bosch,Universal,Eléctrico
+10,BOS-B70,Batería Bosch 70Ah 12V,Bosch,Universal,Eléctrico
+11,BUJ-001,Bujía de encendido,NGK,Corolla,Motor
+12,NGK-BKR6,Bujía NGK BKR6E,NGK,Corolla,Motor
+13,COR-001,Correa de distribución,Toyota,Corolla,Motor
+14,TOY-CD01,Correa distribución Corolla,Toyota,Corolla,Motor
+15,BOM-001,Bomba de agua,Toyota,Hilux,Motor
+16,TOY-BA01,Bomba agua Hilux,Toyota,Hilux,Motor
+17,FIL-003,Filtro de combustible,Toyota,Hilux,Filtros
+18,TOY-FF01,Filtro combustible Hilux,Toyota,Hilux,Filtros
+19,DIS-001,Disco de freno delantero,Toyota,Corolla,Frenos
+20,TOY-DF01,Disco freno delantero Corolla,Toyota,Corolla,Frenos

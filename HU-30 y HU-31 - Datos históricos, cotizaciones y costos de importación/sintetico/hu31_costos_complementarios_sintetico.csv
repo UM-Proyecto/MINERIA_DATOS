@@ -1,0 +1,5 @@
+concepto,valor,unidad,fecha_dato,tipo_dato,respaldo,fuente,fecha_actualizacion
+seguro de carga,0.88,% del CIF,2026-09,SINTETICO,"ninguno: valor pseudoaleatorio de prueba, pendiente de factura real",Datos ficticios generados por el equipo (pendiente del dato real de MultiPartes),2026-10-19
+nacionalizacion y agente aduanero,3.476,% del CIF,2026-09,SINTETICO,"ninguno: valor pseudoaleatorio de prueba, pendiente de factura real",Datos ficticios generados por el equipo (pendiente del dato real de MultiPartes),2026-10-19
+comision de gestion de importacion,1.142,% del CIF,2026-09,SINTETICO,"ninguno: valor pseudoaleatorio de prueba, pendiente de factura real",Datos ficticios generados por el equipo (pendiente del dato real de MultiPartes),2026-10-19
+flete terrestre Arica/Iquique -> Santa Cruz,0.125,USD por kg,2026-09,SINTETICO,"ninguno: valor pseudoaleatorio de prueba, pendiente de factura real",Datos ficticios generados por el equipo (pendiente del dato real de MultiPartes),2026-10-19

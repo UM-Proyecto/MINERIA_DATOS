@@ -1,0 +1,25 @@
+{
+  "fuente": "sintetico/movimientos_inventario_sintetico.csv",
+  "fecha_extraccion_utc": "2026-10-20T00:44:25+00:00",
+  "registros": 1220,
+  "sha256_original": "507c7e3322f609cc6ebf4b42a330ca56d7b906601e602ef9719adf85b4154b9a",
+  "copia_original": "sintetico/hu30/original/movimientos_inventario_sintetico.csv",
+  "periodo": [
+    "2025-09-06",
+    "2026-09-14"
+  ],
+  "campos_requeridos": [
+    "codigo_repuesto",
+    "fecha",
+    "cantidad",
+    "precio_unitario_usd"
+  ],
+  "campos_faltantes_total": 0,
+  "campos_faltantes_por_campo": {
+    "codigo_repuesto": 0,
+    "fecha": 0,
+    "cantidad": 0,
+    "precio_unitario_usd": 0
+  },
+  "codigos_sin_catalogo": []
+}
