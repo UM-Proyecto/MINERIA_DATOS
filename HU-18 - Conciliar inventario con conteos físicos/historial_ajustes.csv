@@ -1,0 +1,7 @@
+﻿id_historial,fecha_hora,fecha_conteo,codigo_unico,accion,stock_antes,conteo_fisico,cantidad_ajuste,stock_despues,motivo,usuario
+1,2026-10-02 09:15:00,2026-09-30,REP-0004,AJUSTE_APLICADO,28,18,-10,18,Entrada OC-5005 registrada en duplicado con OC-5006; se anula una de las dos,Carlos
+2,2026-10-02 09:40:00,2026-09-30,REP-0002,AJUSTE_APLICADO,55,53,-2,53,Faltante por producto dañado en almacén; se da de baja,Carlos
+3,2026-10-02 10:05:00,2026-09-30,REP-0007,AJUSTE_RECHAZADO,9,8,0,9,RECHAZADO: el motivo es obligatorio,Pedro
+4,2026-10-02 10:05:00,2026-09-30,REP-0007,AJUSTE_RECHAZADO,9,8,0,9,RECHAZADO: el motivo es obligatorio,Pedro
+5,2026-10-02 10:05:00,2026-09-30,REP-0007,AJUSTE_RECHAZADO,9,8,0,9,RECHAZADO: el motivo es obligatorio,Pedro
+6,2026-10-02 10:05:00,2026-09-30,REP-0007,AJUSTE_RECHAZADO,9,8,0,9,RECHAZADO: el motivo es obligatorio,Pedro

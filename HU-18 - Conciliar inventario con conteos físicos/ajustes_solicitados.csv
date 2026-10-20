@@ -1,0 +1,4 @@
+codigo_unico,fecha_conteo,motivo,usuario,fecha_hora
+REP-0004,2026-09-30,Entrada OC-5005 registrada en duplicado con OC-5006; se anula una de las dos,Carlos,2026-10-02 09:15:00
+REP-0002,2026-09-30,Faltante por producto dañado en almacén; se da de baja,Carlos,2026-10-02 09:40:00
+REP-0007,2026-09-30,,Pedro,2026-10-02 10:05:00

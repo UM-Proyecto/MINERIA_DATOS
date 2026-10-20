@@ -1,0 +1,3 @@
+﻿id_ajuste,fecha_conteo,codigo_unico,cantidad_ajuste,motivo,usuario,fecha_hora
+1,2026-09-30,REP-0004,-10,Entrada OC-5005 registrada en duplicado con OC-5006; se anula una de las dos,Carlos,2026-10-02 09:15:00
+2,2026-09-30,REP-0002,-2,Faltante por producto dañado en almacén; se da de baja,Carlos,2026-10-02 09:40:00

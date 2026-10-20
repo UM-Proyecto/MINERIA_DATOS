@@ -1,0 +1,14 @@
+﻿fecha_conteo,codigo_unico,descripcion,stock_inicial,entradas,salidas,ajustes_previos,stock_registrado,conteo_fisico,diferencia,tipo_diferencia,movimientos_pendientes_en_calculo,pista,usuario_conteo,estado_ajuste
+2026-09-08,REP-0001,Filtro de aceite,20,80,5,0,95,95,0,SIN DIFERENCIA,2,,Maria,NO REQUIERE AJUSTE
+2026-09-08,REP-0003,Pastillas de freno delanteras,10,25,4,0,31,31,0,SIN DIFERENCIA,1,,Maria,NO REQUIERE AJUSTE
+2026-09-08,REP-0005,Batería 12V 70Ah,6,15,0,0,21,21,0,SIN DIFERENCIA,1,,Maria,NO REQUIERE AJUSTE
+2026-09-30,REP-0001,Filtro de aceite,20,80,5,0,95,95,0,SIN DIFERENCIA,2,,Maria,NO REQUIERE AJUSTE
+2026-09-30,REP-0002,Filtro de aire,15,40,0,0,55,53,-2,FALTANTE,0,,Maria,AJUSTADO
+2026-09-30,REP-0003,Pastillas de freno delanteras,10,25,4,0,31,31,0,SIN DIFERENCIA,1,,Maria,NO REQUIERE AJUSTE
+2026-09-30,REP-0004,Amortiguador delantero derecho,8,20,0,0,28,18,-10,FALTANTE,1,"Coincide con movimiento pendiente 1010 (ENTRADA 10, OC-5005)",Maria,AJUSTADO
+2026-09-30,REP-0005,Batería 12V 70Ah,6,15,4,0,17,18,1,SOBRANTE,2,,Pedro,AJUSTE PENDIENTE
+2026-09-30,REP-0006,Bujía de encendido,30,100,0,0,130,130,0,SIN DIFERENCIA,0,,Maria,NO REQUIERE AJUSTE
+2026-09-30,REP-0007,Correa de distribución,12,0,3,0,9,8,-1,FALTANTE,0,,Pedro,AJUSTE PENDIENTE
+2026-09-30,REP-0008,Bomba de agua,5,40,0,0,45,45,0,SIN DIFERENCIA,1,,Maria,NO REQUIERE AJUSTE
+2026-09-30,REP-0009,Filtro de combustible,10,35,0,0,45,45,0,SIN DIFERENCIA,0,,Maria,NO REQUIERE AJUSTE
+2026-09-30,REP-0010,Disco de freno delantero,9,0,2,0,7,7,0,SIN DIFERENCIA,0,,Pedro,NO REQUIERE AJUSTE
