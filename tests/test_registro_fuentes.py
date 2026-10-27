@@ -5,9 +5,9 @@ import tempfile
 import unittest
 from pathlib import Path
 
+SRC = Path(__file__).resolve().parents[1] / "src" / "hu-02"
+sys.path.insert(0, str(SRC))
 from registro_fuentes import actualizar, consultar, leer_csv
-
-AQUI = Path(__file__).resolve().parent
 CAMPOS_CATALOGO = ["conjunto", "descripcion", "archivo", "fuente", "tipo_dato", "responsable",
                    "columnas_requeridas", "columna_fecha"]
 
@@ -154,7 +154,7 @@ class RegistroTest(unittest.TestCase):
                          ("2026-10-22 10:00 UTC", "OK", ""))
 
     def test_desde_la_linea_de_comandos_el_fallo_se_muestra_y_sale_con_error(self):
-        comando = [sys.executable, str(AQUI / "registro_fuentes.py"), "actualizar", "--todos",
+        comando = [sys.executable, str(SRC / "registro_fuentes.py"), "actualizar", "--todos",
                    "--raiz", str(self.raiz), "--catalogo", str(self.catalogo),
                    "--registro", str(self.registro), "--historial", str(self.historial)]
         bien = subprocess.run(comando + ["--fecha", "2026-10-20 10:00 UTC"], capture_output=True, text=True)
