@@ -8,19 +8,20 @@ Criterio 3: aplicar_ajuste()        -> el ajuste exige motivo y deja historial (
 """
 import os
 from datetime import datetime
+from pathlib import Path
 import pandas as pd
 
-CARPETA = os.path.dirname(os.path.abspath(__file__))
-def ruta(nombre): return os.path.join(CARPETA, nombre)
+RAIZ = Path(__file__).resolve().parents[2]
+def ruta(carpeta, nombre): return RAIZ / "data" / carpeta / "hu-18" / nombre
 
-ARCH_REPORTE   = ruta("reporte_depuracion_final.csv")   # resultado de la HU-17
-ARCH_CATALOGO  = ruta("catalogo_repuestos.csv")
-ARCH_STOCK_INI = ruta("stock_inicial.csv")
-ARCH_CONTEOS   = ruta("conteos_fisicos.csv")
-ARCH_SOLICITUDES = ruta("ajustes_solicitados.csv")
-ARCH_CONCILIACION = ruta("conciliacion_inventario.csv")
-ARCH_AJUSTES   = ruta("ajustes_inventario.csv")
-ARCH_HISTORIAL = ruta("historial_ajustes.csv")
+ARCH_REPORTE   = ruta("processed", "reporte_depuracion_final.csv")
+ARCH_CATALOGO  = ruta("raw", "catalogo_repuestos.csv")
+ARCH_STOCK_INI = ruta("raw", "stock_inicial.csv")
+ARCH_CONTEOS   = ruta("raw", "conteos_fisicos.csv")
+ARCH_SOLICITUDES = ruta("raw", "ajustes_solicitados.csv")
+ARCH_CONCILIACION = ruta("processed", "conciliacion_inventario.csv")
+ARCH_AJUSTES   = ruta("processed", "ajustes_inventario.csv")
+ARCH_HISTORIAL = ruta("processed", "historial_ajustes.csv")
 
 # Regla de stock: los DUPLICADOS siempre se excluyen. Los PENDIENTE_REVISION
 # se cuentan como válidos hasta que alguien confirme lo contrario.

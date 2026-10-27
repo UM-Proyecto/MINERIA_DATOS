@@ -1,7 +1,9 @@
 import pandas as pd
+from pathlib import Path
 
-catalogo = pd.read_csv("catalogo_repuestos.csv")
-movimientos = pd.read_csv("movimientos_inventario.csv")
+RAIZ = Path(__file__).resolve().parents[2]
+catalogo = pd.read_csv(RAIZ / "data" / "raw" / "hu-17" / "catalogo_repuestos.csv")
+movimientos = pd.read_csv(RAIZ / "data" / "raw" / "hu-17" / "movimientos_inventario.csv")
 
 equivalencias = {
     "FIL-001": "REP-0001",
@@ -79,7 +81,7 @@ reporte = movimientos[
 ]
 
 reporte.to_csv(
-    "reporte_depuracion_final.csv",
+    RAIZ / "data" / "processed" / "hu-17" / "reporte_depuracion_final.csv",
     index=False,
     encoding="utf-8-sig"
 )

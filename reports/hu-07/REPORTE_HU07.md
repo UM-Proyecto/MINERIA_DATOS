@@ -6,7 +6,7 @@
 
 ## Datos y comparación
 
-La fuente es `proyecto_HU17/reporte_depuracion_final.csv`. Se usa `codigo_unico` para consolidar códigos equivalentes de un mismo repuesto. Solo las filas `SALIDA` con estado `ORIGINAL` cuentan como ventas observadas: hay **5**. Se excluyen **4 duplicados** y **1 salida pendiente de revisión**. `ENTRADA` no representa demanda. Los días sin salidas registradas se completan con cero; esto permite una serie diaria, pero no prueba que la demanda real haya sido cero si faltó stock o faltan registros.
+La fuente es `data/processed/hu-17/reporte_depuracion_final.csv`. Se usa `codigo_unico` para consolidar códigos equivalentes de un mismo repuesto. Solo las filas `SALIDA` con estado `ORIGINAL` cuentan como ventas observadas: hay **5**. Se excluyen **4 duplicados** y **1 salida pendiente de revisión**. `ENTRADA` no representa demanda. Los días sin salidas registradas se completan con cero; esto permite una serie diaria, pero no prueba que la demanda real haya sido cero si faltó stock o faltan registros.
 
 | Fase | Periodos diarios | Uso |
 |---|---:|---|

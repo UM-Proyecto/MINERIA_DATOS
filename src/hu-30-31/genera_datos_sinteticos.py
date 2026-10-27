@@ -17,6 +17,7 @@ from datetime import date, timedelta
 from pathlib import Path
 
 AQUI = Path(__file__).resolve().parent
+RAIZ = AQUI.parents[1]
 FUENTE = "Datos ficticios generados por el equipo (pendiente del dato real de MultiPartes)"
 DISPONIBILIDAD = ["En stock", "En stock", "Bajo pedido", "Limitada"]
 CONDICIONES = ["Contado", "Credito 15 dias", "Credito 30 dias", "50% anticipo"]
@@ -141,9 +142,9 @@ def costos(rng, base, hoy):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("--insumos", default=AQUI / "insumos_equipo", help="carpeta con los archivos del equipo")
-    ap.add_argument("--parametros", default=AQUI / "parametros_sinteticos.csv")
-    ap.add_argument("--salida", default=AQUI / "sintetico")
+    ap.add_argument("--insumos", default=RAIZ / "data" / "raw" / "hu-30-31" / "insumos_equipo", help="carpeta con los archivos del equipo")
+    ap.add_argument("--parametros", default=RAIZ / "data" / "raw" / "hu-30-31" / "parametros_sinteticos.csv")
+    ap.add_argument("--salida", default=RAIZ / "data" / "processed" / "hu-30-31" / "sintetico")
     ap.add_argument("--semilla", type=int, default=20261019)
     ap.add_argument("--meses", type=int, default=12, help="meses de historial anteriores al corte")
     ap.add_argument("--fecha-actualizacion", default=date.today().isoformat())

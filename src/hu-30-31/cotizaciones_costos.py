@@ -11,6 +11,7 @@ from collections import defaultdict
 from pathlib import Path
 
 AQUI = Path(__file__).resolve().parent
+RAIZ = AQUI.parents[1]
 PENDIENTES = ("seguro (separado del flete)", "costos de nacionalización y agente aduanero",
               "comisiones de gestión de importación", "flete terrestre Arica/Iquique -> Santa Cruz")
 
@@ -63,9 +64,9 @@ def costos(flete_ref, ine, n_meses):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("--flete", default=AQUI / "insumos_publicos" / "flete_referencias_puntuales.csv")
-    ap.add_argument("--ine", default=AQUI / "insumos_publicos" / "ine_repuestos_flete_implicito_mensual.csv")
-    ap.add_argument("--salida", default=AQUI / "hu31_costos_importacion.csv")
+    ap.add_argument("--flete", default=RAIZ / "data" / "raw" / "hu-30-31" / "insumos_publicos" / "flete_referencias_puntuales.csv")
+    ap.add_argument("--ine", default=RAIZ / "data" / "raw" / "hu-30-31" / "insumos_publicos" / "ine_repuestos_flete_implicito_mensual.csv")
+    ap.add_argument("--salida", default=RAIZ / "data" / "processed" / "hu-30-31" / "hu31_costos_importacion.csv")
     ap.add_argument("--meses", type=int, default=12, help="meses del INE a promediar")
     a = ap.parse_args()
     filas = costos(leer(a.flete), leer(a.ine), a.meses)

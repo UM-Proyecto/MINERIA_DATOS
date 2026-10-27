@@ -5,7 +5,8 @@ from datetime import date, timedelta
 from pathlib import Path
 
 
-FUENTE = Path(__file__).resolve().parents[1] / "proyecto_HU17" / "reporte_depuracion_final.csv"
+RAIZ = Path(__file__).resolve().parents[2]
+FUENTE = RAIZ / "data" / "processed" / "hu-17" / "reporte_depuracion_final.csv"
 METODOS = ("ultimo_periodo", "promedio_movil_3", "mismo_dia_semana")
 
 
@@ -125,7 +126,7 @@ def evaluar(ruta, dias_prueba=5):
 def main():
     parser = argparse.ArgumentParser(description="Compara pronósticos diarios de salidas por repuesto")
     parser.add_argument("--entrada", type=Path, default=FUENTE)
-    parser.add_argument("--salida", type=Path, default=Path(__file__).with_name("comparacion_pronosticos.csv"))
+    parser.add_argument("--salida", type=Path, default=RAIZ / "data" / "processed" / "hu-07" / "comparacion_pronosticos.csv")
     parser.add_argument("--dias-prueba", type=int, default=5)
     args = parser.parse_args()
     filas, ultimo_entrenamiento, primera_evaluacion = evaluar(args.entrada, args.dias_prueba)

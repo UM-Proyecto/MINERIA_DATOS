@@ -6,17 +6,17 @@ Esta carpeta guarda los datos y el código de la HU-30 (historial de ventas, com
 
 Hace falta Python 3.8 o superior. No usa librerías externas, así que funciona igual en Windows, Linux o Mac y desde cualquier carpeta:
 
-    python ejecutar_todo.py
+    python src/hu-30-31/ejecutar_todo.py
 
 Eso genera los datos ficticios, los carga con su registro de trazabilidad y arma los costos de importación. Con la misma semilla (`--semilla`, por defecto 20261019) y la misma fecha (`--fecha-actualizacion`) siempre salen los mismos archivos.
 
 ## Qué hay en cada carpeta
 
-- `insumos_equipo/`: los archivos de Sabrina del repositorio del equipo (HU-17 y HU-18), con su huella en `SHA256SUMS.txt`. El código los lee tal cual y no los modifica.
-- `insumos_publicos/`: datos públicos (INE y cotizaciones de referencia de flete) para el costo de importación.
-- `parametros_sinteticos.csv`: costo base y proveedor principal de cada repuesto, usados solo para inventar los datos ficticios.
-- `sintetico/`: lo que se genera. `movimientos_inventario_sintetico.csv` conserva los movimientos de septiembre de Sabrina con su precio agregado, y el historial anterior termina exactamente en su stock inicial del 31 de agosto. `hu30/` guarda el registro de la carga y la copia del original.
-- `hu31_costos_importacion.csv`: costos con su respaldo, separados en DOCUMENTADO, ESTIMACION y PENDIENTE.
+- `data/raw/hu-30-31/insumos_equipo/`: los archivos de Sabrina del repositorio del equipo (HU-17 y HU-18), con su huella en `SHA256SUMS.txt`. El código los lee tal cual y no los modifica.
+- `data/raw/hu-30-31/insumos_publicos/`: datos públicos (INE y cotizaciones de referencia de flete) para el costo de importación.
+- `data/raw/hu-30-31/parametros_sinteticos.csv`: costo base y proveedor principal de cada repuesto, usados solo para inventar los datos ficticios.
+- `data/processed/hu-30-31/sintetico/`: lo que se genera. `movimientos_inventario_sintetico.csv` conserva los movimientos de septiembre de Sabrina con su precio agregado, y el historial anterior termina exactamente en su stock inicial del 31 de agosto. `hu30/` guarda el registro de la carga y la copia del original.
+- `data/processed/hu-30-31/hu31_costos_importacion.csv`: costos con su respaldo, separados en DOCUMENTADO, ESTIMACION y PENDIENTE.
 
 ## Cuando lleguen los datos reales
 

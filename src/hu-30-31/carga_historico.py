@@ -14,6 +14,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 AQUI = Path(__file__).resolve().parent
+RAIZ = AQUI.parents[1]
 CAMPOS = ["codigo_repuesto", "fecha", "cantidad", "precio"]  # criterio 2 de la HU
 ALIAS_PRECIO = "precio_unitario_usd"
 
@@ -41,9 +42,9 @@ def relativa(ruta):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("--movimientos", default=AQUI / "sintetico" / "movimientos_inventario_sintetico.csv")
-    ap.add_argument("--catalogo", default=AQUI / "insumos_equipo" / "catalogo_repuestos.csv")
-    ap.add_argument("--salida", default=AQUI / "sintetico" / "hu30")
+    ap.add_argument("--movimientos", default=RAIZ / "data" / "processed" / "hu-30-31" / "sintetico" / "movimientos_inventario_sintetico.csv")
+    ap.add_argument("--catalogo", default=RAIZ / "data" / "raw" / "hu-30-31" / "insumos_equipo" / "catalogo_repuestos.csv")
+    ap.add_argument("--salida", default=RAIZ / "data" / "processed" / "hu-30-31" / "sintetico" / "hu30")
     a = ap.parse_args()
     mov, out = Path(a.movimientos), Path(a.salida)
 
