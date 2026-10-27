@@ -1,0 +1,8 @@
+﻿id_serie,fecha_inicio_faltante,fecha_fin_faltante,dias_faltantes,periodo_esperado,estado,motivo
+TCO_BCB,,,0,2026-06-27 a 2026-10-26,SIN FALTANTES,Todas las fechas del período tienen valor publicado.
+OFICIAL_FIJO_BCB_COMPRA,2025-12-02,2026-06-26,207,2025-12-01 a 2026-06-26,FALTANTE (NO SE RELLENA),No se obtuvo el dato de esta fecha; se deja vacío y no se estima.
+OFICIAL_FIJO_BCB_VENTA,2025-12-02,2026-06-26,207,2025-12-01 a 2026-06-26,FALTANTE (NO SE RELLENA),No se obtuvo el dato de esta fecha; se deja vacío y no se estima.
+VRD_BCB_COMPRA,2025-12-02,2026-06-26,207,2025-12-01 a 2026-06-26,FALTANTE (NO SE RELLENA),No se obtuvo el dato de esta fecha; se deja vacío y no se estima.
+VRD_BCB_VENTA,2025-12-02,2026-06-26,207,2025-12-01 a 2026-06-26,FALTANTE (NO SE RELLENA),No se obtuvo el dato de esta fecha; se deja vacío y no se estima.
+PARALELO_P2P_VENTA,2026-06-27,2026-10-22,118,2026-06-27 a 2026-10-25,FALTANTE (NO SE RELLENA),No se obtuvo el dato de esta fecha; se deja vacío y no se estima.
+PARALELO_P2P_VENTA,2026-10-24,2026-10-25,2,2026-06-27 a 2026-10-25,FALTANTE (NO SE RELLENA),No se obtuvo el dato de esta fecha; se deja vacío y no se estima.

@@ -12,7 +12,7 @@ src/          scripts de procesamiento y análisis
 tests/        pruebas automatizadas
 ```
 
-Los datos y resultados de cada historia de usuario usan el mismo identificador (`hu-03`, `hu-17`, `hu-18`, `hu-30-31` y `hu-34`) para mantener su trazabilidad.
+Los datos y resultados de cada historia de usuario usan el mismo identificador (`hu-03`, `hu-07`, `hu-17`, `hu-18`, `hu-30-31`, `hu-32` y `hu-34`) para mantener su trazabilidad.
 
 ## Ejecución
 
@@ -20,6 +20,7 @@ Ejecutar desde la raíz del repositorio:
 
 ```bash
 python src/hu-07/comparar_pronosticos.py
+python src/hu-32/obtener_series_tc.py
 python src/hu-34/generar_datos.py
 python src/hu-34/limpieza_multiparte.py
 python src/hu-03/generar_panel.py

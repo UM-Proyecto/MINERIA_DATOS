@@ -1,0 +1,112 @@
+﻿fecha_operacion,documento,codigo_unico,proveedor,monto_usd,tc_referencia_bcb,tc_utilizado_empresa,diferencia_bs_por_usd,diferencia_pct,monto_bs_con_referencia,monto_bs_con_utilizado,diferencia_monto_bs,tipo_dato_utilizado,estado,fuente
+2025-09-09,OC-4998,REP-0010,Frenos Bolivia,706.65,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2025-09-11,OC-4996,REP-0004,Suspensiones SRL,1349.04,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2025-09-11,OC-4997,REP-0003,Frenos Bolivia,672.10,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2025-09-15,OC-4995,REP-0008,Autopartes Andinas,494.13,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2025-09-18,OC-4994,REP-0005,Bosch Bolivia,1166.76,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2025-09-23,OC-4993,REP-0001,Autopartes Andinas,310.59,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2025-09-29,OC-4992,REP-0009,Autopartes Andinas,258.06,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2025-09-30,OC-4991,REP-0002,Autopartes Andinas,292.05,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2025-10-06,OC-4989,REP-0008,Autopartes Andinas,315.63,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2025-10-06,OC-4990,REP-0006,NGK Bolivia,340.08,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2025-10-20,OC-4987,REP-0008,Autopartes Andinas,247.10,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2025-10-20,OC-4988,REP-0007,Importadora Toyota,748.22,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2025-10-21,OC-4986,REP-0003,Frenos Bolivia,520.92,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2025-10-23,OC-4985,REP-0010,Frenos Bolivia,732.48,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2025-10-24,OC-4984,REP-0005,Bosch Bolivia,1466.72,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2025-10-30,OC-4983,REP-0002,Autopartes Andinas,363.60,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2025-10-31,OC-4982,REP-0001,Autopartes Andinas,245.10,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2025-11-03,OC-4980,REP-0009,Autopartes Andinas,293.02,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2025-11-03,OC-4981,REP-0004,Suspensiones SRL,1257.42,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2025-11-04,OC-4979,REP-0003,Frenos Bolivia,668.58,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2025-11-19,OC-4977,REP-0006,NGK Bolivia,339.66,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2025-11-19,OC-4978,REP-0004,Suspensiones SRL,1083.24,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2025-11-20,OC-4976,REP-0005,Bosch Bolivia,1356.00,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2025-11-24,OC-4974,REP-0008,Autopartes Andinas,249.62,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2025-11-24,OC-4975,REP-0001,Autopartes Andinas,189.90,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2025-11-27,OC-4973,REP-0007,Importadora Toyota,1117.12,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2025-11-28,OC-4972,REP-0010,Frenos Bolivia,680.82,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2025-12-03,OC-4971,REP-0008,Autopartes Andinas,281.26,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2025-12-10,OC-4969,REP-0003,Frenos Bolivia,501.66,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2025-12-10,OC-4970,REP-0002,Autopartes Andinas,303.60,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2025-12-15,OC-4968,REP-0007,Importadora Toyota,778.36,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2025-12-17,OC-4967,REP-0010,Frenos Bolivia,801.72,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2025-12-18,OC-4966,REP-0004,Suspensiones SRL,853.16,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2025-12-19,OC-4965,REP-0006,NGK Bolivia,244.92,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2025-12-26,OC-4964,REP-0001,Autopartes Andinas,224.35,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2025-12-29,OC-4963,REP-0005,Bosch Bolivia,1215.06,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2025-12-31,OC-4962,REP-0002,Autopartes Andinas,230.50,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-01-06,OC-4961,REP-0004,Suspensiones SRL,769.21,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-01-07,OC-4960,REP-0003,Frenos Bolivia,516.80,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-01-08,OC-4959,REP-0010,Frenos Bolivia,755.99,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-01-16,OC-4956,REP-0009,Autopartes Andinas,264.00,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-01-16,OC-4957,REP-0008,Autopartes Andinas,423.00,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-01-16,OC-4958,REP-0007,Importadora Toyota,740.88,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-01-27,OC-4955,REP-0005,Bosch Bolivia,898.26,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-02-04,OC-4953,REP-0006,NGK Bolivia,328.30,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-02-04,OC-4954,REP-0002,Autopartes Andinas,363.48,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-02-05,OC-4952,REP-0007,Importadora Toyota,695.20,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-02-06,OC-4951,REP-0008,Autopartes Andinas,527.54,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-02-09,OC-4950,REP-0001,Autopartes Andinas,242.72,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-02-19,OC-4949,REP-0009,Autopartes Andinas,234.72,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-02-20,OC-4948,REP-0004,Suspensiones SRL,1309.98,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-02-25,OC-4947,REP-0005,Bosch Bolivia,949.19,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-02-26,OC-4946,REP-0003,Frenos Bolivia,657.75,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-03-05,OC-4945,REP-0010,Frenos Bolivia,1006.74,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-03-06,OC-4944,REP-0006,NGK Bolivia,352.64,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-03-12,OC-4943,REP-0002,Autopartes Andinas,281.30,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-03-17,OC-4942,REP-0007,Importadora Toyota,1028.94,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-03-20,OC-4941,REP-0009,Autopartes Andinas,287.04,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-03-24,OC-4940,REP-0001,Autopartes Andinas,282.54,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-03-25,OC-4938,REP-0008,Autopartes Andinas,532.22,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-03-25,OC-4939,REP-0003,Frenos Bolivia,521.56,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-03-26,OC-4937,REP-0005,Bosch Bolivia,1556.01,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-04-02,OC-4936,REP-0010,Frenos Bolivia,563.55,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-04-17,OC-4934,REP-0009,Autopartes Andinas,203.49,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-04-17,OC-4935,REP-0002,Autopartes Andinas,262.50,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-04-23,OC-4933,REP-0008,Autopartes Andinas,461.64,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-04-24,OC-4931,REP-0004,Suspensiones SRL,1254.00,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-04-24,OC-4932,REP-0003,Frenos Bolivia,789.62,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-04-27,OC-4930,REP-0006,NGK Bolivia,306.90,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-04-29,OC-4929,REP-0007,Importadora Toyota,632.13,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-05-01,OC-4928,REP-0010,Frenos Bolivia,1027.95,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-05-08,OC-4927,REP-0009,Autopartes Andinas,204.32,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-05-14,OC-4926,REP-0005,Bosch Bolivia,1126.44,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-05-18,OC-4925,REP-0001,Autopartes Andinas,315.12,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-05-20,OC-4924,REP-0002,Autopartes Andinas,306.28,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-05-21,OC-4923,REP-0003,Frenos Bolivia,473.12,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-05-22,OC-4922,REP-0007,Importadora Toyota,859.14,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-05-25,OC-4921,REP-0006,NGK Bolivia,261.60,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-05-27,OC-4920,REP-0010,Frenos Bolivia,758.52,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-05-28,OC-4919,REP-0004,Suspensiones SRL,835.52,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-05-29,OC-4918,REP-0008,Autopartes Andinas,544.04,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-06-04,OC-4917,REP-0009,Autopartes Andinas,321.00,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-06-09,OC-4916,REP-0008,Autopartes Andinas,321.92,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-06-11,OC-4915,REP-0005,Bosch Bolivia,802.00,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-06-18,OC-4914,REP-0004,Suspensiones SRL,753.09,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-06-19,OC-4913,REP-0001,Autopartes Andinas,226.40,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-06-23,OC-4912,REP-0006,NGK Bolivia,217.36,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-06-24,OC-4911,REP-0002,Autopartes Andinas,224.02,,,,,,,,PENDIENTE,SIN REFERENCIA: fecha anterior al inicio de la serie TCO,Sin valor de referencia ni comprobante: no se estima
+2026-07-10,OC-4910,REP-0008,Autopartes Andinas,370.10,10.24,10.44,0.20,1.95,3789.82,3863.84,74.02,SINTETICO,CON REFERENCIA,Dato ficticio generado por el equipo (pendiente del comprobante real de MULTIPARTES)
+2026-07-17,OC-4908,REP-0010,Frenos Bolivia,1028.40,10.75,11.06,0.31,2.88,11055.30,11374.10,318.80,SINTETICO,CON REFERENCIA,Dato ficticio generado por el equipo (pendiente del comprobante real de MULTIPARTES)
+2026-07-17,OC-4909,REP-0006,NGK Bolivia,360.80,10.75,11.06,0.31,2.88,3878.60,3990.45,111.85,SINTETICO,CON REFERENCIA,Dato ficticio generado por el equipo (pendiente del comprobante real de MULTIPARTES)
+2026-07-20,OC-4907,REP-0005,Bosch Bolivia,1377.45,10.85,10.96,0.11,1.01,14945.33,15096.85,151.52,SINTETICO,CON REFERENCIA,Dato ficticio generado por el equipo (pendiente del comprobante real de MULTIPARTES)
+2026-07-21,OC-4906,REP-0009,Autopartes Andinas,249.04,10.90,11.10,0.20,1.83,2714.54,2764.34,49.81,SINTETICO,CON REFERENCIA,Dato ficticio generado por el equipo (pendiente del comprobante real de MULTIPARTES)
+2026-07-24,OC-4905,REP-0003,Frenos Bolivia,775.98,11.21,11.34,0.13,1.16,8698.74,8799.61,100.88,SINTETICO,CON REFERENCIA,Dato ficticio generado por el equipo (pendiente del comprobante real de MULTIPARTES)
+2026-07-28,OC-4903,REP-0007,Importadora Toyota,1197.48,11.54,11.64,0.10,0.87,13818.92,13938.67,119.75,SINTETICO,CON REFERENCIA,Dato ficticio generado por el equipo (pendiente del comprobante real de MULTIPARTES)
+2026-07-28,OC-4904,REP-0004,Suspensiones SRL,905.55,11.54,11.61,0.07,0.61,10450.05,10513.44,63.39,SINTETICO,CON REFERENCIA,Dato ficticio generado por el equipo (pendiente del comprobante real de MULTIPARTES)
+2026-08-03,OC-4902,REP-0002,Autopartes Andinas,344.66,12.13,12.41,0.28,2.31,4180.73,4277.23,96.50,SINTETICO,CON REFERENCIA,Dato ficticio generado por el equipo (pendiente del comprobante real de MULTIPARTES)
+2026-08-04,OC-4901,REP-0001,Autopartes Andinas,333.54,12.08,12.23,0.15,1.24,4029.16,4079.19,50.03,SINTETICO,CON REFERENCIA,Dato ficticio generado por el equipo (pendiente del comprobante real de MULTIPARTES)
+2026-08-05,OC-4900,REP-0008,Autopartes Andinas,327.24,12.02,12.27,0.25,2.08,3933.42,4015.23,81.81,SINTETICO,CON REFERENCIA,Dato ficticio generado por el equipo (pendiente del comprobante real de MULTIPARTES)
+2026-08-13,OC-4899,REP-0005,Bosch Bolivia,853.60,11.66,11.80,0.14,1.20,9952.98,10072.48,119.50,SINTETICO,CON REFERENCIA,Dato ficticio generado por el equipo (pendiente del comprobante real de MULTIPARTES)
+2026-09-01,OC-5001,REP-0001,Autopartes Andinas,308.00,12.12,12.28,0.16,1.32,3732.96,3782.24,49.28,SINTETICO,CON REFERENCIA,Dato ficticio generado por el equipo (pendiente del comprobante real de MULTIPARTES)
+2026-09-02,OC-5002,REP-0001,Importadora Toyota,165.60,12.26,12.35,0.09,0.73,2030.26,2045.16,14.90,SINTETICO,CON REFERENCIA,Dato ficticio generado por el equipo (pendiente del comprobante real de MULTIPARTES)
+2026-09-04,OC-5003,REP-0002,Autopartes Andinas,411.20,12.45,12.71,0.26,2.09,5119.44,5226.35,106.91,SINTETICO,CON REFERENCIA,Dato ficticio generado por el equipo (pendiente del comprobante real de MULTIPARTES)
+2026-09-05,OC-5004,REP-0003,Frenos Bolivia,759.00,12.58,12.72,0.14,1.11,9548.22,9654.48,106.26,SINTETICO,CON REFERENCIA,Dato ficticio generado por el equipo (pendiente del comprobante real de MULTIPARTES)
+2026-09-07,OC-5005,REP-0004,Suspensiones SRL,670.90,12.58,12.67,0.09,0.72,8439.92,8500.30,60.38,SINTETICO,CON REFERENCIA,Dato ficticio generado por el equipo (pendiente del comprobante real de MULTIPARTES)
+2026-09-07,OC-5006,REP-0004,Suspensiones SRL,641.70,12.58,12.77,0.19,1.51,8072.59,8194.51,121.92,SINTETICO,CON REFERENCIA,Dato ficticio generado por el equipo (pendiente del comprobante real de MULTIPARTES)
+2026-09-08,OC-5007,REP-0005,Bosch Bolivia,1290.60,12.60,12.93,0.33,2.62,16261.56,16687.46,425.90,SINTETICO,CON REFERENCIA,Dato ficticio generado por el equipo (pendiente del comprobante real de MULTIPARTES)
+2026-09-10,OC-5008,REP-0006,NGK Bolivia,491.00,12.42,12.49,0.07,0.56,6098.22,6132.59,34.37,SINTETICO,CON REFERENCIA,Dato ficticio generado por el equipo (pendiente del comprobante real de MULTIPARTES)
+2026-09-12,OC-5009,REP-0008,Autopartes Andinas,728.40,11.53,11.75,0.22,1.91,8398.45,8558.70,160.25,SINTETICO,CON REFERENCIA,Dato ficticio generado por el equipo (pendiente del comprobante real de MULTIPARTES)
+2026-09-12,OC-5010,REP-0008,Autopartes Andinas,799.00,11.53,11.78,0.25,2.17,9212.47,9412.22,199.75,SINTETICO,CON REFERENCIA,Dato ficticio generado por el equipo (pendiente del comprobante real de MULTIPARTES)
+2026-09-13,OC-5011,REP-0009,Autopartes Andinas,397.95,11.53,11.68,0.15,1.30,4588.36,4648.06,59.69,SINTETICO,CON REFERENCIA,Dato ficticio generado por el equipo (pendiente del comprobante real de MULTIPARTES)

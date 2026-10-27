@@ -1,0 +1,2 @@
+b307ab33b2edb8be2826a3146f4ccffac7299fb7e8f214d2167b6e2dc48b5d2a  bcb_tco_diario_captura_2026-10-25.csv
+a4cbe943c8e463ba601b095a61b384fa711801e12592bddf34af70d91e7b3a12  puntos_documentados.csv

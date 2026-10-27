@@ -1,0 +1,1 @@
+507c7e3322f609cc6ebf4b42a330ca56d7b906601e602ef9719adf85b4154b9a  movimientos_inventario_sintetico.csv
