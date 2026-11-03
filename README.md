@@ -1,4 +1,50 @@
-# Minería de Datos
+# Minería de Datos: apoyo a las decisiones de compra de MULTIPARTES
+
+Proyecto de Minería de Datos (Universidad Privada del Valle, VI semestre, 2026). Equipo: Sabrina Adrian Zelaya, Samuel
+Castillo y Fiorella Sandoval. Docente: Ing. William Mauricio. Tablero de trabajo:
+[Jira SCRUM](https://fsandoval09.atlassian.net/jira/software/projects/SCRUM/boards/1).
+
+**Pregunta enfocada.** ¿Qué técnicas de análisis de datos permiten apoyar las decisiones de compra de la empresa
+MULTIPARTES de Santa Cruz de la Sierra durante el segundo semestre de 2026?
+
+## De dónde salen los datos
+
+- **FICTICIOS:** movimientos de inventario, stock, catálogo, ventas y compras. MULTIPARTES todavía no entregó sus datos, y
+  el equipo decidió avanzar con datos de prueba que tienen la misma forma que los reales. Cada archivo lo indica.
+- **PÚBLICOS y reales:** los costos de importación (INE de Bolivia, cotizaciones de un agente de carga y el índice SCFI de
+  Shanghái) y las series del tipo de cambio.
+- El registro de cada conjunto, con su origen, su fecha de corte y su fecha de actualización, está en
+  [`data/processed/hu-02/registro_actualizaciones.csv`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/data/processed/hu-02/registro_actualizaciones.csv).
+
+## Criterios de éxito (HU-33)
+
+| Criterio | Meta | Línea base (datos ficticios) |
+|---|---|---|
+| Pronóstico de salidas mejor que la referencia «último periodo» (MAE) | 15 % menos de error | Sin método elegible: falta un año de historial |
+| Costo de importación con respaldo documentado | 80 % o más | 6 de 15 componentes (40 %) |
+| Días entre la fecha de los datos y la decisión de compra | 30 días o menos | 42 días |
+
+## Documentos del equipo
+
+- Pregunta enfocada y objetivo: [`docs/pregunta-enfocada/`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/docs/pregunta-enfocada)
+- HU-29, fuentes y permisos de acceso: [`docs/hu-29/`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/docs/hu-29)
+- Los `.zip` de `docs/hu-18` y `docs/hu-32` son las entregas originales tal como se subieron. Los archivos que valen son
+  los de `data/` y `src/`.
+
+## Historias de usuario terminadas
+
+| HU | Jira | Responsable | Qué hace | Origen de los datos | Código | Resultado | Documento |
+|---|---|---|---|---|---|---|---|
+| HU-02 | [SCRUM-12](https://fsandoval09.atlassian.net/browse/SCRUM-12) | Samuel | Registro de origen y fecha de actualización de cada conjunto de datos | FICTICIO y público, según el conjunto (lo dice el propio registro) | [`src/hu-02`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/src/hu-02) | [`data/processed/hu-02`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/data/processed/hu-02) | [`reports/hu-02`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/reports/hu-02) |
+| HU-03 | [SCRUM-16](https://fsandoval09.atlassian.net/browse/SCRUM-16) · [SCRUM-51](https://fsandoval09.atlassian.net/browse/SCRUM-51) | Fiorella | Panel interactivo de evolución de precios (con la referencia de 11 BOB/USD) | FICTICIO (precios) y tipo de cambio de HU-32 | [`src/hu-03`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/src/hu-03) | [`reports/hu-03`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/reports/hu-03) | [`docs/hu-03`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/docs/hu-03) |
+| HU-07 | [SCRUM-20](https://fsandoval09.atlassian.net/browse/SCRUM-20) | Fiorella | Comparación de tres técnicas de pronóstico (MAE) | FICTICIO (movimientos de HU-17) | [`src/hu-07`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/src/hu-07) | [`data/processed/hu-07`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/data/processed/hu-07) | [`reports/hu-07`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/reports/hu-07) |
+| HU-17 | [SCRUM-9](https://fsandoval09.atlassian.net/browse/SCRUM-9) | Sabrina | Normalización de códigos y depuración de duplicados | FICTICIO | [`src/hu-17`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/src/hu-17) | [`data/raw/hu-17`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/data/raw/hu-17) | [`data/processed/hu-17`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/data/processed/hu-17) |
+| HU-18 | [SCRUM-10](https://fsandoval09.atlassian.net/browse/SCRUM-10) | Sabrina | Conciliación del inventario con conteos físicos | FICTICIO | [`src/hu-18`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/src/hu-18) | [`data/raw/hu-18`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/data/raw/hu-18) | [`data/processed/hu-18`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/data/processed/hu-18) |
+| HU-30 | [SCRUM-6](https://fsandoval09.atlassian.net/browse/SCRUM-6) | Samuel | Histórico de movimientos de inventario | FICTICIO | [`src/hu-30-31`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/src/hu-30-31) | [`data/processed/hu-30-31`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/data/processed/hu-30-31) | [`docs/hu-30-31`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/docs/hu-30-31) |
+| HU-31 | [SCRUM-7](https://fsandoval09.atlassian.net/browse/SCRUM-7) | Samuel | Cotizaciones y costos de importación | PÚBLICO: INE, agente de carga y SCFI | [`src/hu-30-31`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/src/hu-30-31) | [`data/processed/hu-30-31`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/data/processed/hu-30-31) | [`docs/hu-30-31`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/docs/hu-30-31) |
+| HU-32 | [SCRUM-8](https://fsandoval09.atlassian.net/browse/SCRUM-8) | Sabrina | Series históricas del tipo de cambio | PÚBLICO | [`src/hu-32`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/src/hu-32) | [`data/processed/hu-32`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/data/processed/hu-32) | [`docs/hu-32`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/docs/hu-32) |
+| HU-33 | [SCRUM-44](https://fsandoval09.atlassian.net/browse/SCRUM-44) | Samuel | Criterios de éxito del proyecto (3 indicadores) | Se calculan sobre HU-02, HU-07, HU-30 y HU-31 | [`docs/hu-33`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/docs/hu-33) | [`docs/hu-33/CRITERIOS_APROBADOS.md`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/docs/hu-33/CRITERIOS_APROBADOS.md) | [`docs/hu-33`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/docs/hu-33) |
+| HU-34 | [SCRUM-45](https://fsandoval09.atlassian.net/browse/SCRUM-45) · [SCRUM-50](https://fsandoval09.atlassian.net/browse/SCRUM-50) | Fiorella | Descripción y limpieza de los conjuntos de datos | FICTICIO (simulados) | [`src/hu-34`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/src/hu-34) | [`data/processed/hu-34`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/data/processed/hu-34) | [`reports/hu-34`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/reports/hu-34) |
 
 ## Estructura
 
