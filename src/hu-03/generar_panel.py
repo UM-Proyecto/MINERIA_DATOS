@@ -17,6 +17,7 @@ RAIZ = BASE.parents[1]
 DATOS = RAIZ / 'data' / 'processed' / 'hu-34'
 PLANTILLA = BASE / 'plantilla_panel.html'
 SALIDA = RAIZ / 'reports' / 'hu-03' / 'MULTIPARTE_Precios_Interactivo.html'
+TIPO_CAMBIO_BOB_USD = 11.0
 
 
 def leer_csv(nombre, requeridas):
@@ -69,6 +70,7 @@ def crear_panel():
 
     # 4. Preparar filas compactas para incorporar todos los datos necesarios
     # dentro del HTML. La posición de cada valor se documenta en la guía.
+    # HU-03 usa la referencia de mercado de 11 BOB/USD para convertir las compras.
     # Los otros campos de los CSV permanecen en datos/, aunque esta HU no los use.
     filas_compras = []
     for fila in compras:
@@ -80,7 +82,7 @@ def crear_panel():
             raise ValueError('La cantidad comprada debe ser positiva.')
         filas_compras.append([
             fecha, fila['sku'], positivo(fila['costo_unitario_usd']),
-            positivo(fila['tipo_cambio_bs_usd']), cantidad,
+            TIPO_CAMBIO_BOB_USD, cantidad,
             fila['id_compra'], fila['proveedor']])
 
     filas_ventas = []

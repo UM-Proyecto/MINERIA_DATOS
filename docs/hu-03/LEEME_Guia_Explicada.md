@@ -7,7 +7,6 @@
 4. Pasa el cursor por el gráfico para consultar un punto. También puedes enfocar el gráfico con Tab y recorrer la primera serie con las flechas.
 5. Revisa “Resumen por repuesto” o “Detalle de registros”. El botón Exportar CSV descarga todas las filas filtradas de la pestaña seleccionada, aunque la tabla esté dividida en páginas.
 
-El HTML ya incluye estilos, datos y funciones. No necesitas instalar Python, cargar los CSV ni conectarte a Internet para usarlo. Los CSV se incluyen para revisar y reproducir la fuente de información.
 
 ## Archivos incluidos
 
@@ -106,7 +105,18 @@ El HTML y la plantilla incluyen comentarios numerados del 1 al 25, centrados en 
 Costo unitario BOB = costo unitario USD × tipo de cambio BOB/USD de cada pedido
 ```
 
-El tipo de cambio es simulado y se toma de cada fila. Primero se convierte cada pedido y después se agrupa. No se utiliza una tasa actual ni una tasa única para todo el período. Se excluyen flete y tributos: no representa el costo total de importación.
+Para HU-03, cada pedido se convierte con la referencia uniforme de 11 BOB/USD. Primero se convierte cada pedido y después se agrupa. Se excluyen flete y tributos: no representa el costo total de importación.
+
+**Actualización del marco cambiario (de 7 a 11 BOB/USD):**
+En las evaluaciones de adquisición y conversión a bolivianos, se actualizó la tasa de cambio de referencia pasando de la cotización fija histórica oficial de **7 BOB/USD** (6,96 BOB/USD) al tipo de cambio de mercado representativo de **11 BOB/USD** (alineado con la coyuntura del mercado cambiario boliviano y las cotizaciones paralelas/TCO documentadas en la historia HU-32).
+
+*Ejemplo ilustrativo de conversión:*
+- Si un pedido registra un costo unitario de 50,00 USD:
+  - Al tipo de cambio anterior de referencia fija (7,00 BOB/USD):
+    $$\text{Costo BOB} = 50,00 \times 7,00 = 350,00\text{ BOB}$$
+  - Al tipo de cambio actualizado de mercado (11,00 BOB/USD):
+    $$\text{Costo BOB} = 50,00 \times 11,00 = 550,00\text{ BOB}$$
+  - Esto representa un impacto por diferencial cambiario de **+200,00 BOB (+57,14 %)** en el costo de reposición en moneda nacional.
 
 Ventas solo se muestra en BOB porque no contiene un tipo de cambio propio para convertirla a USD.
 
@@ -146,9 +156,9 @@ Son reglas operativas del panel, no mínimos estadísticos universales ni una va
 | Criterio | Cómo se cumple |
 |---|---|
 | Seleccionar repuesto, categoría y fechas | Controles visibles con actualización automática y selección de SKU dependiente de categoría. |
-| Mostrar precios, fecha y moneda o conversión identificada | Gráfico, consulta de puntos, tarjetas y tabla; moneda USD/BOB y explicación de la tasa por pedido. |
+| Mostrar precios, fecha y moneda o conversión identificada | Gráfico, consulta de puntos, tarjetas y tabla; moneda USD/BOB y explicación de la tasa por pedido, incorporando la actualización de referencia a 11 BOB/USD (frente a la tasa histórica de 7 BOB/USD). |
 | Informar historial insuficiente | Avisos por SKU, estado vacío y variación no calculable cuando faltan fechas observadas. |
 
 ## Comentario para presentar el trabajo
 
-Se desarrolló un panel HTML interactivo para visualizar los precios ficticios de MULTIPARTE, utilizando los mismos datos finales de compras y ventas. Permite filtrar por repuesto, categoría y fechas, identificar la moneda y consultar las variaciones. También señala los precios estimados e informa cuando el historial disponible es insuficiente para comparar.
+Se desarrolló un panel HTML interactivo para visualizar los precios ficticios de MULTIPARTE, utilizando los mismos datos finales de compras y ventas. Permite filtrar por repuesto, categoría y fechas, identificar la moneda y consultar las variaciones. En compras, la conversión a bolivianos incorpora la referencia de tipo de cambio de mercado de 11 BOB/USD (en sustitución de la tasa fija histórica de 7), reflejando con mayor precisión el impacto presupuestario de las compras en el contexto cambiario actual. También señala los precios estimados e informa cuando el historial disponible es insuficiente para comparar.
