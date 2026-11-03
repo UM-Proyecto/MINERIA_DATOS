@@ -1,6 +1,6 @@
 # SCRUM-6 y SCRUM-7: historial, cotizaciones y costos de importación
 
-Esta carpeta guarda los datos y el código de la HU-30 (historial de ventas, compras e inventario) y de la HU-31 (cotizaciones y costos de importación). Mientras no lleguen los datos reales de MULTIPARTES, todo se trabaja con datos FICTICIOS generados con números pseudoaleatorios, y cada registro lo indica.
+Esta carpeta guarda los datos y el código de la HU-30 (historial de ventas, compras e inventario) y de la HU-31 (cotizaciones y costos de importación). MULTIPARTES facilitó una muestra inicial pequeña; para tener un historial suficiente, se amplió con datos FICTICIOS generados con números pseudoaleatorios, y cada registro lo indica.
 
 ## Cómo correrlo
 
@@ -18,7 +18,7 @@ Eso genera los datos ficticios, los carga con su registro de trazabilidad y arma
 - `data/processed/hu-30-31/sintetico/`: lo que se genera. `movimientos_inventario_sintetico.csv` conserva los movimientos de septiembre de Sabrina con su precio agregado, y el historial anterior termina exactamente en su stock inicial del 31 de agosto. `hu30/` guarda el registro de la carga y la copia del original.
 - `data/processed/hu-30-31/hu31_costos_importacion.csv`: costos con su respaldo, separados en DOCUMENTADO, ESTIMACION y PENDIENTE.
 
-## Cuando lleguen los datos reales
+## Cuando la empresa entregue un historial más amplio
 
 1. Reemplazar el movimiento ficticio por el archivo real con la misma estructura y una columna `precio` o `precio_unitario_usd`.
 2. Correr `python carga_historico.py --movimientos <archivo real>`: reporta campos faltantes, códigos que no están en el catálogo y guarda la copia del original.

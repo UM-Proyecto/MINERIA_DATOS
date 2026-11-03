@@ -9,8 +9,9 @@ MULTIPARTES de Santa Cruz de la Sierra durante el segundo semestre de 2026?
 
 ## De dónde salen los datos
 
-- **FICTICIOS:** movimientos de inventario, stock, catálogo, ventas y compras. MULTIPARTES todavía no entregó sus datos, y
-  el equipo decidió avanzar con datos de prueba que tienen la misma forma que los reales. Cada archivo lo indica.
+- **FICTICIOS:** movimientos de inventario, stock, catálogo, ventas y compras. MULTIPARTES facilitó una muestra inicial
+  pequeña, de unos 20 registros. Para poder aplicar y comparar las técnicas, el equipo la amplió con datos de prueba
+  con la misma estructura. Cada archivo indica si es de prueba.
 - **PÚBLICOS y reales:** los fletes de importación (INE de Bolivia, cotizaciones de un agente de carga y el índice SCFI de
   Shanghái) y el tipo de cambio oficial del Banco Central de Bolivia.
 - **MIXTOS:** los costos de importación de HU-31 y la comparación del tipo de cambio de HU-32 combinan las fuentes
