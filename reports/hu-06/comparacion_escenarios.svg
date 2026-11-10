@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="360" viewBox="0 0 900 360" role="img" aria-labelledby="titulo desc">
+<title id="titulo">HU-06: costo total simulado por escenario (BOB)</title>
+<desc id="desc">BASE: 38068.92 BOB; CAMBIARIA: 38551.21 BOB; LOGISTICA: 39033.88 BOB; COMBINADO: 39528.40 BOB</desc>
+<rect width="100%" height="100%" fill="white"/>
+<g font-family="sans-serif" font-size="15" fill="#172b4d"><text x="20" y="30">Costo total simulado (BOB) · datos mixtos y supuestos</text>
+<text x="20" y="80">BASE</text><rect x="175" y="60" width="481.54" height="28" fill="#245b85"/><text x="690" y="80">38068.92 BOB</text>
+<text x="20" y="145">CAMBIARIA</text><rect x="175" y="125" width="487.64" height="28" fill="#37806b"/><text x="690" y="145">38551.21 BOB</text>
+<text x="20" y="210">LOGISTICA</text><rect x="175" y="190" width="493.74" height="28" fill="#37806b"/><text x="690" y="210">39033.88 BOB</text>
+<text x="20" y="275">COMBINADO</text><rect x="175" y="255" width="500.00" height="28" fill="#37806b"/><text x="690" y="275">39528.40 BOB</text>
+</g></svg>
