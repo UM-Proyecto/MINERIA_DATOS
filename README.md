@@ -43,6 +43,7 @@ MULTIPARTES de Santa Cruz de la Sierra durante el segundo semestre de 2026?
 | HU-02 | [SCRUM-12](https://fsandoval09.atlassian.net/browse/SCRUM-12) | Samuel | Registro de origen y fecha de actualización de cada conjunto de datos | FICTICIO y público, según el conjunto (lo dice el propio registro) | [`src/hu-02`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/src/hu-02) | [`data/processed/hu-02`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/data/processed/hu-02) | [`reports/hu-02`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/reports/hu-02) |
 | HU-03 | [SCRUM-16](https://fsandoval09.atlassian.net/browse/SCRUM-16) · [SCRUM-51](https://fsandoval09.atlassian.net/browse/SCRUM-51) | Fiorella | Panel interactivo de evolución de precios (con la referencia de 11 BOB/USD) | FICTICIO (precios), convertidos con 11 BOB/USD, una referencia fija elegida por el equipo | [`src/hu-03`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/src/hu-03) | [`reports/hu-03`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/reports/hu-03) | [`docs/hu-03`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/docs/hu-03) |
 | HU-07 | [SCRUM-20](https://fsandoval09.atlassian.net/browse/SCRUM-20) | Fiorella | Comparación de tres técnicas de pronóstico (MAE) | FICTICIO (movimientos de HU-17) | [`src/hu-07`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/src/hu-07) | [`data/processed/hu-07`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/data/processed/hu-07) | [`reports/hu-07`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/reports/hu-07) |
+| HU-09 | — | Equipo | Alertas de faltantes con stock, demanda futura y plazo | Integración incompleta de fuentes ficticias; demostración sintética separada | [`src/hu-09`](src/hu-09) | [`resultados`](data/processed/hu-09) · [`informe`](reports/hu-09/REPORTE_HU09.md) | [`docs/hu-09`](docs/hu-09/LEEME.md) |
 | HU-17 | [SCRUM-9](https://fsandoval09.atlassian.net/browse/SCRUM-9) | Sabrina | Normalización de códigos y depuración de duplicados | FICTICIO | [`src/hu-17`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/src/hu-17) | [`data/raw/hu-17`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/data/raw/hu-17) | [`data/processed/hu-17`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/data/processed/hu-17) |
 | HU-18 | [SCRUM-10](https://fsandoval09.atlassian.net/browse/SCRUM-10) | Sabrina | Conciliación del inventario con conteos físicos | FICTICIO | [`src/hu-18`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/src/hu-18) | [`data/raw/hu-18`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/data/raw/hu-18) | [`data/processed/hu-18`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/data/processed/hu-18) |
 | HU-30 | [SCRUM-6](https://fsandoval09.atlassian.net/browse/SCRUM-6) | Samuel | Histórico de movimientos de inventario | FICTICIO | [`src/hu-30-31`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/src/hu-30-31) | [`data/processed/hu-30-31`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/data/processed/hu-30-31) | [`docs/hu-30-31`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/docs/hu-30-31) |
@@ -64,7 +65,7 @@ src/          scripts de procesamiento y análisis
 tests/        pruebas automatizadas
 ```
 
-Los datos y resultados de cada historia de usuario usan el mismo identificador (`hu-02`, `hu-03`, `hu-07`, `hu-17`, `hu-18`, `hu-30-31`, `hu-32`, `hu-33` y `hu-34`) para mantener su trazabilidad.
+Los datos y resultados de cada historia de usuario usan el mismo identificador (`hu-02`, `hu-03`, `hu-07`, `hu-09`, `hu-17`, `hu-18`, `hu-30-31`, `hu-32`, `hu-33` y `hu-34`) para mantener su trazabilidad.
 
 ## Ejecución
 
@@ -72,6 +73,7 @@ Ejecutar desde la raíz del repositorio:
 
 ```bash
 python src/hu-07/comparar_pronosticos.py
+python src/hu-09/generar_alertas.py
 python src/hu-32/obtener_series_tc.py
 python src/hu-34/generar_datos.py
 python src/hu-34/limpieza_multiparte.py
@@ -80,3 +82,25 @@ python src/hu-30-31/ejecutar_todo.py
 python src/hu-02/registro_fuentes.py actualizar --todos
 python -m unittest discover -s tests -p "test_*.py" -v
 ```
+
+## Alertas de faltantes (HU-09)
+
+Ejecutar `python src/hu-09/generar_alertas.py` reutiliza HU-17, HU-18 y HU-31,
+con la configuración de [`data/raw/hu-09/configuracion.json`](data/raw/hu-09/configuracion.json).
+Los diez repuestos actuales quedan NO_CALCULABLE: no hay previsión futura
+validada ni disponibilidad confirmada. El MAE de HU-07 no se usa como demanda.
+No se modifican datos ni resultados de otras historias.
+
+Para demostrar la lógica con datos sintéticos explícitos:
+
+```bash
+python src/hu-09/generar_alertas.py --config data/raw/hu-09/demostracion/configuracion.json
+```
+
+La demostración genera cuatro ALERTA, tres SIN_ALERTA y tres NO_CALCULABLE,
+con resultados separados en las subcarpetas `demostracion/` de datos e informes.
+No representa disponibilidad ni previsiones operativas reales de MULTIPARTES.
+
+Consulta el [informe de integración](reports/hu-09/REPORTE_HU09.md),
+el [informe de demostración](reports/hu-09/demostracion/REPORTE_HU09.md)
+y la [guía de contrato CSV, fórmulas y pruebas](docs/hu-09/LEEME.md).

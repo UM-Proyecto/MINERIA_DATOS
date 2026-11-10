@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="150" viewBox="0 0 1000 150" role="img" aria-labelledby="titulo desc">
+<title id="titulo">HU-09: prioridades por faltante previsto</title>
+<desc id="desc">No hay alertas calculadas; revisar estados y datos faltantes</desc>
+<rect width="100%" height="100%" fill="white"/><g font-family="sans-serif" font-size="15" fill="#172b4d">
+<text x="20" y="28">INTEGRACION: faltante estimado en unidades</text>
+<text x="20" y="55">ALERTA: 0 | SIN_ALERTA: 0 | NO_CALCULABLE: 10</text>
+<text x="20" y="100">Sin alertas calculadas. NO_CALCULABLE no significa ausencia de riesgo.</text>
+</g></svg>
