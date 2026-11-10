@@ -1,0 +1,708 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Poppins es la tipografía del sitio de MULTIPARTES. Sin conexión, el panel usa la fuente del sistema. -->
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,800&display=swap">
+<title>MULTIPARTES · Decisión de compra</title>
+<!--
+  Pantalla de decisión de compra (Minería de Datos, MULTIPARTES).
+  Estructura tomada del panel de precios de Fiorella (HU-03): barra lateral, filtros en tarjeta, cifras clave y
+  tarjetas de contenido. Identidad de multipartes.com.bo: logotipo oficial (blanco sobre verde #016726, el mismo
+  fondo del archivo del sitio), verde de acento #01863e y tipografía Poppins.
+  Archivo autónomo: los datos van en el bloque JSON del final (los pone generar_panel.py).
+-->
+<style>
+/* 1. VARIABLES */
+:root{
+  --side:#016726;          /* fondo exacto del logotipo de multipartes.com.bo */
+  --side-2:#015a21; --side-ink:#d7eadc; --side-mute:#a6cdb1;
+  --brand:#01863e; --brand-dark:#016a31; --brand-soft:#e3f2e8;
+  --ink:#161922; --ink-2:#3f4650; --ink-3:#5f6670;
+  --bg:#f4f5f3; --card:#fff; --line:#e3e6e2; --line-2:#cdd2cc;
+  --graphite:#1b1f24;
+  --s1:#2f6f9f; --s2:#a8741a; --s3:#b0307a;          /* técnicas de pronóstico (validadas) */
+  --ok:#1d7a52; --ok-soft:#e1f1e8; --warn:#9a6700; --warn-soft:#fbf1d9; --bad:#b42318; --bad-soft:#fbe7e4;
+  --r:11px; --ease:cubic-bezier(.2,.8,.2,1);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 Poppins,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;font-variant-numeric:tabular-nums}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--brand);outline-offset:3px;border-radius:6px}
+h1,h2,h3{margin:0;letter-spacing:-.01em;text-wrap:balance}
+p{margin:0}
+a{color:inherit}
+
+/* 2. BARRA LATERAL (como el panel de Fiorella) */
+.side{position:fixed;inset:0 auto 0 0;width:236px;background:var(--side);color:var(--side-ink);padding:26px 18px;display:flex;flex-direction:column;z-index:5}
+.side .logo{display:block;width:100%;max-width:200px;height:auto;margin:0 0 6px -4px}
+.side .sub{font-size:10.5px;letter-spacing:1.6px;color:var(--side-mute);text-transform:uppercase;margin:4px 0 40px}
+.side .navt{font-size:10px;letter-spacing:1.6px;color:var(--side-mute);text-transform:uppercase;margin:0 12px 10px}
+.side nav a{display:flex;gap:10px;align-items:center;min-height:44px;padding:10px 12px;border-radius:8px;margin:3px 0;text-decoration:none;font-size:13px;color:var(--side-ink)}
+.side nav a:hover{background:var(--side-2)}
+.side nav a[aria-current=page]{background:#fff;color:var(--side);font-weight:600}
+.side nav svg{width:16px;height:16px;flex:none}
+.side .foot{margin-top:auto;border-top:1px solid #ffffff2e;padding-top:18px;font-size:11.5px;line-height:1.75;color:var(--side-mute)}
+.side .foot strong{display:block;color:#fff;font-size:12.5px}
+
+.main{margin-left:236px;padding:0 36px 120px}
+.inner{max-width:1600px;margin:0 auto}
+.topbar{min-height:64px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);font-size:12.5px;color:var(--ink-3)}
+.pill{display:inline-flex;align-items:center;gap:7px;border:1px solid #eeddbb;border-radius:99px;padding:6px 12px;background:#fff9ed;color:#7a5600;font-size:11.5px;font-weight:600}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:#d69630}
+
+.hero{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;padding:24px 0 20px}
+.eyebrow{text-transform:uppercase;font-size:10.5px;letter-spacing:1.8px;color:var(--ink-3);font-weight:600;margin-bottom:6px}
+.hero h1{font-size:32px;font-weight:700;line-height:1.1;margin-bottom:6px}
+.hero p{color:var(--ink-3);max-width:70ch}
+.btn2{min-height:44px;border:1px solid var(--line-2);background:#fff;border-radius:8px;padding:0 16px;font-weight:600;font-size:13px;white-space:nowrap;transition:background .12s,transform .12s var(--ease)}
+.btn2:hover{background:#eef3ef}
+.btn2:active{transform:scale(.97)}
+
+/* 3. TARJETAS */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px 22px;box-shadow:0 2px 4px #16192205}
+.card+.card,.grid-k+.card,.card+.grid-k,.nota-sit+.card{margin-top:18px}
+.card-h{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:14px}
+.card-h h2{font-size:18px;font-weight:600}
+.card-h p{color:var(--ink-3);font-size:12.5px;max-width:78ch;margin-top:3px}
+.num{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:6px;background:var(--brand);color:#fff;font-size:12px;font-weight:700;margin-right:8px;vertical-align:1px}
+
+/* 4. FILTROS */
+.filtros .fila{display:grid;grid-template-columns:1.1fr 1.3fr 1fr 2fr;gap:14px 16px;align-items:end}
+.filtros .fila+.fila{margin-top:14px;padding-top:14px;border-top:1px dashed var(--line)}
+.filtros .sup{grid-template-columns:repeat(3,1fr) 1fr}
+label,.lab{display:block;font-size:11.5px;font-weight:600;color:var(--ink-2);margin-bottom:5px;letter-spacing:.2px}
+select,input[type=number]{width:100%;height:44px;border:1px solid var(--line-2);border-radius:8px;background:#fff;padding:0 12px}
+select:hover,input:hover{border-color:var(--ink-3)}
+.tcrow{display:flex;gap:6px}
+.tcrow input{width:86px;flex:none}
+.chip{height:44px;flex:1;min-width:0;padding:0 8px;border:1px solid var(--line-2);border-radius:8px;background:#fff;font-size:13px;line-height:1.15;text-align:left;transition:transform .12s var(--ease),border-color .12s,background .12s}
+.chip small{display:block;color:var(--ink-3);font-size:10.5px}
+.chip:hover{border-color:var(--ink-3)}
+.chip:active{transform:scale(.97)}
+.chip[aria-pressed=true]{border-color:var(--brand);background:var(--brand-soft)}
+.sup-t{font-size:12px;color:var(--ink-3);align-self:center}
+.sup-t b{color:var(--ink-2)}
+
+/* 5. CIFRAS CLAVE */
+.grid-k{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-top:18px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px 20px}
+.kpi .t{font-size:10.5px;font-weight:600;letter-spacing:1.4px;text-transform:uppercase;color:var(--ink-3)}
+.kpi .v{font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.2;margin-top:4px}
+.kpi .v small{font-size:14px;font-weight:600;color:var(--ink-3);margin-left:4px;letter-spacing:0}
+.kpi .d{font-size:12px;color:var(--ink-3);margin-top:2px}
+.est{display:inline-block;font-size:11px;font-weight:600;border-radius:99px;padding:2px 9px;margin-left:6px;vertical-align:4px;letter-spacing:0}
+.est.bad{background:var(--bad-soft);color:var(--bad)} .est.warn{background:var(--warn-soft);color:var(--warn)} .est.ok{background:var(--ok-soft);color:var(--ok)}
+.c-bad{color:var(--bad)} .c-warn{color:var(--warn)} .c-ok{color:var(--ok)}
+.nota-sit{margin-top:18px;background:#eef6f0;border:1px solid #d3e8da;border-radius:var(--r);padding:13px 18px;color:#1f5137;font-size:13.5px}
+.nota-sit strong{color:#123a26}
+
+/* 6. ALTERNATIVAS */
+.como{display:flex;gap:14px;align-items:flex-start;background:#f7f8f6;border:1px solid var(--line);border-radius:9px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:var(--ink-2)}
+.como b{color:var(--ink)}
+.como svg{flex:none;margin-top:2px}
+.alts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0 16px}
+.alt{display:grid;grid-template-rows:subgrid;grid-row:span 10;border:1px solid var(--line);border-radius:var(--r);padding:16px 16px 14px;background:#fff;position:relative;transition:border-color .15s,box-shadow .2s var(--ease)}
+.alt.mejor{border-color:var(--brand);box-shadow:inset 0 3px 0 var(--brand)}
+.alt[data-elegida=true]{border-color:var(--graphite);box-shadow:0 0 0 2px var(--graphite),0 10px 24px -12px #16192266}
+.alt h3{font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.alt h3 i{font-style:normal;display:inline-grid;place-items:center;width:26px;height:26px;border-radius:7px;background:var(--graphite);color:#fff;font-size:13px}
+.alt.mejor h3 i{background:var(--brand)}
+.tag{font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:99px;background:var(--brand-soft);color:var(--brand-dark)}
+.alt .que{color:var(--ink-3);font-size:12.5px;padding:6px 0 10px}
+.score{padding:12px 0 12px;border-top:1px solid var(--line)}
+.score .big{font-size:34px;font-weight:700;letter-spacing:-.03em;line-height:1}
+.score .big small{font-size:15px;font-weight:600;color:var(--ink-3);margin-left:2px}
+.score .lbl{font-size:12px;color:var(--ink-3);margin-top:4px}
+.meter{height:8px;border-radius:4px;background:#edf0ec;margin-top:9px;overflow:hidden}
+.meter span{display:block;height:100%;border-radius:4px;background:var(--line-2);transform-origin:left;transition:width .5s var(--ease)}
+.alt.mejor .meter span{background:var(--brand)}
+.dato{padding:9px 0;border-top:1px solid var(--line);margin:0}
+.dato dt{font-size:11.5px;color:var(--ink-3)}
+.dato dd{margin:1px 0 0;font-size:17px;font-weight:600}
+.dato dd small{display:block;font-size:11.5px;font-weight:400;color:var(--ink-3)}
+.porque{padding:10px 0 4px;border-top:1px solid var(--line)}
+.porque .lt{font-size:11.5px;color:var(--ink-3);margin-bottom:6px}
+.porque p{font-size:12.5px;color:var(--ink-2);margin-bottom:8px}
+.tools{display:flex;flex-wrap:wrap;gap:5px}
+.tool{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;border:1px solid var(--line-2);border-radius:6px;padding:3px 7px;color:var(--ink-2);background:#fafbf9;text-decoration:none}
+.tool b{font-weight:600;color:var(--brand-dark)}
+.tool:hover{border-color:var(--brand)}
+.elegir{margin-top:10px;min-height:44px;border-radius:8px;border:1px solid var(--graphite);background:var(--graphite);color:#fff;font-weight:600;transition:transform .12s var(--ease),background .12s}
+.elegir:hover{background:#2a3037}
+.elegir:active{transform:scale(.98)}
+.alt[data-elegida=true] .elegir{background:var(--brand);border-color:var(--brand)}
+.pie{font-size:12px;color:var(--ink-3);margin-top:12px;max-width:110ch}
+
+/* 7. TABLAS Y GRÁFICOS */
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{padding:9px 10px;text-align:right;border-bottom:1px solid var(--line);vertical-align:middle}
+th:first-child,td:first-child{text-align:left}
+th{font-size:11.5px;color:var(--ink-3);font-weight:600;background:#fafbf9}
+tr[data-sel=true] td{background:var(--brand-soft)}
+.sens td.gana{font-weight:700;background:var(--brand-soft);color:var(--brand-dark)}
+td .barra{display:block;height:6px;border-radius:3px;background:var(--graphite);margin-top:5px;min-width:2px}
+.insignia{font-size:11px;font-weight:600;border-radius:99px;padding:2px 8px;white-space:nowrap}
+.insignia.si{background:var(--ok-soft);color:#1d5a3e} .insignia.no{background:var(--bad-soft);color:#8a2a1c} .insignia.na{background:#eceae5;color:var(--ink-3)}
+.dos{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:24px}
+.chartbox{position:relative}
+svg.chart{display:block;width:100%;height:auto;overflow:visible}
+svg.chart text{font:11.5px Poppins,system-ui,sans-serif;fill:var(--ink-3)}
+svg.chart .lbl{font-weight:600;font-size:12px}
+svg.chart .grid{stroke:var(--line);stroke-width:1}
+.tip{position:absolute;pointer-events:none;background:var(--graphite);color:#fff;border-radius:6px;padding:8px 10px;font-size:12px;line-height:1.45;min-width:150px;opacity:0;transform:translateY(4px);transition:opacity .12s,transform .12s var(--ease);z-index:3}
+.tip.on{opacity:1;transform:none}
+.tip b{display:block;margin-bottom:2px}
+.sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--ink-2);margin-top:8px}
+.nota{font-size:12px;color:var(--ink-3);margin-top:10px}
+details{margin-top:10px;font-size:13px}
+summary{cursor:pointer;color:var(--ink-2);font-weight:600;min-height:32px;display:flex;align-items:center}
+.prov input{accent-color:var(--brand);width:16px;height:16px;vertical-align:-3px;margin-right:6px}
+.herr{margin-top:28px}
+.herr>h2{font-size:20px;font-weight:600;margin-bottom:4px}
+.herr>p{color:var(--ink-3);font-size:13px;margin-bottom:14px;max-width:90ch}
+.metodo{margin-top:18px;font-size:12.5px;color:var(--ink-3)}
+.metodo ul{margin:6px 0 0;padding-left:18px;max-width:120ch}
+.metodo li{margin:3px 0}
+
+/* 8. BARRA DE DECISIÓN */
+.decision{visibility:hidden;position:fixed;left:236px;right:0;bottom:0;background:var(--graphite);color:#fff;border-top:3px solid var(--brand);transform:translateY(105%);transition:transform .35s var(--ease);z-index:10}
+.decision.on{transform:none;visibility:visible}
+.decision .in{display:flex;gap:16px;align-items:center;justify-content:space-between;padding:12px 36px;flex-wrap:wrap}
+.decision p{font-size:14px;max-width:110ch}
+.decision button{min-height:44px;padding:0 14px;border-radius:8px;border:1px solid #fff5;background:transparent;color:#fff;font-weight:600;margin-left:6px}
+.decision button:hover{background:#fff1}
+
+@keyframes dibuja{from{stroke-dashoffset:var(--len)}to{stroke-dashoffset:0}}
+.draw{stroke-dasharray:var(--len);animation:dibuja .7s var(--ease) both}
+@media (prefers-reduced-motion:reduce){.draw{animation:none;stroke-dasharray:none}*{transition:none!important}}
+
+/* 9. ADAPTACIÓN: 1080 de ancho (pantalla vertical) y celular */
+@media (max-width:1400px){
+  .alts{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+  .alt{grid-template-rows:none;grid-row:auto}
+  .filtros .fila,.filtros .sup{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .dos{grid-template-columns:1fr}
+}
+@media (max-width:1100px){
+  .side{width:200px;padding:22px 14px}
+  .main{margin-left:200px;padding:0 24px 120px}
+  .decision{left:200px}
+  .grid-k{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:760px){
+  .side{position:static;width:auto;flex-direction:row;align-items:center;justify-content:space-between;padding:10px 16px;gap:10px}
+  .side .logo{width:150px;margin:0}
+  .side .sub,.side .navt,.side .foot{display:none}
+  .side nav{display:flex;gap:4px}
+  .side nav a{margin:0;padding:8px 10px;font-size:12px}
+  .side nav a span{display:none}
+  .main{margin-left:0;padding:0 16px 140px}
+  .decision{left:0}.decision .in{padding:10px 16px}
+  .hero{flex-direction:column;align-items:flex-start;gap:12px;padding:18px 0 14px}
+  .pill{white-space:nowrap}
+  .topbar{min-height:52px}
+  .hero h1{font-size:26px}
+  .filtros .fila,.filtros .sup{grid-template-columns:1fr}
+  .tcrow{flex-wrap:wrap}.tcrow input{width:100%}
+  .chip{flex:1 1 calc(50% - 6px)}
+  .grid-k{gap:10px}
+  .kpi{padding:12px 14px}.kpi .v{font-size:24px}
+  .alts{grid-template-columns:1fr}
+  .card{padding:16px}
+  th,td{padding:8px 6px;font-size:12.5px}
+  .como{flex-direction:column;gap:6px}
+}
+@media print{.side,.filtros,.decision,.elegir{display:none}.main{margin:0}body{background:#fff}.alt,.card{break-inside:avoid}}
+</style>
+</head>
+<body>
+<aside class="side" aria-label="Navegación">
+  <img class="logo" src="__LOGO__" alt="MULTIPARTES Santa Cruz" width="300" height="111">
+  <div class="sub">Inteligencia de compras</div>
+  <div class="navt">Análisis del negocio</div>
+  <nav>
+    <a href="#" aria-current="page"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 13h12M4 10l3-3 2 2 4-5"/></svg><span>Decisión de compra</span></a>
+    <a href="../hu-03/MULTIPARTE_Precios_Interactivo.html"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="6"/><path d="M8 4.5V8l2.5 1.5"/></svg><span>Historial de precios</span></a>
+    <a href="#metodo"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="6"/><path d="M8 7v4M8 5h.01"/></svg><span>Cómo se calcula</span></a>
+  </nav>
+  <div class="foot"><strong>Jefatura de compras</strong>Santa Cruz de la Sierra<br>Proyecto académico · Univalle<br><br>Datos FICTICIOS de prueba (HU-34) y tipo de cambio público del BCB (HU-32).</div>
+</aside>
+
+<div class="main"><div class="inner">
+  <div class="topbar"><span>Compras &nbsp;/&nbsp; Decisión de compra</span><span class="pill">Datos FICTICIOS</span></div>
+
+  <div class="hero">
+    <div>
+      <div class="eyebrow">Planificación de compras</div>
+      <h1>Decisión de compra</h1>
+      <p>Elija un repuesto. El panel le muestra cuatro formas de comprarlo, cada una con su puntaje y con la herramienta de análisis que la respalda. La decisión la toma usted.</p>
+    </div>
+    <button class="btn2" id="b-reset" type="button">↻ Restablecer</button>
+  </div>
+
+  <div class="card filtros" role="group" aria-label="Filtros">
+    <div class="fila">
+      <div><label for="f-cat">Categoría</label><select id="f-cat"></select></div>
+      <div><label for="f-sku">Repuesto (días de stock)</label><select id="f-sku"></select></div>
+      <div><label for="f-prov">Proveedor</label><select id="f-prov"></select></div>
+      <div><span class="lab" id="tc-lab">Tipo de cambio (Bs por USD)</span>
+        <div class="tcrow" role="group" aria-labelledby="tc-lab">
+          <input id="f-tc" type="number" step="0.01" min="1" inputmode="decimal" aria-label="Tipo de cambio en bolivianos por dólar">
+          <span id="chips" style="display:contents"></span>
+        </div>
+      </div>
+    </div>
+    <div class="fila sup" role="group" aria-label="Supuestos de la simulación">
+      <div><label for="f-esp">¿Qué espera del dólar en 90 días?</label>
+        <select id="f-esp"><option value="0">Que baje 10 %</option><option value="1" selected>Que siga igual</option><option value="2">Que suba 10 %</option><option value="3">Que suba 20 %</option></select></div>
+      <div><label for="f-pas">¿Cuánto del dólar pasa al precio de venta?</label>
+        <select id="f-pas"><option value="1" selected>Todo (como en los datos)</option><option value="0.5">La mitad</option><option value="0">Nada (precio fijo)</option></select></div>
+      <div><label for="f-serv">Nivel de servicio</label>
+        <select id="f-serv"><option value="1.28">90 %</option><option value="1.645" selected>95 %</option><option value="2.33">99 %</option></select></div>
+      <p class="sup-t"><b>Supuestos de la simulación.</b> Cambian el puntaje, no los datos.</p>
+    </div>
+  </div>
+
+  <div class="grid-k" id="kpis" aria-live="polite"></div>
+  <div class="nota-sit" id="situ"></div>
+
+  <section class="card" style="margin-top:18px" aria-labelledby="h-alt">
+    <div class="card-h"><div><h2 id="h-alt">Cuatro alternativas para <span id="h-sku"></span></h2><p id="h-sub"></p></div></div>
+    <div class="como">
+      <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="var(--brand)" stroke-width="1.6"><circle cx="8" cy="8" r="6.2"/><path d="M8 7v4M8 5h.01"/></svg>
+      <p><b>Cómo leer el puntaje.</b> Cada alternativa se probó en 1.500 futuros posibles de 90 días, con ventas, plazos de entrega y dólar distintos en cada uno. El puntaje dice en cuántos de cada 100 futuros esa alternativa dejó más ganancia que las otras tres. Es una comparación entre alternativas, no la probabilidad de acertar.</p>
+    </div>
+    <div class="alts" id="alts"></div>
+    <p class="pie" id="alts-nota"></p>
+  </section>
+
+  <section class="card" aria-labelledby="h-sens">
+    <div class="card-h"><div><h2 id="h-sens">¿Cambia la mejor alternativa según lo que pase con el dólar?</h2><p id="sens-txt"></p></div></div>
+    <div class="scroll"><table id="t-sens" class="sens"></table></div>
+  </section>
+
+  <div class="herr">
+    <h2>Las herramientas que respaldan cada alternativa</h2>
+    <p>Lo que el panel usa para calcular cantidades, costos y puntajes. Cada etiqueta de las alternativas apunta a una de estas tres.</p>
+
+    <section class="card" id="h-pro" aria-labelledby="t-pro">
+      <div class="card-h"><div><h2 id="t-pro"><span class="num">1</span>Pronóstico de demanda (HU-07)</h2><p>Tres técnicas pronosticaron los últimos <span id="n-prueba"></span> meses sin ver lo que se vendió después. Gana la de menor error medio absoluto (MAE), y esa es la que usan las alternativas.</p></div></div>
+      <div class="dos">
+        <div><div class="chartbox" id="chart-dem"><div class="tip" id="tip-dem" role="status"></div></div><div class="legend" id="leg-dem"></div></div>
+        <div><h3 style="font-size:14px;font-weight:600;margin-bottom:6px">Error de cada técnica</h3><div class="scroll"><table id="t-mae"></table></div><p class="nota" id="mae-nota"></p>
+          <details><summary>Ver los datos del gráfico como tabla</summary><div class="scroll"><table id="t-dem"></table></div></details></div>
+      </div>
+    </section>
+
+    <section class="card" id="h-prv" aria-labelledby="t-prv">
+      <div class="card-h"><div><h2 id="t-prv"><span class="num">2</span>Compras y proveedores de este repuesto (HU-34, HU-31)</h2><p>Costo puesto en Bs: último precio en dólares por el tipo de cambio elegido, más el flete promedio por unidad. Elegir otro proveedor recalcula las alternativas.</p></div></div>
+      <div class="scroll"><table id="t-prov" class="prov"></table></div>
+    </section>
+
+    <section class="card" id="h-tc" aria-labelledby="t-tc">
+      <div class="card-h"><div><h2 id="t-tc"><span class="num">3</span>Tipo de cambio (HU-32)</h2><p>Tipo de cambio oficial diario del Banco Central de Bolivia desde el 27 de junio de 2026. La referencia del equipo es 11 Bs por dólar: el punto medio entre el mínimo y el máximo de la serie, redondeado.</p></div></div>
+      <div class="dos">
+        <div class="chartbox" id="chart-tc"><div class="tip" id="tip-tc" role="status"></div></div>
+        <div id="tc-lectura"></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="metodo" id="metodo">
+    <strong>Cómo se calcula</strong>
+    <ul>
+      <li>Demanda diaria = pronóstico del mes siguiente con la técnica de menor MAE, dividido entre 30. Stock de seguridad = nivel de servicio × desvío diario de las ventas de los últimos 90 días × raíz del plazo de entrega.</li>
+      <li>Cantidad de cada alternativa = lo que se venderá durante el plazo de entrega más la cobertura elegida, más el stock de seguridad, menos el stock actual. Si da cero o menos, no hace falta pedir.</li>
+      <li>Puntaje = porcentaje de 1.500 escenarios simulados de 90 días en que la alternativa dejó la mayor utilidad (ventas menos compras, más el stock que queda, menos el costo de tener dinero inmovilizado, 1,5 % al mes).</li>
+      <li>El rango de costo usa el tipo de cambio mínimo y máximo de la serie del BCB. No incluye aranceles ni otros gastos de importación (HU-31).</li>
+      <li><strong>Origen:</strong> ventas, compras e inventario son datos FICTICIOS de prueba (HU-34); el tipo de cambio es público (BCB, HU-32).</li>
+    </ul>
+  </div>
+</div></div>
+
+<div class="decision" id="decision" role="region" aria-label="Alternativa elegida">
+  <div class="in">
+    <p id="decision-txt"></p>
+    <div><button id="b-copiar" type="button">Copiar resumen</button><button id="b-imprimir" type="button">Imprimir</button><button id="b-quitar" type="button">Quitar</button></div>
+  </div>
+</div>
+
+<script type="application/json" id="datos">__DATA__</script>
+<script>
+(function(){
+"use strict";
+const D = JSON.parse(document.getElementById("datos").textContent);
+const $ = id => document.getElementById(id);
+const nf = (n,d=0)=>Number(n).toLocaleString("es-BO",{minimumFractionDigits:d,maximumFractionDigits:d});
+const bs = n => "Bs "+nf(n);
+const MES = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+const mesTxt = m => MES[+m.slice(5)-1]+" "+m.slice(2,4);
+const fechaTxt = f => { const [y,m,d]=f.split("-"); return +d+" "+MES[+m-1]+" "+y; };
+const NOM = {ultimo:"Último periodo",promedio3:"Promedio móvil de 3 meses",estacional:"Estacional (mismo mes del año anterior)"};
+const COL = {ultimo:"var(--s1)",promedio3:"var(--s2)",estacional:"var(--s3)"};
+const CORTO = {ultimo:"Último periodo",promedio3:"Promedio móvil",estacional:"Estacional"};
+const S = {cat:"", sku:"", prov:"", tc:D.tc.referencia, z:1.645, esp:1, beta:1, elegida:null};
+const ESP = [{t:"baja 10 %",v:-0.10},{t:"sigue igual",v:0},{t:"sube 10 %",v:0.10},{t:"sube 20 %",v:0.20}];
+const skus = Object.keys(D.productos).sort();
+const cats = [...new Set(skus.map(s=>D.productos[s].categoria))].sort();
+/* ---- Cálculo ---- */
+function cobertura(sku){
+  const P=D.productos[sku], m=metodoGanador(P);
+  return P.stock/Math.max(P.siguiente[m]/30,0.001);
+}
+function metodoGanador(P){
+  let mejor=null;
+  for(const k of Object.keys(P.prueba.mae)) if(mejor===null||P.prueba.mae[k]<P.prueba.mae[mejor]) mejor=k;
+  return mejor;
+}
+function calcular(){
+  const P = D.productos[S.sku];
+  const pr = P.proveedores.find(p=>p.id===S.prov);
+  const met = metodoGanador(P);
+  const mensual = P.siguiente[met];
+  const d = Math.max(mensual/30, 0.001);
+  const ss = S.z*P.desvio_dia_90*Math.sqrt(pr.plazo_dias);
+  const base = d*pr.plazo_dias+ss-P.stock;
+  const q = X => Math.max(0, Math.ceil(base + d*X));
+  const costo = (n,tc)=> n*(pr.costo_ultimo_usd*tc+pr.flete_bs_unidad);
+  const qC = q(60), q1 = Math.ceil(qC/2);
+  const def = [
+    {id:"A",titulo:"Reponer lo justo",cant:q(0),llega:q(0),pedidos:1,
+     que:"Pedir solo lo que cubre el plazo de entrega y el stock de seguridad.",
+     por:"Pronóstico + plazo del proveedor. Menor dinero inmovilizado, margen mínimo."},
+    {id:"B",titulo:"Cubrir 30 días más",cant:q(30),llega:q(30),pedidos:1,
+     que:"Sumar un mes de ventas pronosticadas después de que llegue el pedido.",
+     por:"Pronóstico + plazo. Un pedido, con un mes de respiro."},
+    {id:"C",titulo:"Cubrir 60 días más",cant:qC,llega:qC,pedidos:1,
+     que:"Comprar para dos meses: menos pedidos y menos exposición a un dólar más caro después.",
+     por:"Tipo de cambio: sirve si se espera que el dólar suba. Aumenta el dinero inmovilizado."},
+    {id:"D",titulo:"Dividir en dos pedidos",cant:qC,llega:q1,pedidos:2,
+     que:"Misma cantidad que cubrir 60 días, pero la mitad hoy y la mitad dentro de 30 días.",
+     por:"Reparte el desembolso y el riesgo del tipo de cambio en dos momentos."}
+  ].map(o=>{
+    o.costo = costo(o.cant,S.tc); o.min = costo(o.cant,D.tc.minimo); o.max = costo(o.cant,D.tc.maximo);
+    o.margen = (P.stock+o.llega-d*pr.plazo_dias)/d;
+    o.reordenar = (P.stock-(d*(pr.plazo_dias+({A:0,B:30,C:60,D:60}[o.id]))+ss))/d;  // días hasta que esta alternativa pida pedido
+    return o;
+  });
+  const activas = def.filter(o=>o.cant>0);
+  if(activas.length>1){
+    const menor = Math.min(...activas.map(o=>o.costo));
+    const mayor = Math.max(...activas.map(o=>o.margen));
+    activas.forEach(o=>{ o.tags=[]; if(o.costo===menor) o.tags.push("Menor desembolso"); if(o.margen===mayor) o.tags.push("Mayor margen"); });
+  }
+  return {P,pr,met,mensual,d,ss,def,agota:P.stock/d};
+}
+
+/* ---- Simulación (Monte Carlo): cada alternativa se evalúa con los mismos escenarios ---- */
+const N_SIM = 1500, H = 90, COSTO_CAPITAL_MES = 0.015;
+function azar(sem){ return function(){ sem|=0; sem=sem+0x6D2B79F5|0; let t=Math.imul(sem^sem>>>15,1|sem); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+function normal(r){ let u=0,v=0; while(!u)u=r(); v=r(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
+function simular(R){
+  const {P,pr,d,ss} = R, hist = P.ventas_dia, mh = hist.reduce((a,b)=>a+b,0)/hist.length || 1, esc = d/mh;
+  const r = azar(20261109), sd = D.tc.desvio_diario, rop = d*pr.plazo_dias+ss, lote = Math.max(1,Math.ceil(d*30));
+  const sim = [];
+  for(let n=0;n<N_SIM;n++){
+    const dem=new Array(H), w=new Array(H); let acum=0;
+    for(let t=0;t<H;t++){ dem[t]=Math.max(0,Math.round(hist[Math.floor(r()*hist.length)]*esc)); acum+=normal(r)*sd; w[t]=acum; }
+    sim.push({dem,w,lt:Math.max(3,Math.round(pr.plazo_dias+normal(r)*pr.plazo_desvio))});
+  }
+  const tc0 = S.tc, usd = pr.costo_ultimo_usd, fl = pr.flete_bs_unidad, rec = P.recargo;
+  function evaluar(o, e, x){
+    const mu = Math.log(1+ESP[e].v);
+    const tcT = t => tc0*Math.exp(mu*t/H + x.w[t]);
+    let stock=P.stock, costo=usd*tc0+fl, comprado=0, ingreso=0, tenencia=0, perdido=0, quiebre=false, pend=[], comprometido=0;
+    const pedir = (q,t)=>{ if(q<=0) return; const c=usd*tcT(t)+fl; comprado+=q*c; pend.push({dia:t+x.lt,q,c}); };
+    if(o.pedidos===2) comprometido = o.cant-o.llega;
+    pedir(o.llega,0);
+    for(let t=0;t<H;t++){
+      pend = pend.filter(p=>{ if(p.dia<=t){ costo=(stock*costo+p.q*p.c)/Math.max(1,stock+p.q); stock+=p.q; return false; } return true; });
+      if(o.pedidos===2 && t===30){ pedir(comprometido,t); comprometido=0; }
+      const venta=Math.min(stock,x.dem[t]); if(venta<x.dem[t] && t>=x.lt){ quiebre=true; perdido+=x.dem[t]-venta; }  // antes de la primera llegada el quiebre es inevitable y no distingue alternativas
+      stock-=venta; ingreso+=venta*rec*usd*(tc0+S.beta*(tcT(t)-tc0));
+      tenencia+=stock*costo*COSTO_CAPITAL_MES/30;
+      const pos=stock+pend.reduce((a,p)=>a+p.q,0)+comprometido;
+      if(pos<=rop && t+x.lt<H-1) pedir(lote,t);
+    }
+    return {u:ingreso-comprado+stock*costo-tenencia, quiebre, perdido};
+  }
+  return ESP.map((_,e)=>{
+    const us = R.def.map(()=>[]), q=R.def.map(()=>0), pe=R.def.map(()=>0), gana=R.def.map(()=>0);
+    sim.forEach(x=>{
+      const res = R.def.map(o=>evaluar(o,e,x)), mx = Math.max(...res.map(z=>z.u)), ws = res.filter(z=>z.u>=mx-1e-9).length;
+      res.forEach((z,i)=>{ us[i].push(z.u); if(z.quiebre) q[i]++; pe[i]+=z.perdido; if(z.u>=mx-1e-9) gana[i]+=1/ws; });
+    });
+    return R.def.map((_,i)=>{ const a=us[i].slice().sort((p,q)=>p-q); return {gana:gana[i]/N_SIM, u:a.reduce((p,q)=>p+q,0)/N_SIM, p10:a[Math.floor(N_SIM*0.1)], quiebre:q[i]/N_SIM, perdido:pe[i]/N_SIM}; });
+  });
+}
+let cacheSim = {k:"",v:null};
+function simulado(R){
+  const k=[S.sku,S.prov,S.tc,S.z,S.beta].join("|");
+  if(cacheSim.k!==k) cacheSim={k,v:simular(R)};
+  return cacheSim.v;
+}
+
+/* ---- Filtros ---- */
+function llenarFiltros(){
+  $("f-cat").innerHTML = '<option value="">Todas</option>'+cats.map(c=>`<option>${c}</option>`).join("");
+  repoblarSku();
+  $("f-tc").value = S.tc;
+  $("chips").innerHTML = [["Mínimo",D.tc.minimo],["Referencia",D.tc.referencia],["Último dato",D.tc.actual],["Máximo",D.tc.maximo]]
+    .map(([t,v])=>`<button class="chip" type="button" data-tc="${v}" aria-pressed="false">${nf(v,2)}<small>${t}</small></button>`).join("");
+}
+function repoblarSku(){
+  const lista = skus.filter(s=>!S.cat||D.productos[s].categoria===S.cat);
+  if(!lista.includes(S.sku)) S.sku = lista[0];
+  $("f-sku").innerHTML = lista.map(s=>`<option value="${s}">${s} · ${D.productos[s].categoria} · ${nf(cobertura(s))} d</option>`).join("");
+  $("f-sku").value = S.sku;
+  repoblarProv();
+}
+function mejorProveedor(P){
+  return P.proveedores.reduce((a,b)=> (b.costo_ultimo_usd*S.tc+b.flete_bs_unidad) < (a.costo_ultimo_usd*S.tc+a.flete_bs_unidad) ? b : a).id;
+}
+function repoblarProv(){
+  const P = D.productos[S.sku];
+  if(!P.proveedores.some(p=>p.id===S.prov)) S.prov = mejorProveedor(P);
+  $("f-prov").innerHTML = P.proveedores.map(p=>`<option value="${p.id}">${p.id}</option>`).join("");
+  $("f-prov").value = S.prov;
+}
+function marcarChips(){
+  document.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed", String(Math.abs(+c.dataset.tc - S.tc)<0.0001)));
+}
+
+/* ---- Pintado ---- */
+// Herramienta que respalda cada alternativa: etiqueta corta + sección del panel donde se ve
+const T_PRO = '<a class="tool" href="#h-pro"><b>1</b> Pronóstico · MAE</a>';
+const T_PRV = '<a class="tool" href="#h-prv"><b>2</b> Compras y plazo del proveedor</a>';
+const T_TC  = '<a class="tool" href="#h-tc"><b>3</b> Tipo de cambio</a>';
+const T_SIM = '<span class="tool">Simulación · 1.500 escenarios</span>';
+const POR = {
+  A:{txt:"Compra lo mínimo para no quedarse sin stock mientras llega el pedido. Inmoviliza menos dinero, pero deja poco margen si las ventas suben o el proveedor se atrasa.", t:[T_PRO,T_PRV,T_SIM]},
+  B:{txt:"Suma un mes de ventas pronosticadas. Un solo pedido, con un mes de respiro después de la entrega.", t:[T_PRO,T_PRV,T_SIM]},
+  C:{txt:"Compra para dos meses hoy. Conviene si se espera que el dólar suba, porque fija el costo con el dólar de hoy; a cambio, inmoviliza más dinero.", t:[T_TC,T_PRO,T_SIM]},
+  D:{txt:"La misma cantidad que C, pero la mitad hoy y la mitad en 30 días. Reparte el desembolso y el riesgo del dólar en dos momentos.", t:[T_TC,T_PRV,T_SIM]}
+};
+function pintar(animar){
+  const R = calcular(), P = R.P, pr = R.pr;
+  marcarChips();
+  const dias = R.agota;
+  const est = dias < pr.plazo_dias ? ["bad","Urgente"] : dias < pr.plazo_dias+30 ? ["warn","Margen corto"] : ["ok","Con margen"];
+  $("kpis").innerHTML = `
+    <div class="kpi"><div class="t">Stock actual</div><div class="v">${nf(P.stock)}<small>u</small></div><div class="d">al ${fechaTxt(P.fecha_stock)} · ${P.categoria}</div></div>
+    <div class="kpi"><div class="t">Venta pronosticada</div><div class="v">${nf(R.d,1)}<small>u/día</small></div><div class="d">${nf(R.mensual,0)} u el mes siguiente · ${CORTO[R.met].toLowerCase()}</div></div>
+    <div class="kpi"><div class="t">El stock alcanza para</div><div class="v c-${est[0]}">${nf(dias)}<small>días</small><span class="est ${est[0]}">${est[1]}</span></div><div class="d">a ese ritmo de venta</div></div>
+    <div class="kpi"><div class="t">Entrega de ${pr.id}</div><div class="v">${nf(pr.plazo_dias,0)}<small>días</small></div><div class="d">promedio; el más lento tardó ${pr.plazo_max}</div></div>`;
+  $("situ").innerHTML = (P.stock===0 ? "<strong>El stock está en cero.</strong> Las ventas recientes pueden estar subestimadas por falta de mercadería. " : "")
+    + (dias<pr.plazo_dias ? `<strong>El stock se agota antes de que llegue un pedido hecho hoy.</strong> Conviene decidir hoy.` : dias<pr.plazo_dias+30 ? "<strong>El margen después de la entrega es corto.</strong>" : "<strong>Hay margen para esperar.</strong> Ninguna alternativa es urgente.");
+  $("h-sku").textContent = S.sku;
+  $("h-sub").textContent = `${P.categoria} · proveedor ${pr.id} · dólar a ${nf(S.tc,2)} Bs · se espera que el dólar ${ESP[S.esp].t}`;
+
+  const SIM = simulado(R), fila = SIM[S.esp];
+  const iguales = R.def.every(o=>o.cant===0);
+  const mejorI = iguales ? -1 : fila.reduce((a,x,i)=>x.gana>fila[a].gana?i:a,0);
+  $("alts").innerHTML = R.def.map((o,i)=>{
+    const m = fila[i], sel = S.elegida===o.id, sinPedido = o.cant===0, pct = Math.round(m.gana*100);
+    return `<article class="alt${i===mejorI?" mejor":""}" data-elegida="${sel}" aria-label="Alternativa ${o.id}">
+      <h3><i>${o.id}</i>${o.titulo}${i===mejorI?`<span class="tag">Gana más veces</span>`:""}</h3>
+      <p class="que">${o.que}</p>
+      <div class="score"><div class="big">${iguales?"—":pct}<small>${iguales?"":"de 100"}</small></div>
+        <div class="lbl">${iguales?"las cuatro son iguales hoy":"futuros simulados en que deja más ganancia"}</div>
+        <div class="meter" aria-hidden="true"><span style="width:${iguales?0:Math.max(2,pct)}%"></span></div></div>
+      <dl class="dato"><dt>Cantidad a pedir</dt><dd>${sinPedido?"Nada por ahora":nf(o.cant)+" unidades"}${sinPedido?`<small>pedir en ${nf(Math.max(0,o.reordenar))} días</small>`:o.pedidos===2?`<small>${nf(o.llega)} hoy y ${nf(o.cant-o.llega)} en 30 días</small>`:""}</dd></dl>
+      <dl class="dato"><dt>Desembolso con ${nf(S.tc,2)} Bs/USD</dt><dd>${sinPedido?"Bs 0":bs(o.costo)}${sinPedido?"":`<small>de ${bs(o.min)} a ${bs(o.max)} según el dólar</small>`}</dd></dl>
+      <dl class="dato"><dt>Margen después de la entrega</dt><dd class="c-${o.margen<0?"bad":o.margen<7?"warn":"ok"}">${o.margen<0?"Falta stock":nf(o.margen)+" días"}<small>${o.margen<0?"se pierden "+nf(-o.margen)+" días de ventas":"de ventas cubiertas"}</small></dd></dl>
+      <dl class="dato"><dt>Riesgo de quedarse sin stock</dt><dd class="c-${m.quiebre>.5?"bad":m.quiebre>.2?"warn":"ok"}">${nf(m.quiebre*100,0)} %<small>de los futuros simulados</small></dd></dl>
+      <dl class="dato"><dt>Ganancia esperada en 90 días</dt><dd>${bs(m.u)}<small>en un mal escenario (1 de cada 10): ${bs(m.p10)}</small></dd></dl>
+      <div class="porque"><div class="lt">¿Por qué esta alternativa?</div><p>${POR[o.id].txt}</p><div class="tools">${POR[o.id].t.join("")}</div></div>
+      <button class="elegir" type="button" data-alt="${o.id}" aria-pressed="${sel}">${sel?"Elegida ✓":"Elegir esta"}</button>
+    </article>`;
+  }).join("");
+  $("alts-nota").textContent = `Pronóstico con ${NOM[R.met].toLowerCase()}. Stock de seguridad de ${nf(R.ss,0)} unidades para un servicio del ${Math.round({1.28:90,1.645:95,2.33:99}[S.z])} %. Después del primer pedido, cada alternativa vuelve a pedir lotes de un mes cuando el stock llega al punto de reposición. Proveedor ${pr.id}: ${nf(pr.costo_ultimo_usd,2)} USD por unidad en el último pedido.`;
+
+  pintarSens(SIM, iguales);
+  pintarPronostico(R, animar);
+  pintarProveedores(R);
+  pintarTC(R, animar);
+  pintarDecision(R);
+}
+function pintarSens(SIM, iguales){
+  const ganadores = SIM.map(f=>f.reduce((a,x,i)=>x.gana>f[a].gana?i:a,0));
+  const cambia = new Set(ganadores).size>1;
+  $("t-sens").innerHTML = `<thead><tr><th>Si se espera que el dólar…</th>${"ABCD".split("").map(l=>`<th>Alternativa ${l}</th>`).join("")}</tr></thead><tbody>`+
+    SIM.map((f,e)=>`<tr><td>${ESP[e].t[0].toUpperCase()+ESP[e].t.slice(1)}${e===S.esp?" ◂":""}</td>${f.map((x,i)=>`<td class="${i===ganadores[e]?"gana":""}">${nf(x.gana*100,0)} %</td>`).join("")}</tr>`).join("")+"</tbody>";
+  if(iguales){ $("t-sens").innerHTML=""; $("sens-txt").textContent="Con el stock actual no hace falta pedir hoy, así que las cuatro alternativas coinciden y no hay nada que comparar. Conviene volver a mirar cuando el stock baje al punto de reposición."; return; }
+  $("sens-txt").textContent = cambia
+    ? "Sí: la alternativa que gana más veces cambia según el dólar que se espere. Decidir exige tomar posición sobre el tipo de cambio, no solo mirar el stock."
+    : `No: gana la alternativa ${"ABCD"[ganadores[0]]} con cualquiera de las cuatro expectativas, así que la decisión no depende de adivinar el dólar.`;
+}
+
+function pintarPronostico(R, animar){
+  const P=R.P, T=P.prueba, n=D.meses.length, m0=n-D.meses_prueba;
+  $("n-prueba").textContent = D.meses_prueba;
+  const base = T.mae.ultimo;
+  const filas = Object.keys(T.mae).sort((a,b)=>T.mae[a]-T.mae[b]).map(k=>{
+    const mejora = base>0 ? (base-T.mae[k])/base*100 : 0;
+    let ins = '<span class="insignia na">Referencia</span>';
+    if(k!=="ultimo") ins = mejora>=15 ? '<span class="insignia si">Cumple ≥ 15 %</span>' : '<span class="insignia no">No cumple</span>';
+    return `<tr data-sel="${k===R.met}"><td><span class="sw" style="background:${COL[k]}"></span>${CORTO[k]}</td><td>${nf(T.mae[k],1)} u/mes</td><td>${k==="ultimo"?"—":(mejora>=0?"−":"+")+nf(Math.abs(mejora),0)+" %"}</td><td>${ins}</td></tr>`;
+  }).join("");
+  $("t-mae").innerHTML = `<thead><tr><th>Técnica</th><th>MAE</th><th>Error frente a la referencia</th><th>Criterio HU-33</th></tr></thead><tbody>${filas}</tbody>`;
+  $("mae-nota").textContent = `En la tabla, el renglón resaltado es el que usan las alternativas: ${NOM[R.met]}.`;
+
+  // gráfico: ventas mensuales (línea negra), predicciones de la prueba y punto del mes siguiente
+  const box=$("chart-dem"), W=Math.max(320,box.clientWidth), H=W<520?250:300, mL=44,mR=W<520?16:112,mT=14,mB=30;
+  const mx = Math.max(...P.mensual, ...Object.values(P.siguiente).filter(v=>v!=null))*1.12||1;
+  const X = i => mL+(W-mL-mR)*i/(n); // n+1 posiciones: historial + mes siguiente
+  const Y = v => mT+(H-mT-mB)*(1-v/mx);
+  const ticks=[0,.25,.5,.75,1].map(t=>Math.round(mx*t));
+  let g=ticks.map(t=>`<line class="grid" x1="${mL}" x2="${W-mR}" y1="${Y(t)}" y2="${Y(t)}"/><text x="${mL-8}" y="${Y(t)+4}" text-anchor="end">${nf(t)}</text>`).join("");
+  const paso = W<520?4:2;
+  for(let i=0;i<=n;i+=paso){ const m = i<n-1?D.meses[i]:null; if(m) g+=`<text x="${X(i)}" y="${H-8}" text-anchor="middle">${mesTxt(m)}</text>`; }
+  g+=`<text x="${X(n)}" y="${H-8}" text-anchor="middle" style="font-weight:650">sig.</text>`;
+  const len=1200;
+  const lineaReal = P.mensual.map((v,i)=>`${i?"L":"M"}${X(i)},${Y(v)}`).join(" ");
+  g+=`<path d="${lineaReal}" fill="none" stroke="var(--ink)" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" ${animar?`class="draw" style="--len:${len}"`:""} pathLength="${len}"/>`;
+  g+=`<line x1="${X(m0)}" x2="${X(m0)}" y1="${mT}" y2="${H-mB}" stroke="var(--line-2)" stroke-dasharray="3 4"/><text x="${X(m0)+6}" y="${mT+10}">meses de prueba</text>`;
+  let etiquetas=[];
+  for(const k of Object.keys(T.predicciones)){
+    const pr=T.predicciones[k]; if(pr.some(v=>v==null)) continue;
+    const pts = pr.map((v,j)=>[X(m0+j),Y(v)]);
+    pts.push([X(n),Y(P.siguiente[k])]);
+    g+=`<path d="${pts.map((p,i)=>`${i?"L":"M"}${p[0]},${p[1]}`).join(" ")}" fill="none" stroke="${COL[k]}" stroke-width="2" ${animar?`class="draw" style="--len:${len};animation-delay:.15s"`:""} pathLength="${len}" stroke-linejoin="round"/>`;
+    g+=`<circle cx="${X(n)}" cy="${Y(P.siguiente[k])}" r="${k===R.met?5.5:4}" fill="${COL[k]}" stroke="var(--panel)" stroke-width="2"/>`;
+    etiquetas.push({y:Y(P.siguiente[k]),k});
+  }
+  if(W>=520){ // etiquetas directas al final de cada línea, separadas para que no se pisen
+    etiquetas.sort((a,b)=>a.y-b.y); for(let i=1;i<etiquetas.length;i++) if(etiquetas[i].y-etiquetas[i-1].y<14) etiquetas[i].y=etiquetas[i-1].y+14;
+    etiquetas.forEach(e=>{ g+=`<text class="lbl" x="${X(n)+10}" y="${e.y+4}" style="fill:${COL[e.k]}">${CORTO[e.k]}</text>`; });
+  }
+  g+=`<g id="cruz" style="display:none"><line id="cruz-l" y1="${mT}" y2="${H-mB}" stroke="var(--ink-3)"/></g><rect id="hit" x="${mL}" y="${mT}" width="${W-mL-mR}" height="${H-mT-mB}" fill="transparent"/>`;
+  box.querySelector("svg")?.remove();
+  box.insertAdjacentHTML("afterbegin",`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Ventas mensuales de ${S.sku} y pronósticos de tres técnicas">${g}</svg>`);
+  $("leg-dem").innerHTML = `<span><span class="sw" style="background:var(--ink)"></span>Ventas reales (unidades por mes)</span>`+Object.keys(COL).map(k=>`<span><span class="sw" style="background:${COL[k]}"></span>${NOM[k]}</span>`).join("");
+
+  const hit=box.querySelector("#hit"), cruz=box.querySelector("#cruz"), cl=box.querySelector("#cruz-l"), tip=$("tip-dem");
+  hit.addEventListener("pointermove",e=>{
+    const r=box.querySelector("svg").getBoundingClientRect(), x=(e.clientX-r.left)*(W/r.width);
+    const i=Math.max(0,Math.min(n,Math.round((x-mL)/((W-mL-mR)/n))));
+    cruz.style.display=""; cl.setAttribute("x1",X(i)); cl.setAttribute("x2",X(i));
+    let h = i<n ? `<b>${mesTxt(D.meses[i])}</b>Ventas: ${nf(P.mensual[i])} u` : `<b>Mes siguiente</b>`;
+    for(const k of Object.keys(T.predicciones)){ const pr=T.predicciones[k]; const v = i===n ? P.siguiente[k] : (i>=m0 ? pr[i-m0] : null); if(v!=null) h+=`<br><span class="sw" style="background:${COL[k]}"></span>${CORTO[k]}: ${nf(v,0)} u`; }
+    tip.innerHTML=h; tip.classList.add("on");
+    tip.style.left=Math.min(Math.max(0,X(i)*r.width/W+12),r.width-160)+"px"; tip.style.top="8px";
+  });
+  hit.addEventListener("pointerleave",()=>{cruz.style.display="none";tip.classList.remove("on");});
+
+  const cab=`<thead><tr><th>Mes</th><th>Ventas</th>${Object.keys(COL).map(k=>`<th>${CORTO[k]}</th>`).join("")}</tr></thead>`;
+  let cu=""; for(let i=m0;i<n;i++){ cu+=`<tr><td>${mesTxt(D.meses[i])}</td><td>${nf(P.mensual[i])}</td>${Object.keys(COL).map(k=>`<td>${T.predicciones[k][i-m0]==null?"—":nf(T.predicciones[k][i-m0],0)}</td>`).join("")}</tr>`; }
+  cu+=`<tr><td><strong>Mes siguiente</strong></td><td>—</td>${Object.keys(COL).map(k=>`<td>${P.siguiente[k]==null?"—":nf(P.siguiente[k],0)}</td>`).join("")}</tr>`;
+  $("t-dem").innerHTML=cab+`<tbody>${cu}</tbody>`;
+}
+
+function pintarProveedores(R){
+  const P=R.P, tot = p=>p.costo_ultimo_usd*S.tc+p.flete_bs_unidad;
+  const max=Math.max(...P.proveedores.map(tot)), min=Math.min(...P.proveedores.map(tot));
+  $("t-prov").innerHTML = `<thead><tr><th>Proveedor</th><th>Costo puesto en Bs por unidad</th><th>Último precio</th><th>Flete por unidad</th><th>Plazo medio (máx.)</th><th>Pedidos</th></tr></thead><tbody>`+
+    P.proveedores.slice().sort((a,b)=>tot(a)-tot(b)).map(p=>`<tr data-sel="${p.id===S.prov}"><td><label style="display:inline;margin:0;font-size:14px;font-weight:600;color:var(--ink)"><input type="radio" name="prov" value="${p.id}" ${p.id===S.prov?"checked":""}>${p.id}${tot(p)===min?' <span class="insignia si">Menor costo</span>':""}</label></td>
+      <td>${bs(tot(p)).replace("Bs ","Bs ")}<span class="barra" style="width:${Math.max(8,tot(p)/max*100)}%"></span></td>
+      <td>${nf(p.costo_ultimo_usd,2)} USD</td><td>Bs ${nf(p.flete_bs_unidad,2)}</td><td>${nf(p.plazo_dias,0)} d (${p.plazo_max})</td><td>${p.pedidos}</td></tr>`).join("")+"</tbody>";
+}
+
+function pintarTC(R, animar){
+  const s=D.tc.serie, box=$("chart-tc"), W=Math.max(320,box.clientWidth), H=W<520?220:260, mL=44,mR=16,mT=14,mB=28;
+  const lo=Math.floor(D.tc.minimo-.3), hi=Math.ceil(D.tc.maximo+.3);
+  const X=i=>mL+(W-mL-mR)*i/(s.length-1), Y=v=>mT+(H-mT-mB)*(1-(v-lo)/(hi-lo));
+  let g=""; for(let v=lo;v<=hi;v+=1) g+=`<line class="grid" x1="${mL}" x2="${W-mR}" y1="${Y(v)}" y2="${Y(v)}"/><text x="${mL-8}" y="${Y(v)+4}" text-anchor="end">${v}</text>`;
+  const refY=Y(S.tc);
+  g+=`<line x1="${mL}" x2="${W-mR}" y1="${refY}" y2="${refY}" stroke="var(--brand)" stroke-dasharray="5 4" stroke-width="1.5"/><text class="lbl" x="${W-mR}" y="${refY-6}" text-anchor="end" style="fill:var(--brand-dark)">Elegido ${nf(S.tc,2)}</text>`;
+  const len=1200;
+  g+=`<path d="${s.map((p,i)=>`${i?"L":"M"}${X(i)},${Y(p[1])}`).join(" ")}" fill="none" stroke="var(--ink)" stroke-width="2.2" stroke-linejoin="round" ${animar?`class="draw" style="--len:${len}"`:""} pathLength="${len}"/>`;
+  [0,Math.floor(s.length/2),s.length-1].forEach(i=>{ g+=`<text x="${X(i)}" y="${H-8}" text-anchor="${i===0?"start":i===s.length-1?"end":"middle"}">${fechaTxt(s[i][0])}</text>`; });
+  g+=`<g id="cruz2" style="display:none"><line id="cruz2-l" y1="${mT}" y2="${H-mB}" stroke="var(--ink-3)"/></g><rect id="hit2" x="${mL}" y="${mT}" width="${W-mL-mR}" height="${H-mT-mB}" fill="transparent"/>`;
+  box.querySelector("svg")?.remove();
+  box.insertAdjacentHTML("afterbegin",`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Tipo de cambio oficial diario, de ${nf(D.tc.minimo,2)} a ${nf(D.tc.maximo,2)} bolivianos por dólar">${g}</svg>`);
+  const hit=box.querySelector("#hit2"), cl=box.querySelector("#cruz2-l"), cz=box.querySelector("#cruz2"), tip=$("tip-tc");
+  hit.addEventListener("pointermove",e=>{
+    const r=box.querySelector("svg").getBoundingClientRect(), x=(e.clientX-r.left)*(W/r.width);
+    const i=Math.max(0,Math.min(s.length-1,Math.round((x-mL)/((W-mL-mR)/(s.length-1)))));
+    cz.style.display=""; cl.setAttribute("x1",X(i)); cl.setAttribute("x2",X(i));
+    tip.innerHTML=`<b>${fechaTxt(s[i][0])}</b>${nf(s[i][1],2)} Bs por USD`; tip.classList.add("on");
+    tip.style.left=Math.min(Math.max(0,X(i)*r.width/W+12),r.width-160)+"px"; tip.style.top="8px";
+  });
+  hit.addEventListener("pointerleave",()=>{cz.style.display="none";tip.classList.remove("on");});
+  const unit = R.pr.costo_ultimo_usd;
+  $("tc-lectura").innerHTML = `<h3>Qué mueve el tipo de cambio</h3>
+    <table><tbody>
+      <tr><td>Mínimo de la serie</td><td>${nf(D.tc.minimo,2)}</td></tr>
+      <tr><td>Máximo de la serie</td><td>${nf(D.tc.maximo,2)}</td></tr>
+      <tr><td>Último dato (${fechaTxt(D.tc.fecha_actual)})</td><td>${nf(D.tc.actual,2)}</td></tr>
+      <tr><td>Referencia del equipo</td><td>${nf(D.tc.referencia,2)}</td></tr></tbody></table>
+    <p class="nota">Con ${R.pr.id}, cada unidad cuesta ${nf(unit,2)} USD: un boliviano más por dólar suma Bs ${nf(unit,2)} por unidad. En un pedido de ${nf(R.def[1].cant)} unidades (alternativa B) son ${bs(R.def[1].cant*unit)}.</p>
+    ${hallazgosTC()}`;
+}
+
+function hallazgosTC(){
+  const A=D.analisis; if(!A) return "";
+  const so=A.solape, v=A.volatilidad, cat=A.traspaso_al_precio.por_categoria, cs=Object.values(cat).map(c=>c.corr_variacion_precio_vs_dolar);
+  return `<h3 style="margin-top:14px">Qué dicen los datos y qué no</h3>
+  <ul class="nota" style="padding-left:18px;margin-top:6px">
+    <li><strong>El dólar es volátil de verdad.</strong> Desde que el BCB lo dejó flotar subió ${nf(v.variacion_total_pct,0)} % en cuatro meses; el desvío a 30 días es ${nf(v.desvio_30_dias*100,1)} %. Por eso el panel lo simula.</li>
+    <li><strong>Las compras no siguen al BCB.</strong> En las ${nf(so.compras_en_solape)} compras desde ${fechaTxt(so.desde)} el dólar registrado va de ${nf(so.usado_min,2)} a ${nf(so.usado_max,2)}; el oficial iba de ${nf(so.oficial_min,2)} a ${nf(so.oficial_max,2)} (${nf(so.brecha_media_pct,0)} % más en promedio). Los costos en Bs de esos datos quedan subestimados.</li>
+    <li><strong>El traspaso al precio no se puede medir con estos datos.</strong> La correlación entre la variación mensual del precio y la del dólar es ${nf(Math.min(...cs),3)} en las cinco categorías: el precio de venta se generó como costo × dólar × 1,4. Medirlo de verdad exige facturas y ventas reales de MULTIPARTES.</li>
+  </ul>`;
+}
+
+function pintarDecision(R){
+  const o = R.def.find(x=>x.id===S.elegida), b=$("decision");
+  const gp = o ? simulado(R)[S.esp][R.def.indexOf(o)] : null;
+  const pct = o && !R.def.every(x=>x.cant===0) ? ` Gana en ${nf(gp.gana*100,0)} % de los escenarios simulados con el dólar ${ESP[S.esp].t}.` : "";
+  if(!o){ b.classList.remove("on"); return; }
+  const txt = o.cant===0
+    ? `Alternativa ${o.id} (${o.titulo}) para ${S.sku}: no pedir hoy; el stock actual cubre el plazo de entrega de ${R.pr.id} más el stock de seguridad.${pct}`
+    : `Alternativa ${o.id} (${o.titulo}) para ${S.sku}: ${nf(o.cant)} unidades a ${R.pr.id}${o.pedidos===2?` en dos pedidos (${nf(o.llega)} hoy y ${nf(o.cant-o.llega)} en 30 días)`:""}, desembolso de ${bs(o.costo)} con ${nf(S.tc,2)} Bs/USD (entre ${bs(o.min)} y ${bs(o.max)} según el dólar).${pct}`;
+  $("decision-txt").textContent = txt; b.classList.add("on"); b.dataset.txt = txt;
+}
+
+/* ---- Eventos ---- */
+$("f-cat").addEventListener("change",e=>{S.cat=e.target.value;S.elegida=null;repoblarSku();pintar(true);});
+$("f-sku").addEventListener("change",e=>{S.sku=e.target.value;S.elegida=null;S.prov="";repoblarProv();pintar(true);});
+$("f-prov").addEventListener("change",e=>{S.prov=e.target.value;pintar(false);});
+$("f-serv").addEventListener("change",e=>{S.z=+e.target.value;pintar(false);});
+$("f-esp").addEventListener("change",e=>{S.esp=+e.target.value;pintar(false);});
+$("f-pas").addEventListener("change",e=>{S.beta=+e.target.value;pintar(false);});
+$("f-tc").addEventListener("input",e=>{const v=parseFloat(e.target.value);if(v>0){S.tc=v;pintar(false);}});
+$("chips").addEventListener("click",e=>{const c=e.target.closest(".chip");if(!c)return;S.tc=+c.dataset.tc;$("f-tc").value=S.tc;pintar(false);});
+$("alts").addEventListener("click",e=>{const b=e.target.closest(".elegir");if(!b)return;S.elegida=S.elegida===b.dataset.alt?null:b.dataset.alt;pintar(false);});
+$("t-prov").addEventListener("change",e=>{if(e.target.name==="prov"){S.prov=e.target.value;$("f-prov").value=S.prov;pintar(false);}});
+$("b-quitar").addEventListener("click",()=>{S.elegida=null;pintar(false);});
+$("b-imprimir").addEventListener("click",()=>window.print());
+$("b-copiar").addEventListener("click",async e=>{
+  const t=$("decision").dataset.txt||"";
+  try{await navigator.clipboard.writeText(t);e.target.textContent="Copiado";}catch(_){e.target.textContent="No se pudo copiar";}
+  setTimeout(()=>e.target.textContent="Copiar resumen",1600);
+});
+$("b-reset").addEventListener("click",()=>{Object.assign(S,{cat:"",tc:D.tc.referencia,z:1.645,esp:1,beta:1,elegida:null});
+  $("f-esp").value="1";$("f-pas").value="1";$("f-serv").value="1.645";iniciar();});
+let rz; window.addEventListener("resize",()=>{clearTimeout(rz);rz=setTimeout(()=>pintar(false),150);});
+
+/* ---- Arranque: ?sku=RP012 abre ese repuesto; si no, el más urgente ---- */
+function iniciar(){
+  const pedido = new URLSearchParams(location.search).get("sku");
+  S.sku = D.productos[pedido] ? pedido : skus.slice().sort((a,b)=>cobertura(a)-cobertura(b))[0];
+  llenarFiltros();
+  S.prov = mejorProveedor(D.productos[S.sku]);
+  repoblarProv();
+  pintar(true);
+}
+iniciar();
+})();
+</script>
+</body>
+</html>
