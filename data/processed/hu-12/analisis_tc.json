@@ -1,0 +1,61 @@
+{
+  "solape": {
+    "desde": "2026-06-27",
+    "compras_en_solape": 520,
+    "compras_total": 3600,
+    "usado_min": 9.4298,
+    "usado_max": 9.6055,
+    "oficial_min": 9.73,
+    "oficial_max": 12.64,
+    "brecha_media_pct": 18.6
+  },
+  "volatilidad": {
+    "observaciones": 122,
+    "desvio_diario": 0.01661,
+    "desvio_30_dias": 0.091,
+    "variacion_total_pct": 22.1,
+    "primero": [
+      "2026-06-27",
+      9.73
+    ],
+    "ultimo": [
+      "2026-10-26",
+      11.88
+    ],
+    "maximo": 12.64
+  },
+  "traspaso_al_precio": {
+    "meses": 21,
+    "por_categoria": {
+      "Correas": {
+        "corr_variacion_precio_vs_dolar": 0.999,
+        "precio_sobre_dolar_min": 60.13,
+        "precio_sobre_dolar_max": 60.3
+      },
+      "Encendido": {
+        "corr_variacion_precio_vs_dolar": 0.999,
+        "precio_sobre_dolar_min": 54.68,
+        "precio_sobre_dolar_max": 54.84
+      },
+      "Filtros": {
+        "corr_variacion_precio_vs_dolar": 0.999,
+        "precio_sobre_dolar_min": 56.13,
+        "precio_sobre_dolar_max": 56.29
+      },
+      "Frenos": {
+        "corr_variacion_precio_vs_dolar": 0.999,
+        "precio_sobre_dolar_min": 50.0,
+        "precio_sobre_dolar_max": 50.15
+      },
+      "Suspensión": {
+        "corr_variacion_precio_vs_dolar": 0.999,
+        "precio_sobre_dolar_min": 47.74,
+        "precio_sobre_dolar_max": 47.88
+      }
+    }
+  },
+  "compras_vs_dolar": {
+    "corr_nivel": -0.13,
+    "corr_variacion": 0.19
+  }
+}
