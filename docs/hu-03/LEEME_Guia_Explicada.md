@@ -1,5 +1,12 @@
 # HU-03 · Evolución de precios de MULTIPARTE
 
+## Cómo utilizar la entrega
+
+1. Abre `reports/hu-03/MULTIPARTE_Precios_Interactivo.html` con Chrome, Edge o Firefox.
+2. Selecciona Compras o Ventas, categoría, repuesto, moneda y fechas. La vista se actualiza automáticamente.
+3. Pasa el cursor por el gráfico para consultar un punto. También puedes enfocar el gráfico con Tab y recorrer la primera serie con las flechas.
+4. Revisa “Resumen por repuesto” o “Detalle de registros”. El botón Exportar CSV descarga todas las filas filtradas de la pestaña seleccionada, aunque la tabla esté dividida en páginas.
+
 ## Archivos incluidos
 
 | Archivo | Para qué sirve |
