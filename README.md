@@ -42,6 +42,7 @@ MULTIPARTES de Santa Cruz de la Sierra durante el segundo semestre de 2026?
 | HU-29 | [SCRUM-5](https://fsandoval09.atlassian.net/browse/SCRUM-5) | Sabrina | Fuentes de datos y permisos de acceso | No usa datos | — | — | [`docs/hu-29`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/docs/hu-29) |
 | HU-02 | [SCRUM-12](https://fsandoval09.atlassian.net/browse/SCRUM-12) | Samuel | Registro de origen y fecha de actualización de cada conjunto de datos | FICTICIO y público, según el conjunto (lo dice el propio registro) | [`src/hu-02`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/src/hu-02) | [`data/processed/hu-02`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/data/processed/hu-02) | [`reports/hu-02`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/reports/hu-02) |
 | HU-03 | [SCRUM-16](https://fsandoval09.atlassian.net/browse/SCRUM-16) · [SCRUM-51](https://fsandoval09.atlassian.net/browse/SCRUM-51) | Fiorella | Panel interactivo de evolución de precios (con la referencia de 11 BOB/USD) | FICTICIO (precios), convertidos con 11 BOB/USD, una referencia fija elegida por el equipo | [`src/hu-03`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/src/hu-03) | [`reports/hu-03`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/reports/hu-03) | [`docs/hu-03`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/docs/hu-03) |
+| HU-06 | — | Equipo | Comparación de escenarios cambiarios y logísticos con una canasta fija | MIXTO SIMULADO: compras ficticias, referencias de HU-31/HU-32 y supuestos explícitos | [`src/hu-06`](src/hu-06) | [`data/processed/hu-06`](data/processed/hu-06) · [`informe`](reports/hu-06/REPORTE_HU06.md) | [`docs/hu-06`](docs/hu-06/LEEME.md) |
 | HU-07 | [SCRUM-20](https://fsandoval09.atlassian.net/browse/SCRUM-20) | Fiorella | Comparación de tres técnicas de pronóstico (MAE) | FICTICIO (movimientos de HU-17) | [`src/hu-07`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/src/hu-07) | [`data/processed/hu-07`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/data/processed/hu-07) | [`reports/hu-07`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/reports/hu-07) |
 | HU-17 | [SCRUM-9](https://fsandoval09.atlassian.net/browse/SCRUM-9) | Sabrina | Normalización de códigos y depuración de duplicados | FICTICIO | [`src/hu-17`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/src/hu-17) | [`data/raw/hu-17`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/data/raw/hu-17) | [`data/processed/hu-17`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/data/processed/hu-17) |
 | HU-18 | [SCRUM-10](https://fsandoval09.atlassian.net/browse/SCRUM-10) | Sabrina | Conciliación del inventario con conteos físicos | FICTICIO | [`src/hu-18`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/src/hu-18) | [`data/raw/hu-18`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/data/raw/hu-18) | [`data/processed/hu-18`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/data/processed/hu-18) |
@@ -64,13 +65,14 @@ src/          scripts de procesamiento y análisis
 tests/        pruebas automatizadas
 ```
 
-Los datos y resultados de cada historia de usuario usan el mismo identificador (`hu-02`, `hu-03`, `hu-07`, `hu-17`, `hu-18`, `hu-30-31`, `hu-32`, `hu-33` y `hu-34`) para mantener su trazabilidad.
+Los datos y resultados de cada historia de usuario usan el mismo identificador (`hu-02`, `hu-03`, `hu-06`, `hu-07`, `hu-17`, `hu-18`, `hu-30-31`, `hu-32`, `hu-33` y `hu-34`) para mantener su trazabilidad.
 
 ## Ejecución
 
 Ejecutar desde la raíz del repositorio:
 
 ```bash
+python src/hu-06/comparar_escenarios.py
 python src/hu-07/comparar_pronosticos.py
 python src/hu-32/obtener_series_tc.py
 python src/hu-34/generar_datos.py
@@ -79,4 +81,25 @@ python src/hu-03/generar_panel.py
 python src/hu-30-31/ejecutar_todo.py
 python src/hu-02/registro_fuentes.py actualizar --todos
 python -m unittest discover -s tests -p "test_*.py" -v
+```
+
+## Comparación de escenarios (HU-06)
+
+La configuración está en [`data/raw/hu-06/escenarios.json`](data/raw/hu-06/escenarios.json).
+El módulo reutiliza compras de HU-30/31, excluye duplicados identificados por HU-17
+y selecciona cambios por serie y fecha exactas de HU-32. Genera la canasta base,
+la comparación y el detalle en `data/processed/hu-06/`, además de un
+[informe con gráfico SVG](reports/hu-06/REPORTE_HU06.md).
+
+Incluye un base, una alternativa que solo cambia el tipo de cambio, otra que solo
+cambia la logística y un combinado. Los cuatro conservan 205 unidades y
+2.740,85 USD de mercancía. El peso de 100 kg es un supuesto explícito; el resultado
+es simulado y no incluye una liquidación real de tributos. No modifica entradas
+ni resultados de otras historias. No es necesario volver a ejecutar sus generadores.
+
+Instrucciones, fórmulas, cambios expresos y limitaciones en
+[`docs/hu-06/LEEME.md`](docs/hu-06/LEEME.md). Para ejecutar solo sus pruebas:
+
+```bash
+python -m unittest discover -s tests -p "test_comparar_escenarios.py" -v
 ```

@@ -1,0 +1,5 @@
+escenario_id,tipo,descripcion,lineas,unidades,mercancia_usd,logistica_usd,logistica_bob_origen,cif_simulado_usd,tipo_cambio,serie_cambio,fecha_cambio,mercancia_bob,logistica_convertida_bob,total_bob,diferencia_bob,diferencia_pct,naturaleza_resultado
+BASE,BASE,TCO BCB y flete/seguro implícito INE AEREA.,5,205,2740.85,474.43,0,3061.41,11.84,TCO_BCB,2026-10-23,32451.67,5617.25,38068.92,0.00,0.00,MIXTO_SIMULADO
+CAMBIARIA,CAMBIARIA,Solo cambia el TCO por la referencia de venta P2P del mismo día.,5,205,2740.85,474.43,0,3061.41,11.99,PARALELO_P2P_VENTA,2026-10-23,32862.79,5688.42,38551.21,482.29,1.27,MIXTO_SIMULADO
+LOGISTICA,LOGISTICA,Solo cambia la referencia internacional de AEREA a COURRIER; se recalculan los gastos sobre CIF.,5,205,2740.85,555.93,0,3139.31,11.84,TCO_BCB,2026-10-23,32451.67,6582.21,39033.88,964.96,2.53,MIXTO_SIMULADO
+COMBINADO,COMBINADO,"Referencia P2P y estimación internacional COURRIER, con la misma canasta.",5,205,2740.85,555.93,0,3139.31,11.99,PARALELO_P2P_VENTA,2026-10-23,32862.79,6665.61,39528.40,1459.48,3.83,MIXTO_SIMULADO

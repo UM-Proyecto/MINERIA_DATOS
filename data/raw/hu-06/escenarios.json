@@ -1,0 +1,70 @@
+{
+  "version": 1,
+  "fecha_analisis": "2026-10-23",
+  "descripcion": "Simulación de un pedido consolidado con cinco órdenes históricas de prueba de MULTIPARTES. Se mantienen sus productos, cantidades y precios originales.",
+  "archivos": {
+    "movimientos": "data/processed/hu-30-31/sintetico/hu30/movimientos_importados.csv",
+    "depuracion": "data/processed/hu-17/reporte_depuracion_final.csv",
+    "cotizaciones": "data/processed/hu-30-31/sintetico/hu31_cotizaciones_proveedor_sintetico.csv",
+    "costos_importacion": "data/processed/hu-30-31/hu31_costos_importacion.csv",
+    "costos_complementarios": "data/processed/hu-30-31/sintetico/hu31_costos_complementarios_sintetico.csv",
+    "tipos_cambio": "data/processed/hu-32/tc_series_diaria.csv"
+  },
+  "canasta": {
+    "documentos": ["OC-5003", "OC-5006", "OC-5008", "OC-5010", "OC-5011"],
+    "incluir_pendientes": false
+  },
+  "incluidos_en_precio": [],
+  "parametros_logisticos": {
+    "peso_kg": {
+      "valor": "100",
+      "motivo": "Supuesto sintético de 100 kg brutos para el pedido consolidado; no existe pesaje por orden ni se deduce el peso de las cantidades. Se mantiene fijo en los cuatro escenarios.",
+      "fecha_dato": "2026-10-23"
+    }
+  },
+  "supuestos": [
+    "Los precios históricos se tratan como valor de mercancía sin los cinco gastos adicionales del modelo; no hay Incoterm documentado. No representan precios FOB comprobados.",
+    "Las cinco órdenes de septiembre se consolidan de forma hipotética en un solo pedido valorado con referencias cambiarias del 23/10/2026. No se reconstruye el costo histórico de sus pagos.",
+    "Los promedios del INE AEREA y COURRIER se usan como aproximaciones alternativas hasta frontera de Bolivia. No son cotizaciones de una ruta concreta ni permiten comparar tiempos de entrega.",
+    "El tramo frontera de Bolivia a Santa Cruz se aproxima con la tarifa sintética Arica/Iquique -> Santa Cruz. Se supone separado del tramo internacional; la ruta real debe validarse antes de una decisión.",
+    "Nacionalización/agente y comisión se aproximan con los porcentajes sintéticos de HU-31 sobre el CIF simulado. No se han determinado aranceles, IVA ni otros tributos reales; el total es del alcance simulado.",
+    "Las fuentes se conservan como estaban en el repositorio; DOCUMENTADO identifica el respaldo registrado por HU-31/HU-32, no una verificación nueva de su vigencia."
+  ],
+  "escenarios": [
+    {
+      "id": "BASE",
+      "tipo": "BASE",
+      "descripcion": "TCO BCB y flete/seguro implícito INE AEREA.",
+      "tipo_cambio": {"origen": "serie", "id_serie": "TCO_BCB", "fecha": "2026-10-23"},
+      "logistica": [
+        {"id": "internacional", "origen": "importacion", "concepto": "flete y seguro implícito (CIF-FOB), origen China, medio AEREA", "campo": "valor_min"},
+        {"id": "aduana", "origen": "complementario", "concepto": "nacionalizacion y agente aduanero"},
+        {"id": "comision", "origen": "complementario", "concepto": "comision de gestion de importacion"},
+        {"id": "terrestre", "origen": "complementario", "concepto": "flete terrestre Arica/Iquique -> Santa Cruz"}
+      ]
+    },
+    {
+      "id": "CAMBIARIA",
+      "tipo": "CAMBIARIA",
+      "descripcion": "Solo cambia el TCO por la referencia de venta P2P del mismo día.",
+      "tipo_cambio": {"origen": "serie", "id_serie": "PARALELO_P2P_VENTA", "fecha": "2026-10-23"}
+    },
+    {
+      "id": "LOGISTICA",
+      "tipo": "LOGISTICA",
+      "descripcion": "Solo cambia la referencia internacional de AEREA a COURRIER; se recalculan los gastos sobre CIF.",
+      "cambios_logistica": [
+        {"id": "internacional", "origen": "importacion", "concepto": "flete y seguro implícito (CIF-FOB), origen China, medio COURRIER", "campo": "valor_min"}
+      ]
+    },
+    {
+      "id": "COMBINADO",
+      "tipo": "COMBINADO",
+      "descripcion": "Referencia P2P y estimación internacional COURRIER, con la misma canasta.",
+      "tipo_cambio": {"origen": "serie", "id_serie": "PARALELO_P2P_VENTA", "fecha": "2026-10-23"},
+      "cambios_logistica": [
+        {"id": "internacional", "origen": "importacion", "concepto": "flete y seguro implícito (CIF-FOB), origen China, medio COURRIER", "campo": "valor_min"}
+      ]
+    }
+  ]
+}
