@@ -39,7 +39,7 @@ python3 src/simulador/generar_app.py
 
 Opciones de `generar_app.py`:
 
-- `--motor RUTA` usa otro archivo de motor. Para probar la app sin el motor real: `--motor tests/_motor_stub.js`. Ese motor de prueba devuelve cifras fijas que no sirven para decidir, y la app lo avisa con una etiqueta roja arriba a la derecha: «Motor de prueba: cifras no válidas».
+- `--motor RUTA` usa otro archivo de motor en lugar de `src/simulador/motor.js` (el motor se explica en `docs/simulador/MOTOR.md`).
 - `--salida RUTA` escribe el HTML en otro lugar.
 
 ## Cómo está hecha

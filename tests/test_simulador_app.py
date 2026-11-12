@@ -1,7 +1,6 @@
 """Pruebas de la app del simulador (SCRUM-64): datos, armado del HTML y textos prohibidos.
 
-El motor real (src/simulador/motor.js) lo construye el frente A. Mientras no esté, las pruebas arman la app con
-tests/_motor_stub.js, que respeta la misma API.
+La app se arma con el motor real (src/simulador/motor.js, frente A).
 """
 import csv
 import json
@@ -18,7 +17,6 @@ sys.path.insert(0, str(SRC))
 import preparar_datos as pd  # noqa: E402
 import generar_app as ga  # noqa: E402
 
-STUB = RAIZ / "tests" / "_motor_stub.js"
 CLAVES = {"generado", "corte", "tc", "repuestos", "proveedores", "ventas", "clasificacion", "parametros"}
 
 # Textos que no pueden aparecer en la app (ver contrato y pedido de claudia-mineria del 12-nov-2026).
@@ -86,7 +84,7 @@ class ArmadoApp(unittest.TestCase):
     def setUpClass(cls):
         cls.tmp = tempfile.TemporaryDirectory()
         cls.salida = Path(cls.tmp.name) / "app.html"
-        cls.datos, cls.html = ga.generar(STUB, cls.salida)
+        cls.datos, cls.html = ga.generar(ga.MOTOR, cls.salida)
 
     @classmethod
     def tearDownClass(cls):

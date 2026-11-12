@@ -41,7 +41,7 @@ def seguro_en_script(texto):
 def generar(motor, salida):
     if not motor.is_file():
         raise SystemExit(f"No existe el motor de cálculo: {motor}\n"
-                         "Lo construye el frente A (src/simulador/motor.js). Para probar sin él: --motor tests/_motor_stub.js")
+                         "El motor es src/simulador/motor.js (ver docs/simulador/MOTOR.md); con --motor se puede indicar otra ruta.")
     if not DATOS.is_file():
         raise SystemExit(f"Falta {DATOS.relative_to(BASE)}: corra antes python3 src/simulador/preparar_datos.py")
     plantilla = PLANTILLA.read_text(encoding="utf-8")

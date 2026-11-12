@@ -232,8 +232,6 @@ summary{cursor:pointer;color:var(--ink-2);font-weight:600;min-height:32px;displa
 .vista{animation:entra .18s var(--ease) both}
 @keyframes entra{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 .vista[hidden]{display:none}
-.pill.stub{border-color:#f0c4bd;background:#fdf0ee;color:var(--bad)}
-.pill.stub::before{background:var(--bad)}
 .pill.neutra{border-color:var(--line-2);background:#fff;color:var(--ink-2)}
 /* Marca que acompaña a cada resultado cuando el dólar elegido no es el oficial */
 .marca-tc{display:inline-block;font-size:10.5px;font-weight:600;border-radius:99px;padding:2px 8px;background:var(--warn-soft);color:var(--warn);vertical-align:2px;margin-left:6px;letter-spacing:0;white-space:nowrap}
@@ -424,6 +422,7 @@ svg.chart .pt30{fill:none;stroke:var(--graphite);stroke-width:1.4}
       </div>
       <div class="alts" id="alts"></div>
       <p class="pie" id="alts-nota"></p>
+      <p class="nota-sit" id="alts-q" hidden></p>
     </section>
 
     <div class="dos-desc">
@@ -520,6 +519,8 @@ const D = JSON.parse(document.getElementById("datos").textContent);
 const $ = id => document.getElementById(id);
 const OF = D.tc.oficial, PA = D.tc.paralelo, PAR = D.parametros;
 const OPC = {n: PAR.simulaciones, semilla: PAR.semilla, horizonte_dias: 90};
+// Quiebre y sensibilidad corren el motor varias veces: sin «n», el motor usa 400 futuros por corrida (~100 ms en total).
+const OPC_AN = {semilla: PAR.semilla, horizonte_dias: 90};
 const REP = {}; D.repuestos.forEach(r => REP[r.repuesto_id] = r);
 const PRV = {}; D.proveedores.forEach(p => PRV[p.proveedor_id] = p);
 // El stock de SCRUM-55 es al 10-11-2026 (columna stock_al_2026_11_10); el dólar puede ser de un día posterior.
@@ -550,7 +551,7 @@ const marcaTc = () => S.tcModo === "oficial" ? "" : S.tcModo === "paralelo"
 const sup = () => ({tc_base:tcHoy(), tc_90:S.tc90, venta_pct:S.venta, atraso_dias:S.atraso, precio_sigue_dolar:S.sigue});
 function seguro(fn, donde){ try { return fn(); } catch(e){ console.warn("Motor:", e); if(donde) donde.innerHTML = `<p class="err">El motor no pudo calcular esto: ${esc(e.message)}</p>`; return undefined; } }
 
-const pron = {}; const pronostico = id => pron[id] || (pron[id] = Motor.pronostico(D.ventas[id]));
+const pron = {}; const pronostico = id => pron[id] || (pron[id] = Motor.pronostico(D.ventas[id], REP[id].tipo_demanda));
 const ventaDia = id => Math.max(pronostico(id).unidades_mes / 30, 1e-6);
 
 /* ---- Menú ---- */
@@ -560,7 +561,6 @@ const IC = {al:'<path d="M8 2l6 11H2z"/><path d="M8 6.5v3M8 11.5h.01"/>', sim:'<
 const VISTAS = [["alertas","Alertas de reposición","al","nuevo"],["simulador","Simulador de compra","sim","SCRUM-61"],["proveedores","Comparar proveedores","prov","nuevo"],
   ["plan","Plan con presupuesto","plan","nuevo"],["backtest","¿Qué hubiera pasado?","bt","nuevo"],["clasificacion","Clasificación de repuestos","cl","nuevo"]];
 $("menu").innerHTML = VISTAS.map(([k,t,i,h]) => `<a href="#${k}" data-v="${k}" aria-label="${t}" title="${t}"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">${IC[i]}</svg><span>${t}</span>${h.startsWith("SCRUM") ? `<i class="hu">${h}</i>` : `<i class="nuevo">${h}</i>`}</a>`).join("");
-if(Motor.ES_STUB){ const p = $("pill-datos"); p.classList.add("stub"); p.textContent = "Motor de prueba: cifras no válidas"; }
 
 const pintado = {};
 function ir(v){
@@ -602,7 +602,7 @@ $("b-mas").addEventListener("click", () => { S.verTodas = !S.verTodas; pintarAle
 
 /* ==================== SIMULADOR ==================== */
 const ALT = {
-  A:{t:"Reponer lo justo", que:"Pedir solo lo que cubre la venta mientras llega el pedido, con el atraso supuesto.",
+  A:{t:"Reponer lo justo", que:"Pedir solo lo que cubre la venta mientras llega el pedido, con el atraso supuesto. Al menos una unidad.",
      por:"Compra lo mínimo para no quedarse sin stock mientras llega el pedido. Inmoviliza menos dinero, pero deja poco margen si las ventas suben o el proveedor se atrasa.", t2:["a","b"]},
   B:{t:"Cubrir 30 días más", que:"Sumar un mes de ventas pronosticadas después de que llegue el pedido.",
      por:"Suma un mes de ventas pronosticadas. Un solo pedido, con un mes de respiro después de la entrega.", t2:["a","b"]},
@@ -693,7 +693,7 @@ function pintarFijos(){
   const provs = seguro(listaProveedores, $("t-prov")); if(!provs) return;
   $("prv-marca").innerHTML = marcaTc();
   $("t-prov").innerHTML = `<thead><tr><th>Proveedor</th><th>Origen</th><th>Incoterm<span class="ayuda">Qué gastos de envío ya incluye el precio.</span></th><th>Costo puesto por unidad<span class="ayuda">Precio + flete + aduana, en Bs.</span></th><th>Plazo normal</th><th>Entregas a tiempo<span class="ayuda">De cada 100 pedidos pasados.</span></th></tr></thead><tbody>` +
-    provs.map((q,i) => `<tr data-sel="${q.proveedor_id === S.prov}"><td><label style="display:inline;font-weight:${q.proveedor_id === S.prov ? 600 : 400};font-size:13.5px;color:var(--ink)"><input type="radio" name="prov" value="${q.proveedor_id}"${q.proveedor_id === S.prov ? " checked" : ""}>${esc(nombreProv(q))}</label>${i === 0 ? ' <span class="tag">Menor costo</span>' : ""}${q.proveedor_id === r.proveedor_id ? ' <span class="tag" style="background:#eceae5;color:var(--ink-2)">El de hoy</span>' : ""}</td><td>${esc(q.origen)}</td><td>${q.incoterm}</td><td>${bs(q.costo.total_bs)}</td><td>${q.plazo_normal_dias} días</td><td class="${q.pct_entregas_a_tiempo < 80 ? "c-warn" : ""}">${q.pct_entregas_a_tiempo}</td></tr>`).join("") + "</tbody>";
+    provs.map((q,i) => `<tr data-sel="${q.proveedor_id === S.prov}"><td><label style="display:inline;font-weight:${q.proveedor_id === S.prov ? 600 : 400};font-size:13.5px;color:var(--ink)"><input type="radio" name="prov" value="${q.proveedor_id}"${q.proveedor_id === S.prov ? " checked" : ""}>${esc(nombreProv(q))}</label>${i === 0 ? ' <span class="tag">Menor costo</span>' : ""}${q.proveedor_id === r.proveedor_id ? ' <span class="tag" style="background:#eceae5;color:var(--ink-2)">El de hoy</span>' : ""}</td><td>${esc(q.origen)}</td><td>${q.incoterm}</td><td>${bs(q.total_bs)}</td><td>${q.plazo_normal_dias} días</td><td class="${q.pct_entregas_a_tiempo < 80 ? "c-warn" : ""}">${q.pct_entregas_a_tiempo}</td></tr>`).join("") + "</tbody>";
 }
 
 function pintarVentas(f){
@@ -731,12 +731,12 @@ function recalcular(){
     ultimo = R; pintarAlternativas(R);
     setTimeout(() => {
       if(g !== gen) return;
-      const Q = seguro(() => Motor.quiebreDolar(D, S.rep, S.prov, s, OPC), $("q-cuerpo"));
+      const Q = seguro(() => Motor.quiebreDolar(D, S.rep, S.prov, s, OPC_AN), $("q-cuerpo"));
       $("c-quiebre").removeAttribute("aria-busy");
       if(Q !== undefined) pintarQuiebre(Q, s);
       setTimeout(() => {
         if(g !== gen) return;
-        const T = seguro(() => Motor.sensibilidad(D, S.rep, S.prov, s, OPC), $("t-cuerpo"));
+        const T = seguro(() => Motor.sensibilidad(D, S.rep, S.prov, s, OPC_AN), $("t-cuerpo"));
         $("c-sens").removeAttribute("aria-busy");
         if(T) pintarSens(T);
       }, 0);
@@ -753,21 +753,20 @@ function pintarAlternativas(R){
     const o = R[k], a = ALT[k], mejor = k === R.mejor && !todasCero, sel = S.elegida === k, c = o.costo;
     const r = o.riesgo_quiebre, rc = r > 30 ? "c-bad" : r > 10 ? "c-warn" : "c-ok";
     const md = o.margen_dias, mc = md < 0 ? "c-bad" : md < 7 ? "c-warn" : "c-ok";
-    const hoy = Math.ceil(o.cantidad / 2);
-    const desg = k === "D" ? `dos envíos: el trámite se paga dos veces · fábrica ${nf(c.fabrica_bs)}`
-      : `fábrica ${nf(c.fabrica_bs)} · flete ${c.flete_bs > 0 ? nf(c.flete_bs) : "incluido"} · aduana ${nf(c.gastos_bs)}`;
+    const desg = `fábrica ${nf(c.fabrica_bs)} · flete ${c.flete_incluido || !(c.flete_bs > 0) ? "incluido" : nf(c.flete_bs)} · aduana ${nf(c.gastos_bs)}`
+      + (o.pedidos === 2 ? ` · dos envíos: trámite ${bs(c.pedidos_bs)} aparte` : ` · trámite ${bs(c.pedidos_bs)} aparte`);
     return `<article class="alt${mejor ? " mejor" : ""}" data-elegida="${sel}" aria-label="Alternativa ${k}" style="grid-row:span 11">
       <h3><i>${k}</i>${a.t}${mejor ? '<span class="tag">Gana más veces</span>' : ""}</h3>
       <p class="que">${a.que}</p>
       <div class="score"><div class="big">${o.puntaje}<small>de 100</small></div>
         <div class="lbl">futuros simulados en que deja más ganancia${marcaTc()}<span class="ayuda">Compara alternativas entre sí; no es la probabilidad de acertar.</span></div>
         <div class="meter" aria-hidden="true"><span style="width:${Math.max(2, o.puntaje)}%"></span></div></div>
-      <dl class="dato"><dt>Cantidad a pedir<span class="ayuda">Unidades que entran en este pedido.</span></dt><dd>${o.cantidad === 0 ? "Nada por ahora" : nf(o.cantidad) + (o.cantidad === 1 ? " unidad" : " unidades")}${k === "D" && o.cantidad > 0 ? `<small>${nf(hoy)} hoy y ${nf(o.cantidad - hoy)} en 30 días</small>` : ""}</dd></dl>
+      <dl class="dato"><dt>Cantidad a pedir<span class="ayuda">Unidades que entran en este pedido.${k === "A" ? " Pide al menos una, aunque el stock alcance." : ""}</span></dt><dd>${o.cantidad === 0 ? "Nada por ahora" : nf(o.cantidad) + (o.cantidad === 1 ? " unidad" : " unidades")}${o.cantidad_30_dias > 0 ? `<small>${nf(o.cantidad_hoy)} hoy y ${nf(o.cantidad_30_dias)} en 30 días</small>` : ""}</dd></dl>
       <dl class="dato"><dt>Costo puesto en Santa Cruz<span class="ayuda">Lo que paga hasta tener el repuesto en el almacén.</span></dt><dd>${bs(c.total_bs)}<small>${o.cantidad ? desg : "sin pedido"}</small></dd></dl>
       <dl class="dato"><dt>Margen después de la entrega<span class="ayuda">Días de venta que quedan cubiertos cuando llega el pedido.</span></dt><dd class="${mc}">${md < 0 ? "Falta stock" : nf(md) + " días"}<small>${md < 0 ? "se pierden " + nf(-md) + " días de venta" : "de venta cubiertos"}</small></dd></dl>
-      <dl class="dato"><dt>Riesgo de quedarse sin stock<span class="ayuda">En cuántos futuros de cada 100 se agota antes de reponer.</span></dt><dd><span class="${rc}">${r} de 100</span><small>futuros simulados · ${nf(o.unidades_perdidas,1)} u perdidas en promedio</small></dd></dl>
+      <dl class="dato"><dt>Riesgo de quedarse sin stock<span class="ayuda">En cuántos futuros de cada 100 se pierde alguna venta por falta de stock.</span></dt><dd><span class="${rc}">${r} de 100</span><small>futuros simulados · ${nf(o.unidades_perdidas,1)} u perdidas en promedio</small></dd></dl>
       <dl class="dato"><dt>Dinero inmovilizado<span class="ayuda">Dinero guardado en stock que no está disponible en caja.</span></dt><dd>${bs(o.capital_inmovilizado_bs)}<small>se vende en ${nf(o.dias_venta_capital)} días</small></dd></dl>
-      <dl class="dato"><dt>Ganancia esperada en 90 días<span class="ayuda">Ventas menos costos, en promedio de los futuros simulados.</span></dt><dd>${bs(o.ganancia_media_bs)}<small>en un mal escenario (1 de cada 10): ${bs(o.ganancia_p10_bs)}</small></dd></dl>
+      <dl class="dato"><dt>Ganancia esperada en 90 días<span class="ayuda">Ventas menos costos, promedio de los futuros; lo que sobra al día 90 vale su reposición.</span></dt><dd>${bs(o.ganancia_media_bs)}<small>en un mal escenario (1 de cada 10): ${bs(o.ganancia_p10_bs)}</small></dd></dl>
       <div class="porque"><div class="lt">¿Por qué esta alternativa?</div><p>${a.por}</p><div class="tools">${a.t2.map(x => TOOL[x]).join("")}${TOOL.sim}</div></div>
       <button class="elegir" type="button" data-alt="${k}" aria-pressed="${sel}">${sel ? "Elegida ✓" : "Elegir esta"}</button>
     </article>`;
@@ -779,6 +778,7 @@ function pintarAlternativas(R){
 
 function pintarQuiebre(Q, s){
   $("q-marca").innerHTML = marcaTc();
+  lecturaQuiebre(Q, s);
   if(Q === null){
     const m = ultimo ? ultimo.mejor : "";
     $("q-txt").textContent = "Entre 9 y 15 Bs por dólar la mejor alternativa no cambia.";
@@ -801,13 +801,28 @@ function pintarQuiebre(Q, s){
     <p class="nota-sit" style="margin-top:6px"><strong>Para ${S.rep}:</strong> si cree que el dólar pasará de <strong>${nf(q,2)} Bs</strong> en 90 días, conviene ${B}. ${Math.abs(dist) < 0.005 ? "Hoy está justo en ese punto." : `Hoy está a ${nf(Math.abs(dist),2)} Bs ${dist > 0 ? "por debajo" : "por encima"} de ese punto.`}</p>`;
 }
 
-const SUP = {dolar:["Dólar en 90 días", (a,b) => `de ${nf(a)} a ${nf(b)} Bs`], venta:["Venta", (a,b) => `de ${a > 0 ? "+" : ""}${nf(a)} % a ${b > 0 ? "+" : ""}${nf(b)} %`], atraso:["Atraso del proveedor", (a,b) => `de ${nf(a)} a ${nf(b)} días`]};
+// En la respuesta del motor, «de» y «a» son la ganancia en cada extremo; el rango de cada supuesto es fijo.
+const SUP = {dolar:["Dólar en 90 días","de 9 a 15 Bs"], venta:["Venta","de −30 % a +30 %"], atraso:["Atraso del proveedor","de 0 a 30 días"]};
 function pintarSens(T){
   $("t-marca").innerHTML = marcaTc();
   const mx = Math.max(...T.map(x => Math.abs(x.rango_bs)), 1);
   const fr = {dolar:"el dólar", venta:"la venta", atraso:"el atraso del proveedor"};
-  $("t-cuerpo").innerHTML = T.map(x => `<div class="fila"><span>${SUP[x.supuesto][0]}<span class="ayuda">${SUP[x.supuesto][1](x.de, x.a)}</span></span><div class="bar" style="width:${Math.max(1, Math.abs(x.rango_bs) / mx * 100)}%"></div><span class="n">${bs(Math.abs(x.rango_bs))}</span></div>`).join("")
+  $("t-cuerpo").innerHTML = T.map(x => `<div class="fila"><span>${SUP[x.supuesto][0]}<span class="ayuda">${SUP[x.supuesto][1]}</span></span><div class="bar" style="width:${Math.max(1, Math.abs(x.rango_bs) / mx * 100)}%"></div><span class="n">${bs(Math.abs(x.rango_bs))}</span></div>`).join("")
     + `<p class="nota">En este repuesto, lo que más mueve la ganancia es ${fr[T[0].supuesto]}${T[0].supuesto === "dolar" ? "" : `, más que ${fr[T[1].supuesto]}`}. Vigílelo primero.</p>`;
+}
+
+/* Con los supuestos de base gana «lo justo» en los 30 repuestos (el stock alcanza y comprar de más solo paga si el
+   dólar sube). Para que eso no parezca un error, la tarjeta de alternativas dice qué tendría que pasar para que cambie. */
+function lecturaQuiebre(Q, s){
+  const el = $("alts-q"), m = ultimo && ultimo.mejor;
+  if(!m){ el.hidden = true; return; }
+  const t = k => "«" + ALT[k].t.toLowerCase() + "»";
+  let txt = `<strong>Con estos supuestos gana ${t(m)}.</strong> `;
+  if(m === "A") txt += "El stock y lo que viene en camino alcanzan; comprar de más solo conviene si el dólar sube lo suficiente para pagar el costo del dinero inmovilizado. ";
+  if(Q === null) txt += "Con cualquier dólar a 90 días entre 9 y 15 Bs gana la misma alternativa.";
+  else if(s.tc_90 < Q.valor) txt += `Si espera que el dólar llegue a <strong>${nf(Q.valor,2)} Bs</strong> en 90 días, pasa a ganar ${t(Q.despues)}: mueva el primer supuesto para verlo.`;
+  else txt += `Su supuesto (${nf(s.tc_90,2)} Bs) está por encima del dólar de quiebre (${nf(Q.valor,2)} Bs); por debajo de ese valor ganaría ${t(Q.antes)}.`;
+  el.innerHTML = txt; el.hidden = false;
 }
 
 /* Eventos del simulador */
@@ -840,12 +855,12 @@ function pintarProveedoresVista(){
   $("pv-rep").innerHTML = D.repuestos.map(r => `<option value="${r.repuesto_id}">${r.repuesto_id} · carparts ${r.codigo_carparts} · ${r.tipo_demanda} ${r.clase_abc}</option>`).join("");
   $("pv-rep").value = S.pvRep;
   const f = seguro(() => Motor.compararProveedores(D, S.pvRep, tcHoy()), $("t-pv")); if(!f) return;
-  const r = REP[S.pvRep], max = f[f.length - 1].costo.total_bs;
+  const r = REP[S.pvRep], max = f[f.length - 1].total_bs;
   $("pv-tit").innerHTML = `${S.pvRep} · costo puesto en Santa Cruz con ${S.tcModo === "oficial" ? "el dólar oficial (" + nf(OF.valor,2) + ")" : "el dólar elegido (" + nf(tcHoy(),2) + ")"}${marcaTc()}`;
   $("t-pv").innerHTML = `<thead><tr><th>Proveedor</th><th>Origen</th><th>Incoterm<span class="ayuda">qué gastos ya incluye el precio</span></th><th>Costo puesto<span class="ayuda">fábrica + flete + aduana, en Bs</span></th><th>Plazo normal</th><th>Variación del plazo<span class="ayuda">cuántos días puede correrse</span></th><th>A tiempo<span class="ayuda">de cada 100 entregas</span></th></tr></thead><tbody>` +
-    f.map((p,i) => `<tr${i === 0 ? ' data-sel="true"' : ""}><td><b>${esc(nombreProv(p))}</b>${i === 0 ? ' <span class="tag">Menor costo</span>' : ""}${p.proveedor_id === r.proveedor_id ? ' <span class="tag" style="background:#eceae5;color:var(--ink-2)">El de hoy</span>' : ""}</td><td>${esc(p.origen)}</td><td>${p.incoterm}</td><td>Bs ${nf(p.costo.total_bs,2)}<span class="barra" style="width:${Math.round(p.costo.total_bs / max * 100)}%"></span></td><td>${p.plazo_normal_dias} d</td><td>± ${p.desvio_plazo_dias} d</td><td class="${p.pct_entregas_a_tiempo < 80 ? "c-warn" : ""}">${p.pct_entregas_a_tiempo}</td></tr>`).join("") + "</tbody>";
+    f.map((p,i) => `<tr${i === 0 ? ' data-sel="true"' : ""}><td><b>${esc(nombreProv(p))}</b>${i === 0 ? ' <span class="tag">Menor costo</span>' : ""}${p.proveedor_id === r.proveedor_id ? ' <span class="tag" style="background:#eceae5;color:var(--ink-2)">El de hoy</span>' : ""}</td><td>${esc(p.origen)}</td><td>${p.incoterm}</td><td>Bs ${nf(p.total_bs,2)}<span class="barra" style="width:${Math.round(p.total_bs / max * 100)}%"></span></td><td>${p.plazo_normal_dias} d</td><td>± ${p.desvio_plazo_dias} d</td><td class="${p.pct_entregas_a_tiempo < 80 ? "c-warn" : ""}">${p.pct_entregas_a_tiempo}</td></tr>`).join("") + "</tbody>";
   const hoy = f.find(p => p.proveedor_id === r.proveedor_id), lentos = f.filter(p => p.pct_entregas_a_tiempo < 80).length;
-  $("pv-nota").innerHTML = `<strong>Lo que se ve al comparar:</strong> el más barato puesto en Santa Cruz es ${esc(nombreProv(f[0]))}, Bs ${nf(f[0].costo.total_bs,2)} por unidad${hoy && hoy !== f[0] ? `; el proveedor de hoy cuesta Bs ${nf(hoy.costo.total_bs - f[0].costo.total_bs,2)} más` : hoy === f[0] ? ", y es el proveedor de hoy" : ""}. ${lentos ? `Ojo con los ${lentos} que llegan a tiempo menos de 80 de cada 100 veces: el simulador les suma el riesgo de atraso.` : ""}`;
+  $("pv-nota").innerHTML = `<strong>Lo que se ve al comparar:</strong> el más barato puesto en Santa Cruz es ${esc(nombreProv(f[0]))}, Bs ${nf(f[0].total_bs,2)} por unidad${hoy && hoy !== f[0] ? `; el proveedor de hoy cuesta Bs ${nf(hoy.total_bs - f[0].total_bs,2)} más` : hoy === f[0] ? ", y es el proveedor de hoy" : ""}. ${lentos ? `Ojo con los ${lentos} que llegan a tiempo menos de 80 de cada 100 veces: el simulador les suma el riesgo de atraso.` : ""}`;
 }
 $("pv-rep").addEventListener("change", e => { S.pvRep = e.target.value; pintarProveedoresVista(); });
 
@@ -863,7 +878,7 @@ function pintarPlan(){
   $("acum").style.width = (S.presu > 0 ? Math.min(100, usado / S.presu * 100) : 0) + "%";
   $("usado-txt").textContent = `${bs(usado)} de ${bs(S.presu)}. Pedir todo costaría ${bs(total)}.`;
   $("t-plan").innerHTML = `<thead><tr><th>Orden</th><th style="text-align:left">Repuesto</th><th style="text-align:left">Por qué ahora<span class="ayuda">días que faltan para el punto de pedido</span></th><th>Cantidad</th><th>Costo puesto</th><th>Acumulado</th></tr></thead><tbody>` +
-    filas.map((a,i) => `<tr${a.alcanza ? "" : ' class="fuera"'}><td>${i + 1}</td><td style="text-align:left"><b>${a.id}</b><span class="ayuda">clase ${REP[a.id].clase_abc}</span></td><td style="text-align:left">${a.est === 2 ? '<span class="insignia si">Puede esperar</span>' : insignia(a.est)} ${a.margen_dias <= 0 ? "ya está en el punto de pedido" : nf(a.margen_dias) + " días para el punto de pedido"}</td><td>${nf(a.cantidad_sugerida)}</td><td>${bs(a.costo_bs)}</td><td>${bs(a.acumulado_bs)}${a.alcanza ? "" : ' <span class="insignia na">No alcanza</span>'}</td></tr>`).join("") + "</tbody>";
+    filas.map((a,i) => `<tr${a.alcanza ? "" : ' class="fuera"'}><td>${i + 1}</td><td style="text-align:left"><b>${a.id}</b><span class="ayuda">clase ${REP[a.id].clase_abc}</span></td><td style="text-align:left">${insignia(a.est)} ${a.margen_dias <= 0 ? "ya está en el punto de pedido" : nf(a.margen_dias) + " días para el punto de pedido"}</td><td>${nf(a.cantidad_sugerida)}</td><td>${bs(a.costo_bs)}</td><td>${bs(a.acumulado_bs)}${a.alcanza ? "" : ' <span class="insignia na">No alcanza</span>'}</td></tr>`).join("") + "</tbody>";
 }
 let tPresu = null;
 $("f-presu").addEventListener("input", e => { const v = parseFloat(e.target.value); if(v >= 0){ clearTimeout(tPresu); tPresu = setTimeout(() => { S.presu = v; pintarPlan(); }, 150); } });
@@ -876,12 +891,12 @@ function pintarPasado(){
   if(!PASADO) return;
   const g = PASADO.map(x => x.ganancia_bs), im = g.indexOf(Math.max(...g)), ip = g.indexOf(Math.min(...g));
   $("bt").innerHTML = POL.map((p,i) => { const x = PASADO[i]; return `<div class="col${i === im ? " gana" : ""}"><h3>${p[1]}${i === im ? ' <span class="tag">Mejor resultado</span>' : ""}</h3><p class="que">${p[2]}</p>
-    <dl class="dato"><dt>Ventas perdidas<span class="ayuda">Unidades pedidas por clientes sin stock.</span></dt><dd>${nf(x.ventas_perdidas)} u</dd></dl>
+    <dl class="dato"><dt>Ventas perdidas<span class="ayuda">Unidades pedidas por clientes sin stock.</span></dt><dd>${nf(x.ventas_perdidas,1)} u</dd></dl>
     <dl class="dato"><dt>Dinero inmovilizado promedio<span class="ayuda">Dinero en el almacén, mes a mes.</span></dt><dd>${bs(x.capital_promedio_bs)}</dd></dl>
     <dl class="dato"><dt>Pedidos hechos<span class="ayuda">Cada pedido paga flete y trámites.</span></dt><dd>${nf(x.pedidos)}</dd></dl>
     <dl class="dato"><dt>Ganancia en 12 meses<span class="ayuda">Ventas menos compras y costo del capital.</span></dt><dd>${bs(x.ganancia_bs)}</dd></dl></div>`; }).join("");
   const m = PASADO[im], pe = PASADO[ip];
-  $("bt-nota").innerHTML = `<strong>Lo que enseña:</strong> con las ventas que de verdad ocurrieron, «${POL[im][1].toLowerCase()}» dejó ${bs(m.ganancia_bs)}, ${bs(m.ganancia_bs - pe.ganancia_bs)} más que «${POL[ip][1].toLowerCase()}», con ${nf(m.ventas_perdidas)} unidades perdidas frente a ${nf(pe.ventas_perdidas)}.`;
+  $("bt-nota").innerHTML = `<strong>Lo que enseña:</strong> con las ventas que de verdad ocurrieron, «${POL[im][1].toLowerCase()}» dejó ${bs(m.ganancia_bs)}, ${bs(m.ganancia_bs - pe.ganancia_bs)} más que «${POL[ip][1].toLowerCase()}», con ${nf(m.ventas_perdidas,1)} unidades perdidas frente a ${nf(pe.ventas_perdidas,1)}.`;
 }
 
 /* ==================== CLASIFICACIÓN ==================== */
