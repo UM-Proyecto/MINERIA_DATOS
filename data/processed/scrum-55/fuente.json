@@ -1,0 +1,22 @@
+{
+  "conjunto": "carparts",
+  "cita": "Hyndman, R. J., Koehler, A. B., Ord, J. K. y Snyder, R. D. (2008). Forecasting with Exponential Smoothing: The State Space Approach. Springer.",
+  "descripcion": "Monthly car part sales, covering 2,674 series from January 1998 to March 2002",
+  "licencia": "GPL (>= 2)",
+  "licencia_fuente": "archivo DESCRIPTION del paquete R expsmooth 2.3 (https://cran.r-project.org/package=expsmooth)",
+  "url_descarga": "https://robjhyndman.com/expsmooth/expsmooth_data.zip",
+  "url_pagina": "https://robjhyndman.com/expsmooth/",
+  "fecha_descarga": "2026-11-10",
+  "fecha_reverificacion": "2026-11-12",
+  "archivo_local": "data/raw/scrum-55/expsmooth_data.zip",
+  "bytes": 206764,
+  "sha256_zip": "7ea2aabdfde73bb48eeec68c1eba3724d12d9b4691db3e353d3f310bb0fb3770",
+  "sha256_carparts_csv": "fd93a448400ead4db6dac7f155366dd1baa05b5b7c79b2b216f1a1604cc6f5ee",
+  "series": 2674,
+  "meses": 51,
+  "periodo_original": "Jan-98 a Mar-02",
+  "periodo_refechado": "2022-08 a 2026-10",
+  "supuesto_refechado": "Los 51 meses se trasladan en orden a ago-2022 ... oct-2026, el último mes completo antes del corte del 10/11/2026. Las cantidades no se modifican.",
+  "semilla": 20261112,
+  "marca": "SINTÉTICO / ADAPTADO"
+}

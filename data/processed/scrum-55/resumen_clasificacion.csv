@@ -1,0 +1,31 @@
+grupo,tipo_demanda,clase_abc,series,series_completas,series_elegibles,unidades,origen_dato,marca
+universo_2674,suave,A,2,0,0,75,REAL: carparts; clasificación calculada por el equipo,SINTÉTICO / ADAPTADO
+universo_2674,suave,B,1,0,0,21,REAL: carparts; clasificación calculada por el equipo,SINTÉTICO / ADAPTADO
+universo_2674,suave,C,0,0,0,0,REAL: carparts; clasificación calculada por el equipo,SINTÉTICO / ADAPTADO
+universo_2674,errática,A,0,0,0,0,REAL: carparts; clasificación calculada por el equipo,SINTÉTICO / ADAPTADO
+universo_2674,errática,B,0,0,0,0,REAL: carparts; clasificación calculada por el equipo,SINTÉTICO / ADAPTADO
+universo_2674,errática,C,0,0,0,0,REAL: carparts; clasificación calculada por el equipo,SINTÉTICO / ADAPTADO
+universo_2674,intermitente,A,927,925,899,38910,REAL: carparts; clasificación calculada por el equipo,SINTÉTICO / ADAPTADO
+universo_2674,intermitente,B,706,653,565,9031,REAL: carparts; clasificación calculada por el equipo,SINTÉTICO / ADAPTADO
+universo_2674,intermitente,C,661,568,63,3157,REAL: carparts; clasificación calculada por el equipo,SINTÉTICO / ADAPTADO
+universo_2674,irregular,A,284,284,276,13980,REAL: carparts; clasificación calculada por el equipo,SINTÉTICO / ADAPTADO
+universo_2674,irregular,B,57,49,30,798,REAL: carparts; clasificación calculada por el equipo,SINTÉTICO / ADAPTADO
+universo_2674,irregular,C,6,4,0,41,REAL: carparts; clasificación calculada por el equipo,SINTÉTICO / ADAPTADO
+universo_2674,sin clasificar,A,0,0,0,0,REAL: carparts; clasificación calculada por el equipo,SINTÉTICO / ADAPTADO
+universo_2674,sin clasificar,B,5,4,0,72,REAL: carparts; clasificación calculada por el equipo,SINTÉTICO / ADAPTADO
+universo_2674,sin clasificar,C,25,22,0,109,REAL: carparts; clasificación calculada por el equipo,SINTÉTICO / ADAPTADO
+elegidos_30,suave,A,0,0,0,0,REAL: carparts; clasificación calculada por el equipo,SINTÉTICO / ADAPTADO
+elegidos_30,suave,B,0,0,0,0,REAL: carparts; clasificación calculada por el equipo,SINTÉTICO / ADAPTADO
+elegidos_30,suave,C,0,0,0,0,REAL: carparts; clasificación calculada por el equipo,SINTÉTICO / ADAPTADO
+elegidos_30,errática,A,0,0,0,0,REAL: carparts; clasificación calculada por el equipo,SINTÉTICO / ADAPTADO
+elegidos_30,errática,B,0,0,0,0,REAL: carparts; clasificación calculada por el equipo,SINTÉTICO / ADAPTADO
+elegidos_30,errática,C,0,0,0,0,REAL: carparts; clasificación calculada por el equipo,SINTÉTICO / ADAPTADO
+elegidos_30,intermitente,A,6,6,6,271,REAL: carparts; clasificación calculada por el equipo,SINTÉTICO / ADAPTADO
+elegidos_30,intermitente,B,6,6,6,83,REAL: carparts; clasificación calculada por el equipo,SINTÉTICO / ADAPTADO
+elegidos_30,intermitente,C,6,6,6,39,REAL: carparts; clasificación calculada por el equipo,SINTÉTICO / ADAPTADO
+elegidos_30,irregular,A,6,6,6,305,REAL: carparts; clasificación calculada por el equipo,SINTÉTICO / ADAPTADO
+elegidos_30,irregular,B,6,6,6,99,REAL: carparts; clasificación calculada por el equipo,SINTÉTICO / ADAPTADO
+elegidos_30,irregular,C,0,0,0,0,REAL: carparts; clasificación calculada por el equipo,SINTÉTICO / ADAPTADO
+elegidos_30,sin clasificar,A,0,0,0,0,REAL: carparts; clasificación calculada por el equipo,SINTÉTICO / ADAPTADO
+elegidos_30,sin clasificar,B,0,0,0,0,REAL: carparts; clasificación calculada por el equipo,SINTÉTICO / ADAPTADO
+elegidos_30,sin clasificar,C,0,0,0,0,REAL: carparts; clasificación calculada por el equipo,SINTÉTICO / ADAPTADO
