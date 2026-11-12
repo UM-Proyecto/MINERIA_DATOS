@@ -87,7 +87,7 @@ La app es un solo archivo que se abre con doble clic. El menú de la izquierda t
 - **Punto de pedido:** la cantidad de stock con la que hay que pedir para no quedarse sin nada mientras llega el pedido.
 - **Puntaje:** en cuántos de cada 100 futuros simulados una alternativa deja más ganancia que las otras tres. Sirve para
   comparar; no es la probabilidad de acertar.
-- **Riesgo de quedarse sin stock:** en cuántos futuros de cada 100 el repuesto se agota antes de reponer.
+- **Riesgo de quedarse sin stock:** en cuántos futuros de cada 100 se pierde alguna venta por falta de stock.
 - **Dinero inmovilizado:** lo que queda guardado en stock y no está disponible en caja.
 - **Dólar de quiebre:** el dólar esperado a 90 días a partir del cual conviene cambiar de alternativa.
 - **ADI:** cada cuántos meses, en promedio, se vende el repuesto. **CV²:** cuánto varía la cantidad cuando se vende.
