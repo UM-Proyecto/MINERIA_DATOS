@@ -7,11 +7,21 @@ Castillo y Fiorella Sandoval. Docente: Ing. William Mauricio. Tablero de trabajo
 **Pregunta enfocada.** ¿Qué técnicas de análisis de datos permiten apoyar las decisiones de compra de la empresa
 MULTIPARTES de Santa Cruz de la Sierra durante el segundo semestre de 2026?
 
+**Respuesta del proyecto: un simulador de compras.** La app
+[`reports/simulador/MULTIPARTES_Simulador_Compras.html`](reports/simulador/MULTIPARTES_Simulador_Compras.html) se abre
+con doble clic y le dice al jefe de compras cuánto pedir y cuándo. Junta cinco técnicas: clasificación de la demanda
+(Syntetos y Boylan, ABC), pronóstico para demanda intermitente (SBA), simulación de Monte Carlo con 1.500 futuros,
+análisis de sensibilidad con dólar de quiebre y validación con los últimos 12 meses. El detalle está en la sección
+[Simulador de compras](#simulador-de-compras-scrum-53-a-scrum-70).
+
 ## De dónde salen los datos
 
 - **FICTICIOS:** movimientos de inventario, stock, catálogo, ventas y compras. MULTIPARTES facilitó una muestra inicial
   pequeña, de unos 20 registros. Para poder aplicar y comparar las técnicas, el equipo la amplió con datos de prueba
   con la misma estructura. Cada archivo indica si es de prueba.
+- **PÚBLICOS y reales, del simulador:** las ventas mensuales de repuestos de auto del conjunto carparts (Hyndman,
+  Koehler, Ord y Snyder, 2008), con las fechas adaptadas a 2022-2026, y el tipo de cambio oficial diario del BCB desde el
+  27-06-2026. Proveedores, costos, precios y stock del simulador son SINTÉTICOS y así están marcados.
 - **PÚBLICOS y reales:** los fletes de importación (INE de Bolivia, cotizaciones de un agente de carga y el índice SCFI de
   Shanghái) y el tipo de cambio oficial del Banco Central de Bolivia.
 - **MIXTOS:** los costos de importación de HU-31 y la comparación del tipo de cambio de HU-32 combinan las fuentes
@@ -53,6 +63,32 @@ MULTIPARTES de Santa Cruz de la Sierra durante el segundo semestre de 2026?
 | HU-34 | [SCRUM-45](https://fsandoval09.atlassian.net/browse/SCRUM-45) · [SCRUM-50](https://fsandoval09.atlassian.net/browse/SCRUM-50) | Fiorella | Descripción y limpieza de los conjuntos de datos | FICTICIO (simulados) | [`src/hu-34`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/src/hu-34) | [`data/processed/hu-34`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/data/processed/hu-34) | [`reports/hu-34`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/reports/hu-34) |
 | HU-36 | [SCRUM-47](https://fsandoval09.atlassian.net/browse/SCRUM-47) | Fiorella | Repetición de los pronósticos con 284 días de historial | FICTICIO | Pendiente de subir | Pendiente de subir | Resultado comentado en Jira |
 
+## Simulador de compras (SCRUM-53 a SCRUM-70)
+
+Todas las historias son de Samuel. Cada una tiene sus criterios de aceptación en Jira.
+
+| Jira | Qué hace | Código | Documento |
+|---|---|---|---|
+| [SCRUM-54](https://fsandoval09.atlassian.net/browse/SCRUM-54) | Lee el tipo de cambio oficial diario del BCB, guarda la página con su sha256 y valida la serie | [`src/scrum-54`](src/scrum-54) | [`docs/scrum-54`](docs/scrum-54/LEEME.md) |
+| [SCRUM-55](https://fsandoval09.atlassian.net/browse/SCRUM-55) | Adapta las ventas reales de carparts a 30 repuestos de MULTIPARTES, con proveedores y stock SINTÉTICOS | [`src/scrum-55`](src/scrum-55) | [`docs/scrum-55`](docs/scrum-55/LEEME.md) |
+| [SCRUM-53](https://fsandoval09.atlassian.net/browse/SCRUM-53), [SCRUM-56](https://fsandoval09.atlassian.net/browse/SCRUM-56) a [SCRUM-63](https://fsandoval09.atlassian.net/browse/SCRUM-63) | Motor: costo puesto con Incoterm y flete, dólar a 90 días, venta, atraso del proveedor, riesgo de quedarse sin stock, capital inmovilizado, cuatro alternativas con puntaje, dólar de quiebre y qué supuesto pesa más | [`src/simulador/motor.js`](src/simulador/motor.js) y su referencia [`motor_ref.py`](src/simulador/motor_ref.py) | [`docs/simulador/MOTOR.md`](docs/simulador/MOTOR.md) |
+| [SCRUM-64](https://fsandoval09.atlassian.net/browse/SCRUM-64) | La app, con la explicación de cada campo | [`src/simulador`](src/simulador) | [`docs/simulador/LEEME.md`](docs/simulador/LEEME.md) |
+| [SCRUM-66](https://fsandoval09.atlassian.net/browse/SCRUM-66) a [SCRUM-70](https://fsandoval09.atlassian.net/browse/SCRUM-70) | Alertas de reposición, comparar proveedores, clasificación de repuestos, ¿qué hubiera pasado? y plan con presupuesto | [`src/simulador`](src/simulador) | [`docs/simulador/LEEME.md`](docs/simulador/LEEME.md) |
+| [SCRUM-65](https://fsandoval09.atlassian.net/browse/SCRUM-65) | Guía del simulador y preguntas del docente | — | [`docs/scrum-65/GUIA_simulador.md`](docs/scrum-65/GUIA_simulador.md) |
+
+Para regenerar todo desde los datos:
+
+```bash
+python3 src/scrum-54/obtener_tco_bcb.py          # vuelve a leer el BCB (--desde-archivo para trabajar sin red)
+python3 src/scrum-55/adaptar_carparts.py
+python3 src/simulador/preparar_datos.py
+python3 src/simulador/generar_app.py
+python3 -m unittest discover -s tests
+```
+
+El motor está escrito en JavaScript para que corra dentro de la página, y tiene una copia en Python que solo sirve para
+probarlo: las dos versiones deben dar el mismo resultado en 20 casos fijos.
+
 ## Estructura
 
 ```text
@@ -65,7 +101,7 @@ src/          scripts de procesamiento y análisis
 tests/        pruebas automatizadas
 ```
 
-Los datos y resultados de cada historia de usuario usan el mismo identificador (`hu-02`, `hu-03`, `hu-06`, `hu-07`, `hu-17`, `hu-18`, `hu-30-31`, `hu-32`, `hu-33` y `hu-34`) para mantener su trazabilidad.
+Los datos y resultados de cada historia de usuario usan el mismo identificador (`hu-02`, `hu-03`, `hu-06`, `hu-07`, `hu-17`, `hu-18`, `hu-30-31`, `hu-32`, `hu-33` y `hu-34`) para mantener su trazabilidad. Las historias nuevas usan su clave de Jira (`scrum-54`, `scrum-55`) y el simulador vive en `simulador`.
 
 ## Ejecución
 
