@@ -1,5 +1,10 @@
 # Validación de entrega HU-09
 
+> **Nota del 12-11-2026.** Este informe registra la entrega del 10-11-2026 tal como se hizo. Desde el 12-11-2026 las
+> alertas de faltantes usan la lógica única del simulador (`src/hu-09/generar_alertas.py`), con los criterios de esta
+> entrega; la conciliación de inventario y plazo sigue viva como verificación de datos (`src/hu-09/verificar_datos.py`),
+> y el modo de demostración se retiró. Qué cambió y por qué: `docs/hu-09/LEEME.md`.
+
 Fecha: 10/11/2026. Rama: `feature/hu-09-alertas-faltantes`.
 Entorno ejecutado: Python 3.13.7 en Windows. Sin dependencias nuevas.
 

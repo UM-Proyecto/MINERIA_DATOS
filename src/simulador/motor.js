@@ -20,7 +20,7 @@ var Motor = (function () {
   var ALFA_SBA = 0.1;
   var ALTERNATIVAS = ["A", "B", "C", "D"];
   var ORDEN_CLASE = { A: 0, B: 1, C: 2 };
-  var ETIQUETAS = ["Pedir ya", "Vigilar", "Cubierto"];
+  var ETIQUETAS = ["Pedir ya", "Vigilar", "Cubierto", "Sin datos"];
   var EPS = 1e-9;
   // Atraso extra cuando el proveedor no cumple (SINTÉTICO): uniforme entre 5 y 20 días.
   var ATRASO_EXTRA_MIN = 5;
@@ -360,33 +360,62 @@ var Motor = (function () {
 
   // ---------------------------------------------------------------- alertas y presupuesto
 
+  // Número finito y no negativo, o null. Un dato vacío no se convierte en cero (criterio de HU-09).
+  function datoValido(x) {
+    if (x === null || x === undefined || (typeof x === "string" && x.trim() === "")) return null;
+    var v = Number(x);
+    if (!isFinite(v) || v < 0) return null;
+    return v;
+  }
+
+  // Lógica única de alertas (SCRUM-66 unida con HU-09). Ver motor_ref.alertas para el detalle.
   function alertas(datos, tc) {
     var filas = [];
     for (var i = 0; i < datos.repuestos.length; i++) {
       var rep = datos.repuestos[i];
-      var prov = buscarProveedor(datos, rep.proveedor_id);
-      var pr = pronostico(datos.ventas[rep.repuesto_id], rep.tipo_demanda);
+      var prov = null;
+      for (var j = 0; j < datos.proveedores.length; j++) if (datos.proveedores[j].proveedor_id === rep.proveedor_id) { prov = datos.proveedores[j]; break; }
+      var ventas = datos.ventas[rep.repuesto_id] || [];
+      var stock = datoValido(rep.stock_al_2026_11_10), camino = datoValido(rep.en_transito_al_2026_11_10);
+      var s = datoValido(rep.punto_pedido_s), S = datoValido(rep.nivel_maximo_S);
+      var plazo = prov ? datoValido(prov.plazo_normal_dias) : null;
+      var motivos = [];
+      if (stock === null || camino === null) motivos.push("STOCK_FALTANTE");
+      if (plazo === null) motivos.push("PLAZO_FALTANTE");
+      if (ventas.length === 0 || ventas.some(function (v) { return datoValido(v[1]) === null; })) motivos.push("DEMANDA_FALTANTE");
+      if (s === null || S === null) motivos.push("REGLA_FALTANTE");
+      var base = {id: rep.repuesto_id, clase: rep.clase_abc, tipo_demanda: rep.tipo_demanda, proveedor_id: rep.proveedor_id};
+      if (motivos.length) {
+        filas.push(Object.assign(base, {
+          est: 3, etiqueta: ETIQUETAS[3], motivos: motivos, stock: stock, en_camino: camino,
+          punto_pedido: s, nivel_maximo: S, plazo: plazo, margen_dias: null,
+          demanda_entrega: null, faltante_previsto: null, cantidad_sugerida: 0,
+          costo_bs: null, venta_mes: null, _m: null, _f: 0
+        }));
+        continue;
+      }
+      var pr = pronostico(ventas, rep.tipo_demanda);
       var tasa = pr.unidades_mes / 30;
-      var stock = num(rep.stock_al_2026_11_10), camino = num(rep.en_transito_al_2026_11_10);
-      var s = num(rep.punto_pedido_s), S = num(rep.nivel_maximo_S);
-      var plazo = num(prov.plazo_normal_dias);
       var pos = stock + camino;
+      var demanda = tasa * plazo;
+      var faltante = demanda > pos ? demanda - pos : 0;
       var margen = tasa > 0 ? (pos - s) / tasa : null;
       var est = pos <= s ? 0 : (margen !== null && margen < plazo ? 1 : 2);
       var cantidad = Math.max(Math.floor(S - pos + 0.5), 0);
       if (est < 2) cantidad = Math.max(cantidad, 1);
       var cp = costoPuesto(rep, prov, tc);
-      filas.push({
-        id: rep.repuesto_id, est: est, etiqueta: ETIQUETAS[est], stock: stock, en_camino: camino,
+      filas.push(Object.assign(base, {
+        est: est, etiqueta: ETIQUETAS[est], motivos: [], stock: stock, en_camino: camino,
         punto_pedido: s, nivel_maximo: S, plazo: plazo,
         margen_dias: margen === null ? null : Math.floor(margen + EPS),
+        demanda_entrega: demanda, faltante_previsto: faltante,
         cantidad_sugerida: cantidad, costo_bs: redondear(cantidad * cp.total_bs, 2),
-        clase: rep.clase_abc, tipo_demanda: rep.tipo_demanda, proveedor_id: prov.proveedor_id,
-        venta_mes: pr.unidades_mes, _m: margen
-      });
+        venta_mes: pr.unidades_mes, _m: margen, _f: faltante
+      }));
     }
     filas.sort(function (x, y) {
       if (x.est !== y.est) return x.est - y.est;
+      if (x._f !== y._f) return y._f - x._f;
       if (x._m !== y._m) {
         if (x._m === null) return 1;
         if (y._m === null) return -1;
@@ -394,7 +423,7 @@ var Motor = (function () {
       }
       return x.id < y.id ? -1 : x.id > y.id ? 1 : 0;
     });
-    filas.forEach(function (x) { delete x._m; });
+    filas.forEach(function (x) { delete x._m; delete x._f; });
     return filas;
   }
 

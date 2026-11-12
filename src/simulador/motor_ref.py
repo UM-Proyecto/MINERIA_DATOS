@@ -16,7 +16,7 @@ Z_CLASE = {"A": 1.65, "B": 1.28, "C": 0.84}
 ALFA_SBA = 0.1
 ALTERNATIVAS = ["A", "B", "C", "D"]
 ORDEN_CLASE = {"A": 0, "B": 1, "C": 2}
-ETIQUETAS = ["Pedir ya", "Vigilar", "Cubierto"]
+ETIQUETAS = ["Pedir ya", "Vigilar", "Cubierto", "Sin datos"]
 EPS = 1e-9
 ATRASO_EXTRA_MIN = 5
 ATRASO_EXTRA_RANGO = 15
@@ -363,32 +363,75 @@ def sensibilidad(datos, rep_id, prov_id, sup, opc=None):
 
 # ------------------------------------------------------------------ alertas y presupuesto
 
+def dato_valido(x):
+    """Número finito y no negativo, o None. Un dato vacío no se convierte en cero (criterio de HU-09)."""
+    if x is None or (isinstance(x, str) and x.strip() == ""):
+        return None
+    try:
+        v = float(x)
+    except (TypeError, ValueError):
+        return None
+    if v != v or v in (float("inf"), float("-inf")) or v < 0:
+        return None
+    return v
+
+
 def alertas(datos, tc):
+    """Lógica única de alertas (SCRUM-66 unida con HU-09).
+
+    Estados: 0 «Pedir ya» (stock + en camino en o bajo el punto de pedido), 1 «Vigilar» (llega al punto de pedido
+    antes de que el proveedor pueda entregar), 2 «Cubierto», 3 «Sin datos» (falta stock, plazo o historial de venta;
+    no se rellena con cero). Demanda durante la entrega = venta diaria pronosticada × plazo, sin redondear antes de
+    comparar. Faltante previsto = max(0, demanda durante la entrega − (stock + en camino)); la igualdad no es faltante.
+    """
     filas = []
     for rep in datos["repuestos"]:
-        prov = buscar_proveedor(datos, rep["proveedor_id"])
-        pr = pronostico(datos["ventas"][rep["repuesto_id"]], rep["tipo_demanda"])
+        prov = next((p for p in datos["proveedores"] if p["proveedor_id"] == rep.get("proveedor_id")), None)
+        ventas = datos["ventas"].get(rep["repuesto_id"]) or []
+        stock, camino = dato_valido(rep.get("stock_al_2026_11_10")), dato_valido(rep.get("en_transito_al_2026_11_10"))
+        s, S = dato_valido(rep.get("punto_pedido_s")), dato_valido(rep.get("nivel_maximo_S"))
+        plazo = dato_valido(prov.get("plazo_normal_dias")) if prov else None
+        motivos = []
+        if stock is None or camino is None:
+            motivos.append("STOCK_FALTANTE")
+        if plazo is None:
+            motivos.append("PLAZO_FALTANTE")
+        if len(ventas) == 0 or any(dato_valido(v[1]) is None for v in ventas):
+            motivos.append("DEMANDA_FALTANTE")
+        if s is None or S is None:
+            motivos.append("REGLA_FALTANTE")
+        base = {"id": rep["repuesto_id"], "clase": rep["clase_abc"], "tipo_demanda": rep["tipo_demanda"],
+                "proveedor_id": rep["proveedor_id"]}
+        if motivos:
+            base.update({"est": 3, "etiqueta": ETIQUETAS[3], "motivos": motivos, "stock": stock, "en_camino": camino,
+                         "punto_pedido": s, "nivel_maximo": S, "plazo": plazo, "margen_dias": None,
+                         "demanda_entrega": None, "faltante_previsto": None, "cantidad_sugerida": 0,
+                         "costo_bs": None, "venta_mes": None, "_m": None, "_f": 0})
+            filas.append(base)
+            continue
+        pr = pronostico(ventas, rep["tipo_demanda"])
         tasa = pr["unidades_mes"] / 30
-        stock, camino = num(rep["stock_al_2026_11_10"]), num(rep["en_transito_al_2026_11_10"])
-        s, S = num(rep["punto_pedido_s"]), num(rep["nivel_maximo_S"])
-        plazo = num(prov["plazo_normal_dias"])
         pos = stock + camino
+        demanda = tasa * plazo
+        faltante = demanda - pos if demanda > pos else 0
         margen = (pos - s) / tasa if tasa > 0 else None
         est = 0 if pos <= s else (1 if margen is not None and margen < plazo else 2)
         cantidad = max(math.floor(S - pos + 0.5), 0)
         if est < 2:
             cantidad = max(cantidad, 1)
         cp = costo_puesto(rep, prov, tc)
-        filas.append({
-            "id": rep["repuesto_id"], "est": est, "etiqueta": ETIQUETAS[est], "stock": stock, "en_camino": camino,
+        base.update({
+            "est": est, "etiqueta": ETIQUETAS[est], "motivos": [], "stock": stock, "en_camino": camino,
             "punto_pedido": s, "nivel_maximo": S, "plazo": plazo,
             "margen_dias": None if margen is None else math.floor(margen + EPS),
+            "demanda_entrega": demanda, "faltante_previsto": faltante,
             "cantidad_sugerida": cantidad, "costo_bs": redondear(cantidad * cp["total_bs"], 2),
-            "clase": rep["clase_abc"], "tipo_demanda": rep["tipo_demanda"], "proveedor_id": prov["proveedor_id"],
-            "venta_mes": pr["unidades_mes"], "_m": margen})
-    filas.sort(key=lambda x: (x["est"], x["_m"] is None, x["_m"] if x["_m"] is not None else 0, x["id"]))
+            "venta_mes": pr["unidades_mes"], "_m": margen, "_f": faltante})
+        filas.append(base)
+    filas.sort(key=lambda x: (x["est"], -x["_f"], x["_m"] is None, x["_m"] if x["_m"] is not None else 0, x["id"]))
     for x in filas:
         del x["_m"]
+        del x["_f"]
     return filas
 
 

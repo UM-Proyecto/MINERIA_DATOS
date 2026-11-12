@@ -1,640 +1,200 @@
-"""HU-09: alertas de faltantes con fuentes explícitas y sin imputar datos ausentes.
+"""HU-09 y SCRUM-66: exporta las alertas de reposición de los 30 repuestos del simulador.
 
-Python >= 3.8; solo biblioteca estándar. No ejecuta ni modifica otras historias.
-Ventana de demanda: (fecha_evaluacion, fecha_recepcion], días naturales completos.
+La lógica es una sola y vive en el motor del simulador (src/simulador/motor.js, con su referencia en Python
+src/simulador/motor_ref.py). Este script no calcula nada por su cuenta: llama a motor_ref.alertas con los datos de
+data/processed/simulador/datos_app.json y deja tres salidas para revisar sin abrir la app:
+
+- data/processed/hu-09/alertas_faltantes.csv: una fila por repuesto, en orden de prioridad;
+- reports/hu-09/REPORTE_HU09.md: conteos, criterios y la tabla;
+- reports/hu-09/prioridades.svg: los repuestos que hay que pedir o vigilar, con su venta en el plazo y su stock.
+
+Criterios que vienen de la primera versión de HU-09 (Sabrina Adrian Zelaya): un dato que falta no se reemplaza por
+cero, sino que deja el repuesto en NO_CALCULABLE con su motivo y con las cifras calculadas vacías; la igualdad entre
+la venta durante la entrega y el stock no es alerta; no se redondea antes de comparar; y si algo falla, las salidas
+anteriores no se tocan.
+
+Uso, desde cualquier carpeta:
+    python src/hu-09/generar_alertas.py [--tc 11.70] [--salida CARPETA] [--reporte ARCHIVO.md]
+Sin --tc usa el dólar oficial más reciente que trae datos_app.json. Solo biblioteca estándar.
 """
 import argparse
-import calendar
 import csv
-import hashlib
 import io
 import json
-import re
+import os
 import sys
-from collections import Counter
-from datetime import date, datetime, timedelta
-from decimal import Decimal, InvalidOperation, localcontext
-from fractions import Fraction
-from html import escape
-from pathlib import Path
+import tempfile
 
-RAIZ = Path(__file__).resolve().parents[2]
-CONFIGURACION = RAIZ / "data/raw/hu-09/configuracion.json"
-CAMPOS_DEMANDA = ["sistema_codigos", "codigo_repuesto", "proveedor", "metodo", "validado", "fecha_emision",
-                  "inicio_horizonte", "fin_horizonte", "tipo_pronostico", "fecha_objetivo", "demanda",
-                  "unidad_temporal", "distribucion", "tipo_dato", "fuente"]
-FUENTES = {
-    "depuracion": ("data/processed/hu-17/reporte_depuracion_final.csv", "id_movimiento fecha codigo_repuesto codigo_unico tipo_movimiento cantidad documento estado"),
-    "conciliacion": ("data/processed/hu-18/conciliacion_inventario.csv", "fecha_conteo codigo_unico descripcion stock_inicial entradas salidas ajustes_previos stock_registrado conteo_fisico diferencia estado_ajuste movimientos_pendientes_en_calculo"),
-    "stock_inicial": ("data/raw/hu-18/stock_inicial.csv", "codigo_unico fecha_corte stock_inicial"),
-    "ajustes": ("data/processed/hu-18/ajustes_inventario.csv", "id_ajuste fecha_conteo codigo_unico cantidad_ajuste motivo fecha_hora"),
-    "historial": ("data/processed/hu-18/historial_ajustes.csv", "codigo_unico fecha_conteo accion cantidad_ajuste stock_antes stock_despues fecha_hora"),
-    "cotizaciones": ("data/processed/hu-30-31/sintetico/hu31_cotizaciones_proveedor_sintetico.csv", "codigo_unico proveedor fecha vigencia plazo_entrega_dias tipo_dato fuente fecha_actualizacion"),
-}
+RAIZ = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+sys.path.insert(0, os.path.join(RAIZ, "src", "simulador"))
+import motor_ref  # noqa: E402
+
+DATOS = os.path.join(RAIZ, "data", "processed", "simulador", "datos_app.json")
+SALIDA = os.path.join(RAIZ, "data", "processed", "hu-09")
+REPORTE = os.path.join(RAIZ, "reports", "hu-09", "REPORTE_HU09.md")
+
+COLUMNAS = ["prioridad", "repuesto_id", "estado", "alerta_faltante", "motivos", "stock", "en_camino",
+            "punto_pedido", "nivel_maximo", "plazo_dias", "venta_mes_pronosticada", "venta_durante_entrega",
+            "faltante_previsto", "margen_dias", "cantidad_sugerida", "costo_bs", "clase_abc", "tipo_demanda",
+            "proveedor_id", "tc_bs_por_usd", "tc_fecha", "origen_dato"]
 
 
-def exigir(condicion, mensaje):
-    if not condicion:
-        raise ValueError(mensaje)
+def alerta_faltante(fila):
+    """El criterio de HU-09 en sus tres valores: ALERTA solo si la venta durante la entrega supera lo disponible."""
+    if fila["est"] == 3:
+        return "NO_CALCULABLE"
+    return "ALERTA" if fila["faltante_previsto"] > 0 else "SIN_ALERTA"
 
 
-def texto(valor, nombre):
-    exigir(isinstance(valor, str) and bool(valor.strip()), nombre + ": texto obligatorio")
-    return valor.strip()
-
-
-def claves(objeto, permitidas, requeridas=()):
-    exigir(isinstance(objeto, dict), "Se esperaba un objeto JSON")
-    exigir(not set(objeto) - set(permitidas), "Campos desconocidos: " + ", ".join(sorted(set(objeto) - set(permitidas))))
-    exigir(set(requeridas) <= set(objeto), "Faltan campos: " + ", ".join(sorted(set(requeridas) - set(objeto))))
-
-
-def numero(valor, nombre, negativo=False, entero=False):
-    exigir(not isinstance(valor, (bool, float)), nombre + ": use texto decimal o entero, sin float")
-    try:
-        n = Decimal(valor)
-    except (ValueError, TypeError, InvalidOperation):
-        raise ValueError(nombre + ": número inválido") from None
-    exigir(n.is_finite() and (negativo or n >= 0), nombre + ": número finito no negativo requerido")
-    exigir(n.adjusted() <= 15 and n.as_tuple().exponent >= -8, nombre + ": fuera de precisión admitida (16 enteros, 8 decimales)")
-    exigir(not entero or n == n.to_integral_value(), nombre + ": debe ser entero")
-    return n
-
-
-def fecha(valor, nombre):
-    try:
-        exigir(isinstance(valor, str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", valor), "Fecha inválida")
-        return date.fromisoformat(valor)
-    except (ValueError, TypeError):
-        raise ValueError(nombre + ": fecha ISO AAAA-MM-DD inválida") from None
-
-
-def fecha_registro(valor):
-    try:
-        return datetime.strptime(valor, "%Y-%m-%d %H:%M:%S").date()
-    except (ValueError, TypeError):
-        raise ValueError("fecha_hora de ajuste inválida") from None
-
-
-def leer_csv(ruta, campos):
-    with Path(ruta).open(encoding="utf-8-sig", newline="") as archivo:
-        lector = csv.DictReader(archivo)
-        cabecera = lector.fieldnames or []
-        exigir(len(cabecera) == len(set(cabecera)), str(ruta) + ": columnas repetidas")
-        exigir(set(campos) <= set(cabecera), str(ruta) + ": faltan columnas requeridas")
-        filas = list(lector)
-    exigir(all(None not in r and all(v is not None for v in r.values()) for r in filas), str(ruta) + ": fila CSV mal formada")
-    return filas
-
-
-def unico(filas, nombre):
-    exigir(len(filas) == 1, nombre + ": se esperaba una única fila")
-    return filas[0]
-
-
-def equivalencias_hu17(filas):
-    equivalencias, ids = {}, set()
-    for r in filas:
-        exigir(r["id_movimiento"] not in ids, "ID de movimiento duplicado en HU-17")
-        ids.add(r["id_movimiento"])
-        exigir(r["estado"] in {"ORIGINAL", "DUPLICADO", "PENDIENTE_REVISION"}, "Estado HU-17 desconocido")
-        codigo = texto(r["codigo_unico"], "codigo_unico")
-        exigir(re.fullmatch(r"REP-\d{4}", codigo), "Código HU-17 incompatible")
-        alias = texto(r["codigo_repuesto"], "codigo_repuesto")
-        exigir(alias not in equivalencias or equivalencias[alias] == codigo, "Equivalencia contradictoria")
-        equivalencias[alias] = codigo
-        equivalencias[codigo] = codigo
-        numero(r["cantidad"], "cantidad HU-17", entero=True)
-        fecha(r["fecha"], "fecha HU-17")
-        exigir(r["tipo_movimiento"] in {"ENTRADA", "SALIDA"}, "Tipo de movimiento inválido")
-    return equivalencias
-
-
-def normalizar(codigo, sistema, equivalencias):
-    exigir(sistema == "REP", "Catálogo incompatible: RPxxx/HU-34 requiere una equivalencia documentada")
-    exigir(isinstance(codigo, str) and codigo in equivalencias, "Código sin equivalencia HU-17: " + str(codigo))
-    return equivalencias[codigo]
-
-
-def cargar_demanda(ruta, equivalencias):
-    """CSV vacío con cabecera es válido: falta previsión, no equivale a cero."""
-    grupos = {}
-    for r in leer_csv(ruta, CAMPOS_DEMANDA):
-        codigo = normalizar(r["codigo_repuesto"], r["sistema_codigos"], equivalencias)
-        exigir(r["validado"] in {"true", "false"}, "validado debe ser true o false")
-        exigir(r["tipo_dato"] in {"DOCUMENTADO", "ESTIMACION", "SINTETICO"}, "Naturaleza de pronóstico inválida")
-        for campo in ("metodo", "fuente"):
-            texto(r[campo], campo)
-        emision = fecha(r["fecha_emision"], "fecha_emision")
-        inicio = fecha(r["inicio_horizonte"], "inicio_horizonte")
-        fin = fecha(r["fin_horizonte"], "fin_horizonte")
-        exigir(emision < inicio <= fin, "El horizonte debe ser futuro a la emisión y no estar invertido")
-        exigir(r["tipo_pronostico"] in {"TASA_CONSTANTE", "SERIE_DIARIA"}, "Tipo de pronóstico inválido")
-        exigir(r["unidad_temporal"] in {"unidades/dia", "unidades/semana", "unidades/mes"}, "Unidad temporal incompatible")
-        valor = numero(r["demanda"], "demanda") if r["demanda"].strip() else None
-        metadata = {k: r[k] for k in CAMPOS_DEMANDA if k not in {"codigo_repuesto", "fecha_objetivo", "demanda"}}
-        if codigo not in grupos:
-            grupos[codigo] = dict(metadata, codigo_unico=codigo, validado=r["validado"] == "true", valores={}, tasa=None)
-        g = grupos[codigo]
-        exigir(all((g[k] == (r[k] == "true") if k == "validado" else g[k] == r[k]) for k in metadata), "Pronósticos ambiguos para " + codigo)
-        if r["tipo_pronostico"] == "TASA_CONSTANTE":
-            exigir(not g["valores"] and "fila_constante" not in g and not r["fecha_objetivo"], "Tasa constante duplicada o fecha_objetivo incompatible")
-            g["fila_constante"] = True
-            g["tasa"] = valor
-        else:
-            exigir(r["unidad_temporal"] == "unidades/dia", "Serie diaria debe usar unidades/dia")
-            objetivo = fecha(r["fecha_objetivo"], "fecha_objetivo")
-            exigir(inicio <= objetivo <= fin, "Fecha objetivo fuera del horizonte")
-            exigir(r["fecha_objetivo"] not in g["valores"], "Fecha de pronóstico duplicada para " + codigo)
-            g["valores"][r["fecha_objetivo"]] = valor
-    return grupos
-
-
-def ventana_entrega(evaluacion, plazo, tipo_dias, calendario_laboral=None):
-    """Devuelve todos los días de consumo, también fines de semana intermedios."""
-    plazo = int(numero(plazo, "plazo_dias", entero=True))
-    exigir(plazo <= 3660, "Plazo fuera del límite de 3660 días")
-    exigir(tipo_dias in {"naturales", "habiles"}, "Tipo de días del plazo no definido")
-    if tipo_dias == "habiles":
-        exigir(isinstance(calendario_laboral, dict) and calendario_laboral, "Calendario laboral requerido")
-        claves(calendario_laboral, {"dias_laborables", "feriados", "fuente"}, {"dias_laborables", "feriados", "fuente"})
-        laborables = calendario_laboral["dias_laborables"]
-        exigir(isinstance(laborables, list) and bool(laborables) and all(type(d) is int and 0 <= d <= 6 for d in laborables)
-               and len(set(laborables)) == len(laborables), "Días laborables inválidos")
-        exigir(isinstance(calendario_laboral["feriados"], list), "Declare feriados, incluso si la lista explícita es vacía")
-        feriados = {fecha(d, "feriado") for d in calendario_laboral["feriados"]}
-        texto(calendario_laboral["fuente"], "fuente calendario")
-    dia, contados, dias = evaluacion, 0, []
-    while contados < plazo:
-        dia += timedelta(days=1)
-        dias.append(dia)
-        if tipo_dias == "naturales" or (dia.weekday() in laborables and dia not in feriados):
-            contados += 1
-    return dias
-
-
-def evaluar_riesgo(registro, demanda=None, calendario_laboral=None):
-    """Motor puro; faltantes son None. No extrapola ni genera pronósticos."""
-    with localcontext() as contexto:
-        contexto.prec = 50
-        evaluacion = fecha(registro["fecha_evaluacion"], "fecha_evaluacion")
-        resultado = dict(registro, estado="NO_CALCULABLE", demanda_durante_entrega=None,
-                         faltante_previsto=None, fecha_recepcion=None, dias_naturales_entrega=None)
-        motivos = list(registro.get("motivos", []))
-        stock = registro.get("stock_disponible")
-        if stock is not None:
-            stock = numero(stock, "stock_disponible")
-            resultado["stock_disponible"] = stock
-        if stock is None or registro.get("stock_verificable") is not True:
-            motivos.append("STOCK_DISPONIBLE_NO_VERIFICABLE")
-        if registro.get("fecha_stock"):
-            corte = fecha(registro["fecha_stock"], "fecha_stock")
-            exigir(corte <= evaluacion, "Stock posterior a la evaluación")
-            antiguedad = int(numero(registro.get("max_antiguedad_stock_dias", 0), "max_antiguedad_stock_dias", entero=True))
-            if (evaluacion - corte).days > antiguedad:
-                motivos.append("STOCK_DESACTUALIZADO")
-        else:
-            motivos.append("FECHA_STOCK_FALTANTE")
-        plazo = registro.get("plazo_dias")
-        if plazo is None:
-            motivos.append("PLAZO_FALTANTE")
-        else:
-            plazo = numero(plazo, "plazo_dias", entero=True)
-            resultado["plazo_dias"] = plazo
-        if demanda is None:
-            motivos.append("DEMANDA_FALTANTE")
-        else:
-            exigir(demanda["codigo_unico"] == registro["codigo_unico"], "Código de previsión no relacionado con el stock")
-            resultado.update(demanda_prevista=demanda.get("tasa"), unidad_temporal=demanda["unidad_temporal"],
-                             inicio_horizonte=demanda["inicio_horizonte"], fin_horizonte=demanda["fin_horizonte"],
-                             fuente_demanda=demanda.get("fuente", ""), fecha_emision_demanda=demanda["fecha_emision"],
-                             naturaleza_demanda=demanda.get("tipo_dato", ""), metodo_demanda=demanda.get("metodo", ""))
-            emision = fecha(demanda["fecha_emision"], "fecha_emision")
-            inicio = fecha(demanda["inicio_horizonte"], "inicio_horizonte")
-            fin = fecha(demanda["fin_horizonte"], "fin_horizonte")
-            exigir(emision < inicio <= fin, "El horizonte debe ser futuro a la emisión y no estar invertido")
-            if demanda.get("proveedor") and demanda["proveedor"] != registro.get("proveedor"):
-                motivos.append("PROVEEDOR_PRONOSTICO_NO_COINCIDE")
-            if demanda.get("validado") is not True:
-                motivos.append("PRONOSTICO_NO_VALIDADO")
-            if emision > evaluacion:
-                motivos.append("PRONOSTICO_POSTERIOR_A_EVALUACION")
-            exigir(demanda["tipo_pronostico"] in {"TASA_CONSTANTE", "SERIE_DIARIA"}, "Tipo de pronóstico inválido")
-            exigir(demanda["unidad_temporal"] in {"unidades/dia", "unidades/semana", "unidades/mes"}, "Unidad temporal incompatible")
-            if demanda["tipo_pronostico"] == "TASA_CONSTANTE":
-                if demanda.get("tasa") is None:
-                    motivos.append("DEMANDA_FALTANTE")
-                else:
-                    numero(demanda["tasa"], "demanda prevista")
-                if demanda["unidad_temporal"] != "unidades/dia" and demanda.get("distribucion") != "uniforme":
-                    motivos.append("DISTRIBUCION_TEMPORAL_FALTANTE")
-            else:
-                exigir(demanda["unidad_temporal"] == "unidades/dia", "Serie diaria con unidad incompatible")
-                if not demanda["valores"] or all(v is None for v in demanda["valores"].values()):
-                    motivos.append("DEMANDA_FALTANTE")
-                for valor in demanda["valores"].values():
-                    if valor is not None:
-                        numero(valor, "demanda diaria")
-        dias = None
-        if plazo is not None:
-            tipo = registro.get("tipo_dias_plazo")
-            if tipo not in {"naturales", "habiles"}:
-                motivos.append("CALENDARIO_PLAZO_NO_DEFINIDO")
-            elif tipo == "habiles" and not calendario_laboral:
-                motivos.append("CALENDARIO_LABORAL_FALTANTE")
-            else:
-                dias = ventana_entrega(evaluacion, plazo, tipo, calendario_laboral)
-                resultado["fecha_recepcion"] = (dias[-1] if dias else evaluacion).isoformat()
-                resultado["dias_naturales_entrega"] = len(dias)
-        if demanda is not None and dias is not None:
-            inicio = fecha(demanda["inicio_horizonte"], "inicio_horizonte")
-            fin = fecha(demanda["fin_horizonte"], "fin_horizonte")
-            exigir(inicio <= fin, "Horizonte invertido")
-            if dias and not (inicio <= dias[0] and fin >= dias[-1]):
-                motivos.append("HORIZONTE_INSUFICIENTE")
-            if demanda["tipo_pronostico"] == "SERIE_DIARIA" and any(demanda["valores"].get(d.isoformat()) is None for d in dias):
-                motivos.append("DIAS_PRONOSTICO_FALTANTES")
-        if not motivos:
-            if demanda["tipo_pronostico"] == "SERIE_DIARIA":
-                total_exacto = sum((Fraction(numero(demanda["valores"][d.isoformat()], "demanda diaria")) for d in dias), Fraction(0))
-            else:
-                tasa = numero(demanda["tasa"], "demanda prevista")
-                divisores = Counter()
-                for d in dias:
-                    divisor = 7 if demanda["unidad_temporal"] == "unidades/semana" else calendar.monthrange(d.year, d.month)[1] if demanda["unidad_temporal"] == "unidades/mes" else 1
-                    divisores[divisor] += 1
-                # La división por 7/28/29/30/31 puede ser periódica en Decimal.
-                # Se compara la conversión racional exacta, sin microfaltantes espurios.
-                total_exacto = sum((Fraction(tasa) * Fraction(n, divisor) for divisor, n in divisores.items()), Fraction(0))
-            faltante = max(Fraction(0), total_exacto - Fraction(stock))
-            resultado.update(demanda_durante_entrega=Decimal(total_exacto.numerator) / Decimal(total_exacto.denominator),
-                             faltante_previsto=Decimal(faltante.numerator) / Decimal(faltante.denominator),
-                             estado="ALERTA" if total_exacto > Fraction(stock) else "SIN_ALERTA")
-        resultado["motivos"] = sorted(set(motivos))
-        return resultado
-
-
-def validar_ajustes(tablas):
-    ajustes = tablas["ajustes"]
-    exigir(len({a["id_ajuste"] for a in ajustes}) == len(ajustes), "ID de ajuste duplicado")
-    exigir(len({(a["codigo_unico"], a["fecha_conteo"]) for a in ajustes}) == len(ajustes), "Ajuste del mismo repuesto/corte duplicado")
-    for a in ajustes:
-        cantidad = numero(a["cantidad_ajuste"], "ajuste", negativo=True)
-        exigir(fecha(a["fecha_conteo"], "fecha ajuste") <= fecha_registro(a["fecha_hora"]), "Ajuste registrado antes de su conteo")
-        texto(a["motivo"], "motivo ajuste")
-        h = unico([h for h in tablas["historial"] if h["codigo_unico"] == a["codigo_unico"]
-                   and h["fecha_conteo"] == a["fecha_conteo"] and h["fecha_hora"] == a["fecha_hora"]
-                   and h["accion"] == "AJUSTE_APLICADO"
-                   and numero(h["cantidad_ajuste"], "ajuste historial", negativo=True) == cantidad], "Respaldo del ajuste " + a["id_ajuste"])
-        exigir(numero(h["stock_despues"], "stock después") == numero(h["stock_antes"], "stock antes") + cantidad, "Historial de ajuste inconsistente")
-
-
-def stock_de_corte(codigo, config, tablas):
-    """Reconstruye el registrado con HU-17 y añade SOLO ajustes del mismo corte."""
-    corte = fecha(config["fecha_stock"], "fecha_stock")
-    evaluacion = fecha(config["fecha_evaluacion"], "fecha_evaluacion")
-    exigir(corte <= evaluacion, "Stock posterior a la evaluación")
-    filas = [r for r in tablas["conciliacion"] if r["codigo_unico"] == codigo and r["fecha_conteo"] == corte.isoformat()]
-    if not filas:
-        return {"stock_registrado": None, "conteo_fisico": None, "stock_ajustado": None, "stock_disponible": None,
-                "stock_verificable": False, "motivos": ["STOCK_DE_CORTE_FALTANTE"], "ajustes_mismo_corte": "",
-                "duplicados_excluidos": "", "pendientes_hu17": "", "ajustes_rechazados": "", "descripcion": codigo,
-                "reservas": None, "bloqueos": None, "naturaleza_disponibilidad": "NO_CONFIRMADA", "fuente_disponibilidad": "", "fecha_disponibilidad": ""}
-    r = unico(filas, "Conciliación " + codigo)
-    ini = unico([f for f in tablas["stock_inicial"] if f["codigo_unico"] == codigo], "Stock inicial " + codigo)
-    desde = fecha(ini["fecha_corte"], "fecha_corte inicial")
-    exigir(desde < corte, "El stock de apertura debe ser anterior al corte")
-    movs = [m for m in tablas["depuracion"] if m["codigo_unico"] == codigo and desde < fecha(m["fecha"], "fecha movimiento") <= corte]
-    duplicados = [m for m in movs if m["estado"] == "DUPLICADO"]
-    pendientes = [m for m in movs if m["estado"] == "PENDIENTE_REVISION"]
-    validos = [m for m in movs if m["estado"] != "DUPLICADO"]  # misma política HU-18
-    entradas = sum((numero(m["cantidad"], "cantidad", entero=True) for m in validos if m["tipo_movimiento"] == "ENTRADA"), Decimal(0))
-    salidas = sum((numero(m["cantidad"], "cantidad", entero=True) for m in validos if m["tipo_movimiento"] == "SALIDA"), Decimal(0))
-    ajustes_anteriores = [a for a in tablas["ajustes"] if a["codigo_unico"] == codigo and desde < fecha(a["fecha_conteo"], "fecha ajuste") < corte]
-    motivos = []
-    if any(fecha_registro(a["fecha_hora"]) > evaluacion for a in ajustes_anteriores):
-        motivos.append("AJUSTE_POSTERIOR_A_EVALUACION")
-    previos = sum((numero(a["cantidad_ajuste"], "ajuste previo", negativo=True) for a in ajustes_anteriores), Decimal(0))
-    registrado = numero(ini["stock_inicial"], "stock inicial") + entradas - salidas + previos
-    exigir(registrado >= 0, "Stock registrado reconstruido negativo")
-    exigir(registrado == numero(r["stock_registrado"], "stock registrado") and entradas == numero(r["entradas"], "entradas")
-           and salidas == numero(r["salidas"], "salidas") and previos == numero(r["ajustes_previos"], "ajustes previos", negativo=True)
-           and numero(ini["stock_inicial"], "stock inicial") == numero(r["stock_inicial"], "stock inicial conciliación"), "HU-17 y HU-18 no concuerdan para " + codigo)
-    aplicados, ajuste = [], Decimal(0)
-    for a in tablas["ajustes"]:
-        if a["codigo_unico"] != codigo or a["fecha_conteo"] != corte.isoformat():
-            continue
-        cantidad = numero(a["cantidad_ajuste"], "ajuste aplicado", negativo=True)
-        coincidencias = [h for h in tablas["historial"] if h["codigo_unico"] == codigo and h["fecha_conteo"] == a["fecha_conteo"]
-                         and h["fecha_hora"] == a["fecha_hora"] and h["accion"] == "AJUSTE_APLICADO"
-                         and numero(h["cantidad_ajuste"], "ajuste historial", negativo=True) == cantidad]
-        h = unico(coincidencias, "Respaldo del ajuste " + a["id_ajuste"])
-        exigir(numero(h["stock_antes"], "stock antes") == registrado
-               and numero(h["stock_despues"], "stock después") == registrado + cantidad, "Historial de ajuste inconsistente con conciliación")
-        if fecha_registro(a["fecha_hora"]) > evaluacion:
-            motivos.append("AJUSTE_POSTERIOR_A_EVALUACION")
-        else:
-            aplicados.append(a["id_ajuste"])
-            ajuste += cantidad
-    if r["estado_ajuste"] == "AJUSTADO" and not aplicados:
-        motivos.append("AJUSTE_NO_VERIFICADO_A_EVALUACION")
-    ajustado = registrado + ajuste
-    exigir(ajustado >= 0, "Stock ajustado negativo")
-    fisico = numero(r["conteo_fisico"], "conteo físico")
-    if ajustado != fisico:
-        motivos.append("DIFERENCIA_CONTEO_PENDIENTE")
-    if pendientes and not config["permitir_pendientes_con_conteo_coincidente"]:
-        motivos.append("MOVIMIENTOS_PENDIENTES_REVISION")
-    politica = config["disponibilidad"]["politica"]
-    reservas, bloqueos = None, None
-    naturaleza, fuente_disponibilidad, fecha_disponibilidad = "NO_CONFIRMADA", "", ""
-    if politica == "no_confirmada":
-        motivos.append("RESERVAS_Y_BLOQUEOS_DESCONOCIDOS")
-    elif politica == "asumir_libre_solo_simulacion":
-        reservas = bloqueos = Decimal(0)
-        naturaleza, fuente_disponibilidad, fecha_disponibilidad = "SINTETICO", config["disponibilidad"]["motivo"], corte.isoformat()
-    else:
-        confirmacion = config["disponibilidad"].get("confirmaciones", {}).get(codigo)
-        if confirmacion is None:
-            motivos.append("RESERVAS_Y_BLOQUEOS_DESCONOCIDOS")
-        else:
-            claves(confirmacion, {"reservas", "bloqueos", "fecha", "fuente", "tipo_dato"}, {"reservas", "bloqueos", "fecha", "fuente", "tipo_dato"})
-            reservas = numero(confirmacion["reservas"], "reservas")
-            bloqueos = numero(confirmacion["bloqueos"], "bloqueos")
-            fecha_disponibilidad = fecha(confirmacion["fecha"], "fecha reservas").isoformat()
-            exigir(confirmacion["tipo_dato"] in {"DOCUMENTADO", "ESTIMACION", "SINTETICO"}, "Naturaleza de disponibilidad inválida")
-            naturaleza, fuente_disponibilidad = confirmacion["tipo_dato"], texto(confirmacion["fuente"], "fuente reservas")
-            if fecha_disponibilidad != corte.isoformat():
-                motivos.append("RESERVAS_DE_OTRO_CORTE")
-    disponible = None
-    if reservas is not None and bloqueos is not None:
-        if reservas + bloqueos > ajustado:
-            motivos.append("RESERVAS_Y_BLOQUEOS_SUPERAN_STOCK")
-        elif not motivos:
-            disponible = ajustado - reservas - bloqueos
-    rechazados = [h for h in tablas["historial"] if h["codigo_unico"] == codigo and h["fecha_conteo"] == corte.isoformat()
-                  and h["accion"] == "AJUSTE_RECHAZADO" and fecha_registro(h["fecha_hora"]) <= evaluacion]
-    return {"descripcion": r["descripcion"], "stock_registrado": registrado, "conteo_fisico": fisico,
-            "stock_ajustado": ajustado, "stock_disponible": disponible, "stock_verificable": disponible is not None,
-            "ajustes_mismo_corte": "|".join(aplicados), "duplicados_excluidos": "|".join(m["id_movimiento"] for m in duplicados),
-            "pendientes_hu17": "|".join(m["id_movimiento"] for m in pendientes), "ajustes_rechazados": len(rechazados), "motivos": motivos,
-            "reservas": reservas, "bloqueos": bloqueos, "naturaleza_disponibilidad": naturaleza,
-            "fuente_disponibilidad": fuente_disponibilidad, "fecha_disponibilidad": fecha_disponibilidad}
-
-
-def plazo_de_proveedor(codigo, proveedor, config, tablas):
-    filas = [r for r in tablas["cotizaciones"] if r["codigo_unico"] == codigo and r["proveedor"] == proveedor]
-    vacio = {"plazo_dias": None, "plazo_referencia_dias": None, "fecha_plazo": "", "vigencia_plazo": "",
-             "naturaleza_plazo": "", "fuente_plazo": "", "fecha_actualizacion_plazo": "", "motivos": []}
-    if not filas:
-        return dict(vacio, motivos=["COTIZACION_FALTANTE"])
-    r = unico(filas, "Cotización seleccionada " + codigo + "/" + proveedor)
-    exigir(r["tipo_dato"] in {"SINTETICO", "DOCUMENTADO", "ESTIMACION"}, "Naturaleza de plazo inválida")
-    valor = numero(r["plazo_entrega_dias"], "plazo de cotización", entero=True) if r["plazo_entrega_dias"].strip() else None
-    inicio, fin = fecha(r["fecha"], "fecha cotización"), fecha(r["vigencia"], "vigencia cotización")
-    exigir(inicio <= fin, "Vigencia de cotización invertida")
-    evaluacion = fecha(config["fecha_evaluacion"], "fecha_evaluacion")
-    motivos = []
-    if evaluacion < inicio:
-        motivos.append("COTIZACION_POSTERIOR_A_EVALUACION")
-    elif evaluacion > fin:
-        motivos.append("COTIZACION_VENCIDA")
-    return dict(vacio, plazo_dias=None if motivos else valor, plazo_referencia_dias=valor,
-                fecha_plazo=r["fecha"], vigencia_plazo=r["vigencia"], naturaleza_plazo=r["tipo_dato"],
-                fuente_plazo=texto(r["fuente"], "fuente plazo"), fecha_actualizacion_plazo=r["fecha_actualizacion"], motivos=motivos)
-
-
-def objeto_json(pares):
-    resultado = {}
-    for k, v in pares:
-        exigir(k not in resultado, "Campo JSON repetido: " + k)
-        resultado[k] = v
-    return resultado
-
-
-def cargar_integracion(configuracion=CONFIGURACION, raiz=RAIZ):
-    """Carga fuentes sin escribir y conserva las huellas de sus bytes originales."""
-    raiz, configuracion = Path(raiz).resolve(), Path(configuracion).resolve()
-    with configuracion.open(encoding="utf-8-sig") as f:
-        config = json.load(f, parse_float=str, object_pairs_hook=objeto_json)
-    requeridas = {"version", "modo", "fecha_evaluacion", "fecha_stock", "max_antiguedad_stock_dias", "disponibilidad",
-                  "permitir_pendientes_con_conteo_coincidente", "tipo_dias_plazo", "motivo_calendario", "calendario_laboral",
-                  "proveedores", "demanda", "supuestos"}
-    claves(config, requeridas | {"fuentes"}, requeridas)
-    if "fuentes" in config:
-        claves(config["fuentes"], FUENTES, FUENTES)
-    exigir(type(config["version"]) is int and config["version"] == 1, "Versión no soportada")
-    exigir(config["modo"] in {"INTEGRACION", "DEMOSTRACION_SINTETICA"}, "Modo inválido")
-    fecha(config["fecha_evaluacion"], "fecha_evaluacion")
-    fecha(config["fecha_stock"], "fecha_stock")
-    numero(config["max_antiguedad_stock_dias"], "max_antiguedad_stock_dias", entero=True)
-    exigir(type(config["permitir_pendientes_con_conteo_coincidente"]) is bool, "Política de pendientes debe ser booleana")
-    claves(config["disponibilidad"], {"politica", "motivo", "confirmaciones"}, {"politica", "motivo"})
-    exigir(config["disponibilidad"]["politica"] in {"no_confirmada", "asumir_libre_solo_simulacion", "confirmadas"}, "Política de disponibilidad inválida")
-    if "confirmaciones" in config["disponibilidad"]:
-        exigir(config["disponibilidad"]["politica"] == "confirmadas" and isinstance(config["disponibilidad"]["confirmaciones"], dict), "Confirmaciones requieren política confirmadas")
-    texto(config["disponibilidad"]["motivo"], "motivo de disponibilidad")
-    exigir(config["disponibilidad"]["politica"] != "asumir_libre_solo_simulacion" or config["modo"] == "DEMOSTRACION_SINTETICA", "Solo la demostración puede asumir reservas y bloqueos cero")
-    exigir(config["tipo_dias_plazo"] in {"naturales", "habiles", "no_definido"}, "Tipo de días inválido")
-    texto(config["motivo_calendario"], "motivo_calendario")
-    exigir(isinstance(config["supuestos"], list) and bool(config["supuestos"]), "Declare los supuestos")
-    for s in config["supuestos"]:
-        texto(s, "supuesto")
-    exigir(isinstance(config["proveedores"], dict) and bool(config["proveedores"]), "Seleccione proveedores por código")
-    tablas, huellas = {}, {}
-    for nombre, (ruta_rel, campos) in FUENTES.items():
-        ruta_rel = texto(config.get("fuentes", {}).get(nombre, ruta_rel), "archivo " + nombre)
-        ruta = raiz / ruta_rel
-        tablas[nombre] = leer_csv(ruta, campos.split())
-        huellas[nombre] = {"archivo": ruta_rel, "sha256": hashlib.sha256(ruta.read_bytes()).hexdigest()}
-    # Identificadores y hechos aplicados deben ser únicos; rechazos repetidos nunca se suman.
-    validar_ajustes(tablas)
-    eq = equivalencias_hu17(tablas["depuracion"])
-    exigir(set(config["disponibilidad"].get("confirmaciones", {})) <= set(config["proveedores"]), "Confirmaciones de códigos fuera de la selección")
-    ruta_demanda = (raiz / texto(config["demanda"], "archivo de demanda")).resolve()
-    demandas = cargar_demanda(ruta_demanda, eq)
-    huellas["demanda"] = {"archivo": config["demanda"], "sha256": hashlib.sha256(ruta_demanda.read_bytes()).hexdigest()}
-    huellas["configuracion"] = {"archivo": str(configuracion.relative_to(raiz)) if raiz in configuracion.parents else str(configuracion),
-                                 "sha256": hashlib.sha256(configuracion.read_bytes()).hexdigest()}
-    if config["modo"] == "DEMOSTRACION_SINTETICA":
-        exigir(all(d["tipo_dato"] == "SINTETICO" for d in demandas.values()), "La demostración requiere pronósticos etiquetados SINTETICO")
-    registros = []
-    for codigo, proveedor in sorted(config["proveedores"].items()):
-        exigir(normalizar(codigo, "REP", eq) == codigo, "Seleccione códigos canónicos en proveedores")
-        texto(proveedor, "proveedor")
-        stock = stock_de_corte(codigo, config, tablas)
-        plazo = plazo_de_proveedor(codigo, proveedor, config, tablas)
-        motivos = stock.pop("motivos") + plazo.pop("motivos")
-        d = demandas.get(codigo)
-        r = dict(stock, **plazo, codigo_unico=codigo, sistema_codigos="REP", proveedor=proveedor, motivos=motivos,
-                 fecha_stock=config["fecha_stock"], fecha_evaluacion=config["fecha_evaluacion"],
-                 max_antiguedad_stock_dias=config["max_antiguedad_stock_dias"], tipo_dias_plazo=config["tipo_dias_plazo"],
-                 naturaleza_stock="FICTICIO", fuente_stock=huellas["conciliacion"]["archivo"],
-                 politica_disponibilidad=config["disponibilidad"]["politica"], motivo_disponibilidad=config["disponibilidad"]["motivo"],
-                 motivo_calendario=config["motivo_calendario"], modo=config["modo"],
-                 naturaleza_demanda=d["tipo_dato"] if d else "", fuente_demanda=d["fuente"] if d else "",
-                 fecha_emision_demanda=d["fecha_emision"] if d else "", inicio_horizonte=d["inicio_horizonte"] if d else "",
-                 fin_horizonte=d["fin_horizonte"] if d else "", unidad_temporal=d["unidad_temporal"] if d else "",
-                 metodo_demanda=d["metodo"] if d else "", demanda_prevista=d["tasa"] if d and d["tipo_pronostico"] == "TASA_CONSTANTE" else None,
-                 serie_diaria=json.dumps({k: str(v) if v is not None else None for k, v in d["valores"].items()}, sort_keys=True) if d and d["tipo_pronostico"] == "SERIE_DIARIA" else "")
-        registros.append((r, d))
-    exigir(set(demandas) <= set(config["proveedores"]), "Hay pronósticos de códigos fuera de la selección")
-    return config, registros, huellas
-
-
-def priorizar(filas):
-    orden = {"ALERTA": 0, "SIN_ALERTA": 1, "NO_CALCULABLE": 2}
-    filas = sorted(filas, key=lambda r: (orden[r["estado"]], -r["faltante_previsto"] if r["estado"] == "ALERTA" else Decimal(0), r["codigo_unico"], r.get("proveedor", "")))
-    for i, r in enumerate([r for r in filas if r["estado"] == "ALERTA"], 1):
-        r["prioridad"] = i
-    for r in filas:
-        if r["estado"] != "ALERTA":
-            r["prioridad"] = None
-    return filas
-
-
-def mostrar(valor):
+def celda(valor, decimales=None):
+    """Vacío para lo que no se calculó (nunca cero); números sin notación científica."""
     if valor is None:
         return ""
-    if isinstance(valor, Decimal):
-        return format(valor, "f")
-    if isinstance(valor, bool):
-        return "true" if valor else "false"
-    if isinstance(valor, list):
-        return "|".join(valor)
+    if decimales is not None:
+        return "{:.{}f}".format(valor, decimales)
+    if isinstance(valor, float) and valor.is_integer():
+        return str(int(valor))
     return str(valor)
 
 
-def csv_texto(filas):
-    campos = list(dict.fromkeys(k for r in filas for k in r))
-    salida = io.StringIO(newline="")
-    escritor = csv.DictWriter(salida, fieldnames=campos, lineterminator="\n")
-    escritor.writeheader()
-    escritor.writerows({k: mostrar(v) for k, v in r.items()} for r in filas)
-    return salida.getvalue()
+def construir(datos, tc, tc_fecha):
+    filas = motor_ref.alertas(datos, tc)
+    salida = []
+    for i, f in enumerate(filas, 1):
+        salida.append({
+            "prioridad": i, "repuesto_id": f["id"], "estado": f["etiqueta"], "alerta_faltante": alerta_faltante(f),
+            "motivos": "|".join(f["motivos"]), "stock": celda(f["stock"]), "en_camino": celda(f["en_camino"]),
+            "punto_pedido": celda(f["punto_pedido"]), "nivel_maximo": celda(f["nivel_maximo"]),
+            "plazo_dias": celda(f["plazo"]), "venta_mes_pronosticada": celda(f["venta_mes"], 4),
+            "venta_durante_entrega": celda(f["demanda_entrega"], 4),
+            "faltante_previsto": celda(f["faltante_previsto"], 4), "margen_dias": celda(f["margen_dias"]),
+            "cantidad_sugerida": f["cantidad_sugerida"], "costo_bs": celda(f["costo_bs"], 2),
+            "clase_abc": f["clase"], "tipo_demanda": f["tipo_demanda"], "proveedor_id": f["proveedor_id"],
+            "tc_bs_por_usd": "{:.2f}".format(tc), "tc_fecha": tc_fecha,
+            "origen_dato": "ventas REALES de carparts; stock, plazo y costo SINTÉTICOS (SCRUM-55)"})
+    return filas, salida
 
 
-def grafico(filas, modo):
-    alertas = [r for r in filas if r["estado"] == "ALERTA"]
-    cuentas = Counter(r["estado"] for r in filas)
-    alto = 150 + 55 * len(alertas)
-    partes = ['<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="{}" viewBox="0 0 1000 {}" role="img" aria-labelledby="titulo desc">'.format(alto, alto),
-              '<title id="titulo">HU-09: prioridades por faltante previsto</title>',
-              '<desc id="desc">' + escape("; ".join(r["codigo_unico"] + ": " + mostrar(r["faltante_previsto"]) for r in alertas) or "No hay alertas calculadas; revisar estados y datos faltantes") + '</desc>',
-              '<rect width="100%" height="100%" fill="white"/><g font-family="sans-serif" font-size="15" fill="#172b4d">',
-              '<text x="20" y="28">' + escape(modo + ": faltante estimado en unidades") + '</text>',
-              '<text x="20" y="55">ALERTA: {} | SIN_ALERTA: {} | NO_CALCULABLE: {}</text>'.format(cuentas["ALERTA"], cuentas["SIN_ALERTA"], cuentas["NO_CALCULABLE"])]
-    if not alertas:
-        partes.append('<text x="20" y="100">Sin alertas calculadas. NO_CALCULABLE no significa ausencia de riesgo.</text>')
-    else:
-        maximo = max(r["faltante_previsto"] for r in alertas)
-        for i, r in enumerate(alertas):
-            y = 85 + 55 * i
-            ancho = r["faltante_previsto"] / maximo * 500
-            partes.append('<text x="20" y="{}">{}</text><rect x="140" y="{}" width="{:.2f}" height="26" fill="#b44b35"/><text x="660" y="{}">{}</text>'.format(
-                y + 18, escape(r["codigo_unico"]), y, ancho, y + 18, escape(mostrar(r["faltante_previsto"]) + " unidades")))
-    partes.append('</g></svg>\n')
-    return "\n".join(partes)
+def csv_texto(salida):
+    buf = io.StringIO()
+    w = csv.DictWriter(buf, fieldnames=COLUMNAS, lineterminator="\n")
+    w.writeheader()
+    w.writerows(salida)
+    return buf.getvalue()
 
 
-def informe(config, filas, huellas):
-    cuentas = Counter(r["estado"] for r in filas)
-    razones = Counter(m for r in filas for m in r["motivos"])
-    lineas = ["# HU-09: alertas de riesgo de faltantes", "", "**Modo: " + config["modo"] + ". Datos operativos de origen ficticio/sintético; no son información operativa real de MULTIPARTES.**", "",
-              "Fecha de evaluación: {}. Corte del stock: {}. Antigüedad máxima admitida: {} días.".format(config["fecha_evaluacion"], config["fecha_stock"], config["max_antiguedad_stock_dias"]), "",
-              "## Resultados", "", "ALERTA: **{}**. SIN_ALERTA: **{}**. NO_CALCULABLE: **{}**.".format(cuentas["ALERTA"], cuentas["SIN_ALERTA"], cuentas["NO_CALCULABLE"]), "",
-              "NO_CALCULABLE conserva importes de demanda durante entrega y faltante vacíos, nunca cero. Los registros permanecen visibles.", "",
-              "| Prioridad | Código | Proveedor | Stock disponible | Demanda durante entrega | Plazo | Tipo días | Faltante | Estado | Motivos |",
-              "|---:|---|---|---:|---:|---:|---|---:|---|---|"]
-    for r in filas:
-        lineas.append("| " + " | ".join(mostrar(r.get(k)).replace("|", "; ").replace("\n", " ") for k in
-                      ("prioridad", "codigo_unico", "proveedor", "stock_disponible", "demanda_durante_entrega", "plazo_dias", "tipo_dias_plazo", "faltante_previsto", "estado", "motivos")) + " |")
-    lineas += ["", "![Prioridades de faltantes](prioridades.svg)", "", "## Información faltante y bloqueos", ""]
-    lineas.extend("- {}: {} repuestos.".format(m, n) for m, n in sorted(razones.items()))
-    if not razones:
-        lineas.append("- Sin bloqueos en las entradas seleccionadas.")
-    lineas += ["", "## Stock, duplicados y ajustes", "", "| Código | Registrado | Conteo físico | Ajustado | IDs ajustes del corte | Duplicados excluidos | Pendientes HU-17 | Rechazos históricos |", "|---|---:|---:|---:|---|---|---|---:|"]
-    for r in sorted(filas, key=lambda r: r["codigo_unico"]):
-        lineas.append("| " + " | ".join(mostrar(r.get(k)).replace("|", ", ") for k in ("codigo_unico", "stock_registrado", "conteo_fisico", "stock_ajustado", "ajustes_mismo_corte", "duplicados_excluidos", "pendientes_hu17", "ajustes_rechazados")) + " |")
-    lineas += ["", "Política de disponibilidad: " + config["disponibilidad"]["politica"] + ". " + config["disponibilidad"]["motivo"],
-               "", "Se reconstruye el registrado con stock inicial y movimientos HU-17 sin DUPLICADO, incluyendo pendientes como hace HU-18. Los ajustes anteriores ya están en ese saldo; los del mismo corte se añaden una vez solo con respaldo AJUSTE_APLICADO conocido a la evaluación. Los rechazados no modifican stock. Una diferencia física pendiente impide verificar disponibilidad.",
-               "", "## Método y unidades", "",
-               "Tasa diaria constante × días naturales de consumo; serie diaria = suma de las fechas exactas de entrega. Ventana: desde el día siguiente a la evaluación hasta recepción inclusive. El stock no se proyecta automáticamente desde su corte: aceptar su antigüedad requiere una política explícita.",
-               "", "Demanda semanal/7 o demanda mensual/días reales de cada mes solo con distribución uniforme explícita. El calendario hábil determina recepción; se sigue consumiendo durante fines de semana intermedios. No se completan días de pronóstico ausentes ni se extrapola un horizonte corto.",
-               "", "Faltante = max(0, demanda durante entrega − stock disponible). ALERTA solo si demanda > stock; igualdad produce SIN_ALERTA. Entradas y resultados Decimal; las divisiones temporales se comparan como fracciones exactas para evitar microfaltantes. Sin redondear predicciones antes de comparar. Prioridad: faltante descendente, con desempate estable por código/proveedor.",
-               "", "Interpretación de días HU-31: " + config["motivo_calendario"], "", "## Fuentes por repuesto", "",
-               "| Código | Fecha de previsión | Horizonte | Naturaleza demanda | Fecha cotización | Vigencia | Naturaleza plazo |", "|---|---|---|---|---|---|---|"]
-    for r in sorted(filas, key=lambda r: r["codigo_unico"]):
-        lineas.append("| {} | {} | {} a {} | {} | {} | {} | {} |".format(r["codigo_unico"], r["fecha_emision_demanda"], r["inicio_horizonte"], r["fin_horizonte"], r["naturaleza_demanda"], r["fecha_plazo"], r["vigencia_plazo"], r["naturaleza_plazo"]))
-    lineas += ["", "## Supuestos y limitaciones", ""] + ["- " + s for s in config["supuestos"]]
-    lineas += ["- HU-07 exporta MAE de evaluación, no demanda futura. No se usa MAE ni se modifica HU-07. El contrato admite previsiones futuras validadas; aquí no se generan automáticamente.",
-               "- RPxxx de HU-34 permanece separado de REP-xxxx: no hay equivalencia documentada. Ventas observadas no prueban demanda no satisfecha.",
-               "- HU-31 contiene plazos sintéticos; no se deduce plazo de vigencia, precio o condiciones de pago. No se elige otro proveedor si la cotización seleccionada vence.",
-               "- Estas alertas son deterministas y no estiman una probabilidad de agotamiento. Las pruebas sintéticas demuestran el motor, no validan previsiones empresariales.",
-               "", "## Archivos y trazabilidad", "", "Salidas: dataset_consolidado.csv y alertas_faltantes.csv en la carpeta de datos de este modo; este informe y prioridades.svg en su carpeta de informes. La demostración usa subcarpetas demostracion independientes.", ""]
-    for nombre, h in sorted(huellas.items()):
-        lineas.append("- {}: `{}`; SHA-256 `{}`.".format(nombre, h["archivo"].replace("\\", "/"), h["sha256"]))
-    fuentes_demanda = sorted({r["fuente_demanda"] for r in filas if r["fuente_demanda"]})
-    lineas += ["", "Procedencias de previsión: " + ("; ".join(fuentes_demanda) if fuentes_demanda else "sin previsiones futuras suministradas") + ".", ""]
-    return "\n".join(lineas)
+def svg_texto(filas):
+    """Barras horizontales: venta durante la entrega contra stock más lo que viene en camino."""
+    urgentes = [f for f in filas if f["est"] in (0, 1)]
+    alto = 70 + 34 * max(len(urgentes), 1)
+    tope = max([max(f["demanda_entrega"], f["stock"] + f["en_camino"]) for f in urgentes] + [1])
+    escala = 420 / tope
+    p = ['<svg xmlns="http://www.w3.org/2000/svg" width="720" height="{}" viewBox="0 0 720 {}" '
+         'font-family="sans-serif" font-size="13" role="img" '
+         'aria-label="Repuestos para pedir o vigilar: venta durante la entrega contra stock y en camino">'.format(alto, alto),
+         '<rect width="720" height="{}" fill="#ffffff"/>'.format(alto),
+         '<text x="20" y="26" font-size="15" font-weight="bold" fill="#18201b">Pedir ya y vigilar: venta durante la entrega frente a lo disponible</text>',
+         '<rect x="20" y="38" width="12" height="10" fill="#01863e"/><text x="38" y="47" fill="#4b564f">stock + en camino</text>',
+         '<rect x="170" y="38" width="12" height="10" fill="#c0392b"/><text x="188" y="47" fill="#4b564f">venta promedio durante la entrega</text>']
+    if not urgentes:
+        p.append('<text x="20" y="90" fill="#4b564f">Ningún repuesto para pedir o vigilar.</text>')
+    for i, f in enumerate(urgentes):
+        y = 70 + 34 * i
+        disp = f["stock"] + f["en_camino"]
+        p.append('<text x="20" y="{}" fill="#18201b">{} · {}</text>'.format(y + 12, f["id"], f["etiqueta"]))
+        p.append('<rect x="200" y="{}" width="{:.1f}" height="11" fill="#01863e"/>'.format(y, max(disp * escala, 1)))
+        p.append('<rect x="200" y="{}" width="{:.1f}" height="11" fill="#c0392b"/>'.format(y + 13, max(f["demanda_entrega"] * escala, 1)))
+        p.append('<text x="{:.1f}" y="{}" fill="#4b564f">{:g} u · {:.1f} u</text>'.format(
+            210 + max(disp, f["demanda_entrega"]) * escala, y + 17, disp, f["demanda_entrega"]))
+    p.append('</svg>')
+    return "\n".join(p) + "\n"
 
 
-def ejecutar(configuracion=CONFIGURACION, salida=None, reporte=None, raiz=RAIZ):
-    raiz = Path(raiz).resolve()
-    config, registros, huellas = cargar_integracion(configuracion, raiz)
-    filas = priorizar([evaluar_riesgo(r, d, config["calendario_laboral"]) for r, d in registros])
-    demo = config["modo"] == "DEMOSTRACION_SINTETICA"
-    datos_base = raiz / "data/processed/hu-09"
-    reportes_base = raiz / "reports/hu-09"
-    if demo:
-        datos_base /= "demostracion"
-        reportes_base /= "demostracion"
-    salida = Path(salida).resolve() if salida is not None else datos_base
-    reporte = Path(reporte).resolve() if reporte is not None else reportes_base / "REPORTE_HU09.md"
-    exigir(reporte.suffix.lower() == ".md", "El informe debe tener extensión .md")
-    alertas_campos = ["prioridad", "codigo_unico", "proveedor", "fecha_evaluacion", "fecha_stock", "stock_disponible", "demanda_prevista",
-                      "unidad_temporal", "inicio_horizonte", "fin_horizonte", "demanda_durante_entrega", "plazo_dias", "tipo_dias_plazo",
-                      "fecha_recepcion", "faltante_previsto", "estado", "motivos", "fuente_stock", "naturaleza_stock", "fuente_demanda",
-                      "naturaleza_demanda", "fecha_emision_demanda", "fuente_plazo", "fecha_plazo", "vigencia_plazo", "naturaleza_plazo",
-                      "reservas", "bloqueos", "fuente_disponibilidad", "fecha_disponibilidad", "naturaleza_disponibilidad", "modo"]
-    artefactos = {salida / "dataset_consolidado.csv": csv_texto(filas),
-                  salida / "alertas_faltantes.csv": csv_texto([{k: r.get(k) for k in alertas_campos} for r in filas]),
-                  reporte: informe(config, filas, huellas), reporte.parent / "prioridades.svg": grafico(filas, config["modo"])}
-    protegidos = {(raiz / h["archivo"]).resolve() for h in huellas.values()}
-    for ruta in artefactos:
-        exigir(ruta not in protegidos and ruta.with_name(ruta.name + ".tmp") not in protegidos, "La salida sobrescribiría una entrada")
-        if raiz in ruta.parents:
-            exigir(datos_base in ruta.parents or reportes_base in ruta.parents, "Salida fuera de HU-09 o del modo seleccionado")
-            if not demo:
-                exigir("demostracion" not in ruta.relative_to(raiz).parts, "La integración no puede sobrescribir la demostración")
-    for ruta, contenido in artefactos.items():
-        ruta.parent.mkdir(parents=True, exist_ok=True)
-        temporal = ruta.with_name(ruta.name + ".tmp")
-        try:
-            with temporal.open("w", encoding="utf-8", newline="") as f:
-                f.write(contenido)
-            temporal.replace(ruta)
-        finally:
-            if temporal.exists():
-                temporal.unlink()
-    return {"config": config, "filas": filas, "huellas": huellas, "artefactos": list(artefactos)}
+def informe_texto(filas, salida, tc, tc_fecha):
+    cuenta = {k: sum(1 for s in salida if s["alerta_faltante"] == k) for k in ("ALERTA", "SIN_ALERTA", "NO_CALCULABLE")}
+    estados = {k: sum(1 for f in filas if f["etiqueta"] == k) for k in motor_ref.ETIQUETAS}
+    l = ["# HU-09 y SCRUM-66: alertas de reposición", "",
+         "Generado por `src/hu-09/generar_alertas.py` con la lógica única del motor del simulador "
+         "(`motor_ref.alertas`). Dólar: {} Bs por dólar ({}).".format("{:.2f}".format(tc).replace(".", ","), tc_fecha), "",
+         "## Resultado", "",
+         "Estados de reposición: Pedir ya **{}**, Vigilar **{}**, Cubierto **{}**, Sin datos **{}**.".format(
+             estados["Pedir ya"], estados["Vigilar"], estados["Cubierto"], estados["Sin datos"]), "",
+         "Faltante previsto con la venta promedio: ALERTA **{}**, SIN_ALERTA **{}**, NO_CALCULABLE **{}**.".format(
+             cuenta["ALERTA"], cuenta["SIN_ALERTA"], cuenta["NO_CALCULABLE"]), "",
+         "Que la venta promedio no supere lo disponible no quiere decir que no haya riesgo: el simulador prueba 1.500 "
+         "futuros de venta y de plazo y cuenta en cuántos se pierde alguna venta. Por eso un repuesto puede estar en "
+         "«Pedir ya» sin faltante promedio.", "",
+         "![Prioridades](prioridades.svg)", "",
+         "## Criterios", "",
+         "- **Pedir ya:** stock más lo que viene en camino es igual o menor que el punto de pedido.",
+         "- **Vigilar:** llega al punto de pedido, a la venta pronosticada, antes de que el proveedor pueda entregar.",
+         "- **Cubierto:** el resto.",
+         "- **Sin datos:** falta el stock, el plazo, el historial de venta o el punto de pedido. Las cifras calculadas "
+         "quedan vacías, no en cero, y el motivo se informa.",
+         "- **Venta durante la entrega** = venta diaria pronosticada (SBA o media) × plazo del proveedor, sin redondear.",
+         "- **Faltante previsto** = máximo entre cero y la venta durante la entrega menos stock y en camino. "
+         "La igualdad no es alerta.",
+         "- **Orden:** estado, faltante de mayor a menor, días hasta el punto de pedido y código.", "",
+         "## Tabla", "",
+         "| # | Repuesto | Estado | Faltante (HU-09) | Stock | En camino | Punto de pedido | Plazo | Venta en el plazo | Cantidad sugerida | Costo Bs |",
+         "|---|---|---|---|---|---|---|---|---|---|---|"]
+    for s in salida:
+        venta = "" if s["venta_durante_entrega"] == "" else "{:.2f}".format(float(s["venta_durante_entrega"]))
+        l.append("| {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} |".format(
+            s["prioridad"], s["repuesto_id"], s["estado"], s["alerta_faltante"], s["stock"], s["en_camino"],
+            s["punto_pedido"], s["plazo_dias"], venta, s["cantidad_sugerida"], s["costo_bs"]))
+    l += ["", "Ventas REALES de carparts (Hyndman y otros, 2008) con el mes adaptado; stock, plazo, punto de pedido y "
+          "costo SINTÉTICOS (SCRUM-55). No hay datos de reservas ni bloqueos: el stock disponible es el registrado.", ""]
+    return "\n".join(l)
 
 
-def main():
-    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("--config", type=Path, default=CONFIGURACION)
-    ap.add_argument("--salida", type=Path)
-    ap.add_argument("--reporte", type=Path)
-    args = ap.parse_args()
+def escribir_atomico(ruta, texto):
+    """Escribe en un temporal de la misma carpeta y lo renombra: un error no deja el archivo a medias."""
+    os.makedirs(os.path.dirname(ruta), exist_ok=True)
+    fd, tmp = tempfile.mkstemp(dir=os.path.dirname(ruta), suffix=".tmp")
     try:
-        resultado = ejecutar(args.config, args.salida, args.reporte)
-    except (ValueError, OSError, csv.Error, InvalidOperation) as error:
-        print("HU-09: " + str(error), file=sys.stderr)
+        with os.fdopen(fd, "w", encoding="utf-8", newline="") as f:
+            f.write(texto)
+        os.replace(tmp, ruta)
+    except BaseException:
+        if os.path.exists(tmp):
+            os.remove(tmp)
+        raise
+
+
+def ejecutar(datos_ruta=DATOS, salida=SALIDA, reporte=REPORTE, tc=None):
+    with open(datos_ruta, encoding="utf-8") as f:
+        datos = json.load(f)
+    tc_fecha = datos["tc"]["oficial"]["fecha"]
+    if tc is None:
+        tc = float(datos["tc"]["oficial"]["valor"])
+    else:
+        tc_fecha = "supuesto, no es el oficial"
+    filas, filas_csv = construir(datos, tc, tc_fecha)
+    textos = {os.path.join(salida, "alertas_faltantes.csv"): csv_texto(filas_csv),
+              reporte: informe_texto(filas, filas_csv, tc, tc_fecha),
+              os.path.join(os.path.dirname(reporte), "prioridades.svg"): svg_texto(filas)}
+    for ruta, texto in textos.items():
+        escribir_atomico(ruta, texto)
+    return filas, filas_csv
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(description="Alertas de reposición (HU-09 y SCRUM-66)")
+    ap.add_argument("--datos", default=DATOS, help="datos_app.json del simulador")
+    ap.add_argument("--salida", default=SALIDA, help="carpeta del CSV")
+    ap.add_argument("--reporte", default=REPORTE, help="archivo .md del informe; el SVG va a su lado")
+    ap.add_argument("--tc", type=float, default=None, help="dólar para el costo; sin esto, el oficial más reciente")
+    a = ap.parse_args(argv)
+    try:
+        filas, filas_csv = ejecutar(os.path.abspath(a.datos), os.path.abspath(a.salida), os.path.abspath(a.reporte), a.tc)
+    except (OSError, ValueError, KeyError) as e:
+        print("ERROR: no se generaron alertas: {}".format(e), file=sys.stderr)
         return 1
-    cuentas = Counter(r["estado"] for r in resultado["filas"])
-    print("{}: ALERTA={}, SIN_ALERTA={}, NO_CALCULABLE={}".format(resultado["config"]["modo"], cuentas["ALERTA"], cuentas["SIN_ALERTA"], cuentas["NO_CALCULABLE"]))
-    for ruta in resultado["artefactos"]:
-        print(ruta)
+    cuenta = {}
+    for f in filas:
+        cuenta[f["etiqueta"]] = cuenta.get(f["etiqueta"], 0) + 1
+    print("Alertas: " + ", ".join("{}={}".format(k, cuenta.get(k, 0)) for k in motor_ref.ETIQUETAS))
     return 0
 
 

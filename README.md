@@ -54,7 +54,7 @@ análisis de sensibilidad con dólar de quiebre y validación con los últimos 1
 | HU-03 | [SCRUM-16](https://fsandoval09.atlassian.net/browse/SCRUM-16) · [SCRUM-51](https://fsandoval09.atlassian.net/browse/SCRUM-51) | Fiorella | Panel interactivo de evolución de precios (con la referencia de 11 BOB/USD) | FICTICIO (precios), convertidos con 11 BOB/USD, una referencia fija elegida por el equipo | [`src/hu-03`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/src/hu-03) | [`reports/hu-03`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/reports/hu-03) | [`docs/hu-03`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/docs/hu-03) |
 | HU-06 | — | Equipo | Comparación de escenarios cambiarios y logísticos con una canasta fija | MIXTO SIMULADO: compras ficticias, referencias de HU-31/HU-32 y supuestos explícitos | [`src/hu-06`](src/hu-06) | [`data/processed/hu-06`](data/processed/hu-06) · [`informe`](reports/hu-06/REPORTE_HU06.md) | [`docs/hu-06`](docs/hu-06/LEEME.md) |
 | HU-07 | [SCRUM-20](https://fsandoval09.atlassian.net/browse/SCRUM-20) | Fiorella | Comparación de tres técnicas de pronóstico (MAE) | FICTICIO (movimientos de HU-17) | [`src/hu-07`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/src/hu-07) | [`data/processed/hu-07`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/data/processed/hu-07) | [`reports/hu-07`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/reports/hu-07) |
-| HU-09 | — | Equipo | Alertas de faltantes con stock, demanda futura y plazo | Integración incompleta de fuentes ficticias; demostración sintética separada | [`src/hu-09`](src/hu-09) | [`resultados`](data/processed/hu-09) · [`informe`](reports/hu-09/REPORTE_HU09.md) | [`docs/hu-09`](docs/hu-09/LEEME.md) |
+| HU-09 | [SCRUM-66](https://fsandoval09.atlassian.net/browse/SCRUM-66) | Sabrina y Samuel | Alertas de reposición y de faltantes, unidas con las del simulador | Ventas REALES de carparts; stock, plazo y costo SINTÉTICOS (SCRUM-55) | [`src/hu-09`](src/hu-09) | [`resultados`](data/processed/hu-09) · [`informe`](reports/hu-09/REPORTE_HU09.md) | [`docs/hu-09`](docs/hu-09/LEEME.md) |
 | HU-17 | [SCRUM-9](https://fsandoval09.atlassian.net/browse/SCRUM-9) | Sabrina | Normalización de códigos y depuración de duplicados | FICTICIO | [`src/hu-17`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/src/hu-17) | [`data/raw/hu-17`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/data/raw/hu-17) | [`data/processed/hu-17`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/data/processed/hu-17) |
 | HU-18 | [SCRUM-10](https://fsandoval09.atlassian.net/browse/SCRUM-10) | Sabrina | Conciliación del inventario con conteos físicos | FICTICIO | [`src/hu-18`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/src/hu-18) | [`data/raw/hu-18`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/data/raw/hu-18) | [`data/processed/hu-18`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/data/processed/hu-18) |
 | HU-30 | [SCRUM-6](https://fsandoval09.atlassian.net/browse/SCRUM-6) | Samuel | Histórico de movimientos de inventario | FICTICIO | [`src/hu-30-31`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/src/hu-30-31) | [`data/processed/hu-30-31`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/data/processed/hu-30-31) | [`docs/hu-30-31`](https://github.com/UM-Proyecto/MINERIA_DATOS/tree/main/docs/hu-30-31) |
@@ -112,6 +112,7 @@ Ejecutar desde la raíz del repositorio:
 python src/hu-06/comparar_escenarios.py
 python src/hu-07/comparar_pronosticos.py
 python src/hu-09/generar_alertas.py
+python src/hu-09/verificar_datos.py
 python src/hu-32/obtener_series_tc.py
 python src/hu-34/generar_datos.py
 python src/hu-34/limpieza_multiparte.py
@@ -142,24 +143,17 @@ Instrucciones, fórmulas, cambios expresos y limitaciones en
 python -m unittest discover -s tests -p "test_comparar_escenarios.py" -v
 ```
 
-## Alertas de faltantes (HU-09)
+## Alertas de reposición (HU-09 y SCRUM-66)
 
-Ejecutar `python src/hu-09/generar_alertas.py` reutiliza HU-17, HU-18 y HU-31,
-con la configuración de [`data/raw/hu-09/configuracion.json`](data/raw/hu-09/configuracion.json).
-Los diez repuestos actuales quedan NO_CALCULABLE: no hay previsión futura
-validada ni disponibilidad confirmada. El MAE de HU-07 no se usa como demanda.
-No se modifican datos ni resultados de otras historias.
+Las alertas tienen una sola lógica, la del motor del simulador, con los criterios de faltante y de calidad de datos de
+la HU-09 de Sabrina: un dato que falta no se vuelve cero, la igualdad no es alerta y no se redondea antes de comparar.
+La app las muestra en «Alertas de reposición» y `python src/hu-09/generar_alertas.py` las exporta a
+[`data/processed/hu-09/alertas_faltantes.csv`](data/processed/hu-09/alertas_faltantes.csv), a un
+[informe](reports/hu-09/REPORTE_HU09.md) y a un gráfico de prioridades. Con el dólar oficial al 12-11-2026 salen
+3 «Pedir ya», 4 «Vigilar» y 23 «Cubierto».
 
-Para demostrar la lógica con datos sintéticos explícitos:
-
-```bash
-python src/hu-09/generar_alertas.py --config data/raw/hu-09/demostracion/configuracion.json
-```
-
-La demostración genera cuatro ALERTA, tres SIN_ALERTA y tres NO_CALCULABLE,
-con resultados separados en las subcarpetas `demostracion/` de datos e informes.
-No representa disponibilidad ni previsiones operativas reales de MULTIPARTES.
-
-Consulta el [informe de integración](reports/hu-09/REPORTE_HU09.md),
-el [informe de demostración](reports/hu-09/demostracion/REPORTE_HU09.md)
-y la [guía de contrato CSV, fórmulas y pruebas](docs/hu-09/LEEME.md).
+La conciliación de inventario y plazo de Sabrina sigue aparte, como verificación de datos de HU-17, HU-18 y HU-31:
+`python src/hu-09/verificar_datos.py` deja
+[`data/processed/hu-09/dataset_consolidado.csv`](data/processed/hu-09/dataset_consolidado.csv) y un
+[informe](reports/hu-09/VERIFICACION_DATOS_HU09.md). Qué aportó cada versión y qué cambió:
+[`docs/hu-09/LEEME.md`](docs/hu-09/LEEME.md).
