@@ -1,0 +1,977 @@
+<section class="bcb-vrd-wrap" aria-label="Tipo de Cambio Oficial del Dólar Estadounidense">
+  <style>
+    .bcb-vrd-wrap, .bcb-vrd-wrap *{ box-sizing:border-box; }
+    .bcb-vrd-wrap{
+      --bcb-blue:#0A456D;
+      --bcb-blue-dark:#08314C;
+      --bcb-blue-soft:#2F6691;
+      --bcb-gold:#D7C392;
+      --bcb-gold-dark:#846D41;
+      --line:#d8e2ec;
+      --line-soft:#edf2f7;
+      --bg:#edf2f5;
+      --ink:#183042;
+      --muted:#5f7284;
+      width:100%;
+      padding:12px 0 18px;
+      background:#dde3e8;
+      font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+      color:var(--ink);
+    }
+    .bcb-vrd-wrap .vrd-shell{
+      max-width:1180px;
+      margin:0 auto;
+      padding:0 14px;
+    }
+
+    /* ===== CABECERA PRINCIPAL ===== */
+    .bcb-vrd-wrap .vrd-hero{
+      position:relative;
+      overflow:hidden;
+      border-radius:24px;
+      background:linear-gradient(180deg, #0E4B75 0%, #0A456D 52%, #0A4167 100%);
+      box-shadow:0 16px 34px rgba(8,49,76,.14);
+      color:#fff;
+      padding:28px 28px 30px;
+      margin-bottom:20px;
+    }
+    .bcb-vrd-wrap .vrd-hero::before{
+      content:"";
+      position:absolute;
+      right:-110px;
+      top:-46px;
+      width:320px;
+      height:320px;
+      border-radius:50%;
+      background:rgba(255,255,255,.10);
+      pointer-events:none;
+    }
+    .bcb-vrd-wrap .vrd-hero::after{
+      content:"";
+      position:absolute;
+      right:-70px;
+      top:0;
+      width:300px;
+      height:190px;
+      border-radius:0 0 0 100%;
+      background:rgba(255,255,255,.05);
+      pointer-events:none;
+    }
+    .bcb-vrd-wrap .vrd-kicker{
+      display:inline-block;
+      margin:0 0 10px;
+      color:#f9e9b8;
+      font-size:13px;
+      font-weight:900;
+      letter-spacing:.05em;
+      text-transform:uppercase;
+    }
+    .bcb-vrd-wrap .vrd-title{
+      margin:0;
+      max-width:860px;
+      font-size:22px;
+      line-height:1.18;
+      font-weight:900;
+      color:#fff;
+    }
+    .bcb-vrd-wrap .vrd-legend{
+      margin-top:12px;
+      color:#f4f8fb;
+      font-size:14px;
+      line-height:1.55;
+      font-weight:700;
+    }
+    .bcb-vrd-wrap .vrd-legend div{ margin:1px 0; }
+    .bcb-vrd-wrap .vrd-chooser{
+      position:relative;
+      z-index:1;
+      margin-top:18px;
+      border:1px solid rgba(255,255,255,.18);
+      border-radius:18px;
+      background:rgba(255,255,255,.12);
+      padding:16px 14px 16px 16px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:18px;
+      flex-wrap:wrap;
+      backdrop-filter: blur(2px);
+    }
+    .bcb-vrd-wrap .vrd-chooser-label{
+      margin:0 0 8px;
+      color:#f9e9b8;
+      font-size:12px;
+      font-weight:900;
+      letter-spacing:.05em;
+      text-transform:uppercase;
+    }
+    .bcb-vrd-wrap .vrd-form{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .bcb-vrd-wrap .vrd-form input[type="date"]{
+      min-width:155px;
+      height:40px;
+      border:0;
+      border-radius:14px;
+      background:#f8fafc;
+      color:#153349;
+      padding:0 14px;
+      font-size:14px;
+      font-weight:800;
+    }
+    .bcb-vrd-wrap .vrd-form button{
+      height:40px;
+      border:0;
+      border-radius:999px;
+      padding:0 20px;
+      background:var(--bcb-gold);
+      color:#17324a;
+      font-size:14px;
+      font-weight:900;
+      cursor:pointer;
+      box-shadow:0 6px 14px rgba(0,0,0,.12);
+    }
+    .bcb-vrd-wrap .vrd-date-help{
+      width:100%;
+      margin-top:6px;
+      color:#eaf4fb;
+      font-size:11.5px;
+      line-height:1.35;
+      font-weight:700;
+      display:none;
+    }
+    .bcb-vrd-wrap .vrd-date-help.is-visible{
+      display:block;
+    }
+    .bcb-vrd-wrap .vrd-date-info{
+      min-width:230px;
+      text-align:right;
+      color:#dfeaf3;
+      font-size:12px;
+      line-height:1.35;
+      font-weight:700;
+    }
+    .bcb-vrd-wrap .vrd-date-info strong{
+      display:block;
+      color:#fff;
+      font-size:14px;
+      margin-top:2px;
+    }
+    .bcb-vrd-wrap .vrd-export{
+      min-width:370px;
+      flex:1;
+    }
+    .bcb-vrd-wrap .vrd-export .vrd-form{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:12px;
+      width:100%;
+    }
+    .bcb-vrd-wrap .vrd-export-range{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      flex-wrap:wrap;
+      width:100%;
+    }
+    .bcb-vrd-wrap .vrd-export-actions{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:12px;
+      flex-wrap:wrap;
+      width:100%;
+    }
+    .bcb-vrd-wrap .vrd-export .vrd-form input[type="date"]{
+      min-width:140px;
+    }
+    .bcb-vrd-wrap .vrd-export .vrd-form button{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-width:170px;
+      margin:0;
+      flex:0 0 auto;
+    }
+    .bcb-vrd-wrap .vrd-export-note{
+      width:100%;
+      margin-top:0;
+      color:#eaf4fb;
+      font-size:11.5px;
+      line-height:1.35;
+      font-weight:700;
+      text-align:center;
+    }
+
+    /* ===== PANEL TABLA ===== */
+    .bcb-vrd-wrap .vrd-panel{
+      border-radius:20px;
+      background:linear-gradient(180deg,#f7f8fa 0%, #f4f6f8 100%);
+      border:1px solid #d4dde6;
+      box-shadow:0 10px 22px rgba(14, 38, 59, .06);
+      padding:12px;
+    }
+    .bcb-vrd-wrap .vrd-panel-top{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:14px;
+      flex-wrap:wrap;
+      margin-bottom:12px;
+    }
+    .bcb-vrd-wrap .vrd-panel-title{
+      margin:0;
+      color:var(--bcb-blue-dark);
+      font-size:18px;
+      font-weight:900;
+      line-height:1.2;
+    }
+    .bcb-vrd-wrap .vrd-panel-sub{
+      margin:5px 0 0;
+      color:#5e7590;
+      font-size:12px;
+    }
+    .bcb-vrd-wrap .vrd-date-chip{
+      align-self:center;
+      background:#eee6d4;
+      color:#6e5320;
+      border-radius:999px;
+      padding:6px 12px;
+      font-size:12px;
+      font-weight:900;
+      white-space:nowrap;
+    }
+
+    .bcb-vrd-wrap .vrd-scroller{
+      overflow:auto;
+      max-height:72vh;
+      border-radius:14px;
+      border:1px solid #d2dbe5;
+      background:#fff;
+      -webkit-overflow-scrolling:touch;
+      position:relative;
+    }
+    .bcb-vrd-wrap table.matrix{
+      border-collapse:separate;
+      border-spacing:0;
+      min-width:2400px;
+      width:max-content;
+      font-size:12px;
+      color:#213242;
+      background:#fff;
+    }
+    .bcb-vrd-wrap .matrix th,
+    .bcb-vrd-wrap .matrix td{
+      border-right:1px solid #d7e1ea;
+      border-bottom:1px solid #d7e1ea;
+      padding:9px 10px;
+      white-space:nowrap;
+      vertical-align:middle;
+    }
+    .bcb-vrd-wrap .matrix thead th{
+      text-align:center;
+      font-weight:900;
+      color:#fff;
+      background:#0A3E62;
+      border-bottom:1px solid rgba(255,255,255,.55);
+    }
+    .bcb-vrd-wrap .matrix thead tr:first-child th{
+      position:sticky;
+      top:0;
+      z-index:30;
+      height:40px;
+      padding-top:7px;
+      padding-bottom:7px;
+    }
+    .bcb-vrd-wrap .matrix thead tr:nth-child(2) th{
+      position:sticky;
+      top:40px;
+      z-index:29;
+      height:34px;
+      padding-top:6px;
+      padding-bottom:6px;
+      background:#0B3552;
+    }
+    .bcb-vrd-wrap .matrix .tc-col{
+      position:sticky;
+      left:0;
+      z-index:20;
+      min-width:100px;
+      background:#f3f5f7;
+      font-weight:900;
+      color:#1a2e3f;
+      box-shadow:8px 0 12px -13px rgba(0,0,0,.5);
+      background-clip:padding-box;
+    }
+
+    /*
+      Corrección de capas:
+      Al hacer scroll horizontal, las cabeceras de bancos pasan por debajo
+      de la primera columna fija. Esta celda debe quedar por encima de ambas
+      filas del thead para evitar que se sobrepongan los textos.
+    */
+    .bcb-vrd-wrap .matrix thead .tc-col{
+      position:sticky;
+      top:0;
+      left:0;
+      background:#0A3E62;
+      color:#fff;
+      z-index:120 !important;
+      box-shadow:8px 0 12px -13px rgba(0,0,0,.65);
+      background-clip:padding-box;
+    }
+    .bcb-vrd-wrap .matrix tbody tr:nth-child(odd) td{ background:#f4f6f8; }
+    .bcb-vrd-wrap .matrix tbody tr:nth-child(odd) .tc-col{ background:#eef1f4; }
+    .bcb-vrd-wrap .matrix tbody tr:nth-child(even) td{ background:#ffffff; }
+    .bcb-vrd-wrap .matrix tbody tr:nth-child(even) .tc-col{ background:#f9fbfc; }
+    .bcb-vrd-wrap .matrix td.num{ text-align:right; font-variant-numeric:tabular-nums; }
+    .bcb-vrd-wrap .matrix .col-total,
+    .bcb-vrd-wrap .matrix thead .col-total{
+      background:#e9e1d0 !important;
+      color:#51401b !important;
+      font-weight:900;
+    }
+    .bcb-vrd-wrap .matrix tr.row-total td{
+      background:#edf3f8 !important;
+      font-weight:900;
+      color:#183042;
+    }
+    .bcb-vrd-wrap .matrix tr.row-total .col-total{
+      background:#e4dccb !important;
+      color:#4f3f1b !important;
+    }
+    .bcb-vrd-wrap .matrix tr.row-vrd td{
+      background:#fff8e9 !important;
+      color:#5d4a1f;
+      font-weight:900;
+      border-top:2px solid var(--bcb-gold-dark);
+    }
+    .bcb-vrd-wrap .matrix tr.row-vrd .tc-col{
+      background:#fff6e2 !important;
+    }
+
+    .bcb-vrd-wrap .vrd-notes{
+      margin-top:14px;
+      padding:14px 16px;
+      border-left:5px solid var(--bcb-gold-dark);
+      border-radius:12px;
+      background:linear-gradient(180deg,#fffdf7 0%,#fff8e9 100%);
+      color:#364454;
+      font-size:12.5px;
+      line-height:1.55;
+    }
+    .bcb-vrd-wrap .vrd-notes p{ margin:0 0 8px; }
+    .bcb-vrd-wrap .vrd-notes p:last-child{ margin-bottom:0; }
+    .bcb-vrd-wrap .vrd-notes strong{ color:var(--bcb-blue-dark); }
+
+    @media (max-width: 768px){
+      .bcb-vrd-wrap{ padding-top:8px; }
+      .bcb-vrd-wrap .vrd-shell{ padding:0 8px; }
+      .bcb-vrd-wrap .vrd-hero{ padding:18px 16px 20px; border-radius:18px; }
+      .bcb-vrd-wrap .vrd-title{ font-size:18px; }
+      .bcb-vrd-wrap .vrd-chooser{ padding:14px; }
+      .bcb-vrd-wrap .vrd-date-info{ text-align:left; min-width:unset; }
+      .bcb-vrd-wrap .vrd-panel{ padding:12px 10px 12px; border-radius:16px; }
+      .bcb-vrd-wrap .vrd-panel-title{ font-size:16px; }
+      .bcb-vrd-wrap .vrd-date-chip{ align-self:flex-start; }
+      .bcb-vrd-wrap .matrix thead tr:nth-child(2) th{ top:40px; }
+    }
+
+    /* ===== REPORTE RESUMEN - LÍNEA GRÁFICA PÁGINA WEB ===== */
+    .bcb-vrd-wrap .tco-public-title{
+      margin:0 0 18px;
+      background:#08314C;
+      color:#fff;
+      border-left:8px solid var(--bcb-gold-dark);
+      padding:13px 18px;
+      font-size:27px;
+      line-height:1.14;
+      font-weight:950;
+      letter-spacing:.01em;
+      text-transform:uppercase;
+      box-shadow:0 2px 0 rgba(0,0,0,.04);
+    }
+    .bcb-vrd-wrap .tco-public-card{
+      background:#fff;
+      border:1px solid #eef2f6;
+      box-shadow:0 10px 22px rgba(14,38,59,.05);
+      padding:18px 22px 76px;
+      margin:0 0 22px;
+      min-height:620px;
+      position:relative;
+    }
+    .bcb-vrd-wrap .tco-public-top{
+      display:grid;
+      grid-template-columns:160px 1fr 160px;
+      gap:10px;
+      align-items:start;
+      margin-bottom:18px;
+    }
+    .bcb-vrd-wrap .tco-public-more{
+      justify-self:end;
+      margin-top:8px;
+      color:#0A456D !important;
+      font-size:11px;
+      font-weight:900;
+      text-decoration:none;
+      text-align:right;
+      white-space:nowrap;
+    }
+    .bcb-vrd-wrap .tco-public-more:hover{ text-decoration:underline; }
+    .bcb-vrd-wrap .tco-public-summary{
+      text-align:center;
+      color:#202a33;
+    }
+    .bcb-vrd-wrap .tco-public-summary h3{
+      margin:0 0 6px;
+      font-size:17px;
+      line-height:1.1;
+      font-weight:950;
+      color:#202a33;
+    }
+    .bcb-vrd-wrap .tco-public-value{
+      display:inline-block;
+      min-width:0;
+      min-height:0;
+      padding:0;
+      background:transparent;
+      color:#202a33;
+      font-size:20px;
+      line-height:1.1;
+      font-weight:950;
+      text-align:center;
+    }
+    .bcb-vrd-wrap .tco-public-date{
+      display:block;
+      margin-top:6px;
+      color:#7b858e;
+      font-size:11px;
+      line-height:1.35;
+      font-weight:850;
+      text-transform:uppercase;
+    }
+    .bcb-vrd-wrap .tco-public-desc{
+      width:min(560px, 82%);
+      margin:0 auto 28px;
+      color:#46525c;
+      text-align:center;
+      font-size:12px;
+      line-height:1.45;
+      font-weight:600;
+    }
+    .bcb-vrd-wrap .tco-public-table-wrap{
+      width:min(900px, 84%);
+      margin:0 auto;
+      overflow-x:auto;
+      -webkit-overflow-scrolling:touch;
+    }
+    .bcb-vrd-wrap .tco-public-table{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0;
+      color:#22313c;
+      font-size:13px;
+      line-height:1.2;
+    }
+    .bcb-vrd-wrap .tco-public-table th{
+      background:#075A88;
+      color:#fff;
+      padding:13px 12px;
+      font-size:12px;
+      line-height:1.15;
+      font-weight:950;
+      text-align:center;
+      border:0;
+    }
+    .bcb-vrd-wrap .tco-public-table th:first-child{
+      text-align:left;
+      border-top-left-radius:5px;
+    }
+    .bcb-vrd-wrap .tco-public-table th:last-child{
+      border-top-right-radius:5px;
+    }
+    .bcb-vrd-wrap .tco-public-table td{
+      padding:9px 12px;
+      border-bottom:1px solid #edf2f7;
+      background:#fff;
+      vertical-align:middle;
+    }
+    .bcb-vrd-wrap .tco-public-table tbody tr:nth-child(even):not(.tco-public-total) td{
+      background:#f8fafc;
+    }
+    .bcb-vrd-wrap .tco-public-table td:nth-child(2),
+    .bcb-vrd-wrap .tco-public-table td:nth-child(3),
+    .bcb-vrd-wrap .tco-public-table td:nth-child(4){
+      text-align:right;
+      white-space:nowrap;
+      font-weight:750;
+      font-variant-numeric:tabular-nums;
+    }
+    .bcb-vrd-wrap .tco-public-total td{
+      background:#d9edf8 !important;
+      color:#075A88;
+      font-weight:950;
+      border-top:2px solid #075A88;
+      border-bottom:0;
+    }
+    .bcb-vrd-wrap .tco-public-source{
+      width:min(900px, 84%);
+      margin:118px auto 0;
+      color:#687783;
+      font-size:11px;
+      line-height:1.45;
+      font-weight:500;
+    }
+    .bcb-vrd-wrap .tco-public-note{
+      width:min(900px, 84%);
+      margin:18px auto 0;
+      padding-top:14px;
+      border-top:1px solid #d8e2ec;
+      color:#3b4b57;
+      font-size:12px;
+      line-height:1.55;
+      text-align:justify;
+    }
+    .bcb-vrd-wrap .tco-public-note strong{ color:#08314C; }
+
+    @media (max-width:768px){
+      .bcb-vrd-wrap .tco-public-title{
+        font-size:22px;
+        padding:12px 12px;
+        margin-bottom:14px;
+      }
+      .bcb-vrd-wrap .tco-public-card{
+        padding:14px 10px 38px;
+        min-height:unset;
+      }
+      .bcb-vrd-wrap .tco-public-top{
+        grid-template-columns:1fr;
+        gap:8px;
+      }
+      .bcb-vrd-wrap .tco-public-more{
+        margin:0 0 6px 0;
+        justify-self:end;
+      }
+      .bcb-vrd-wrap .tco-public-desc,
+      .bcb-vrd-wrap .tco-public-table-wrap,
+      .bcb-vrd-wrap .tco-public-source,
+      .bcb-vrd-wrap .tco-public-note{
+        width:100%;
+      }
+      .bcb-vrd-wrap .tco-public-table{
+        font-size:12px;
+      }
+      .bcb-vrd-wrap .tco-public-table th,
+      .bcb-vrd-wrap .tco-public-table td{
+        padding:8px 9px;
+      }
+      .bcb-vrd-wrap .tco-public-source{
+        margin-top:46px;
+      }
+    }
+
+
+    .bcb-vrd-wrap .tco-public-vigencia{
+      display:block;
+      margin-top:7px;
+      color:#846D41;
+      font-size:13px;
+      font-weight:800;
+      line-height:1.35;
+      text-align:center;
+    }
+
+    /* ===== TIPO DE CAMBIO OFICIAL - DIARIO ===== */
+    .bcb-vrd-wrap .tco-daily-card{
+      background:#fff;
+      border:1px solid #eef2f6;
+      box-shadow:0 10px 22px rgba(14,38,59,.05);
+      padding:24px 22px 28px;
+      margin:0 0 22px;
+    }
+    .bcb-vrd-wrap .tco-daily-title{
+      margin:0 0 18px;
+      color:#08314C;
+      font-size:21px;
+      line-height:1.2;
+      font-weight:950;
+      text-align:center;
+      letter-spacing:.01em;
+      text-transform:uppercase;
+    }
+    .bcb-vrd-wrap .tco-daily-table-wrap{
+      width:min(760px, 100%);
+      margin:0 auto;
+      overflow-x:auto;
+      -webkit-overflow-scrolling:touch;
+    }
+    .bcb-vrd-wrap .tco-daily-table{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0;
+      color:#22313c;
+      font-size:14px;
+      line-height:1.25;
+    }
+    .bcb-vrd-wrap .tco-daily-table th{
+      background:#075A88;
+      color:#fff;
+      padding:14px 16px;
+      border:0;
+      font-size:13px;
+      font-weight:950;
+    }
+    .bcb-vrd-wrap .tco-daily-table th:first-child{
+      text-align:left;
+      border-top-left-radius:5px;
+    }
+    .bcb-vrd-wrap .tco-daily-table th:last-child{
+      text-align:right;
+      border-top-right-radius:5px;
+      white-space:nowrap;
+    }
+    .bcb-vrd-wrap .tco-daily-table td{
+      padding:9px 16px;
+      border-bottom:1px solid #edf2f7;
+      background:#fff;
+      vertical-align:middle;
+    }
+    .bcb-vrd-wrap .tco-daily-table tbody tr:nth-child(even) td{
+      background:#f3f6f9;
+    }
+    .bcb-vrd-wrap .tco-daily-table td:first-child{
+      text-align:left;
+    }
+    .bcb-vrd-wrap .tco-daily-table td:last-child{
+      text-align:right;
+      white-space:nowrap;
+      font-weight:900;
+      font-variant-numeric:tabular-nums;
+    }
+
+    @media (max-width:768px){
+      .bcb-vrd-wrap .tco-daily-card{
+        padding:18px 10px 20px;
+      }
+      .bcb-vrd-wrap .tco-daily-title{
+        font-size:18px;
+        margin-bottom:14px;
+      }
+      .bcb-vrd-wrap .tco-daily-table{
+        font-size:12px;
+      }
+      .bcb-vrd-wrap .tco-daily-table th,
+      .bcb-vrd-wrap .tco-daily-table td{
+        padding:9px 10px;
+      }
+    }
+
+  </style>
+
+  <div class="vrd-shell">
+
+    <div class="tco-public-title">
+      TIPO DE CAMBIO OFICIAL DEL DÓLAR ESTADOUNIDENSE
+    </div>
+
+    <div class="tco-public-card" aria-label="Reporte de última cotización TCO">
+      <div class="tco-public-top">
+        <div aria-hidden="true"></div>
+
+        <div class="tco-public-summary">
+          <h3>Última cotización</h3>
+          <div class="tco-public-value">Bs 11,75/$us</div>
+          <span class="tco-public-date">FECHA DE CORTE: LUNES 9 DE NOVIEMBRE DE 2026</span>
+          <span class="tco-public-vigencia">VIGENCIA: MARTES 10 DE NOVIEMBRE DE 2026</span>
+        </div>
+
+        <a class="tco-public-more" href="https://www.bcb.gob.bo/?q=content/tipo-de-cambio-oficial-del-d%C3%B3lar-estadounidense-evolutivo" target="_blank" rel="noopener noreferrer">Más información</a>
+      </div>
+
+      <div class="tco-public-desc">
+        Tipos de cambio mediana ponderada por monto, montos transados y número de transacciones de las entidades bancarias con sus clientes.      </div>
+
+      <div class="tco-public-table-wrap">
+        <table class="tco-public-table">
+          <thead>
+            <tr>
+              <th>Entidad</th>
+              <th>Compra (Bs/$us)</th>
+              <th>Monto ($us)</th>
+              <th>Número de<br>transacciones</th>
+            </tr>
+          </thead>
+          <tbody>
+                                        <tr>
+                <td>BANCO BISA</td>
+                <td>11,75</td>
+                <td>12.836.172,14</td>
+                <td>283</td>
+              </tr>
+                                        <tr>
+                <td>BANCO DE CREDITO</td>
+                <td>11,70</td>
+                <td>2.893.600,32</td>
+                <td>1.122</td>
+              </tr>
+                                        <tr>
+                <td>BANCO DE LA NACIÓN ARGENTINA</td>
+                <td>11,11</td>
+                <td>6.027,15</td>
+                <td>12</td>
+              </tr>
+                                        <tr>
+                <td>BANCO ECONOMICO</td>
+                <td>11,70</td>
+                <td>5.015.510,61</td>
+                <td>34</td>
+              </tr>
+                                        <tr>
+                <td>BANCO FIE</td>
+                <td>11,75</td>
+                <td>1.073.966,20</td>
+                <td>23</td>
+              </tr>
+                                        <tr>
+                <td>BANCO FORTALEZA</td>
+                <td>11,75</td>
+                <td>566.296,96</td>
+                <td>10</td>
+              </tr>
+                                        <tr>
+                <td>BANCO GANADERO</td>
+                <td>11,76</td>
+                <td>10.819.850,89</td>
+                <td>300</td>
+              </tr>
+                                        <tr>
+                <td>BANCO MERCANTIL SANTA CRUZ</td>
+                <td>11,75</td>
+                <td>2.005.518,29</td>
+                <td>132</td>
+              </tr>
+                                        <tr>
+                <td>BANCO NACIONAL DE BOLIVIA</td>
+                <td>11,80</td>
+                <td>3.649.912,10</td>
+                <td>328</td>
+              </tr>
+                                        <tr>
+                <td>BANCO PRODEM</td>
+                <td>11,51</td>
+                <td>4.232,83</td>
+                <td>24</td>
+              </tr>
+                                        <tr>
+                <td>BANCO PYME DE LA COMUNIDAD</td>
+                <td>11,41</td>
+                <td>1.424,06</td>
+                <td>4</td>
+              </tr>
+                                        <tr>
+                <td>BANCO PYME ECOFUTURO</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+              </tr>
+                                        <tr>
+                <td>BANCO SOLIDARIO</td>
+                <td>11,52</td>
+                <td>1.281.015,24</td>
+                <td>39</td>
+              </tr>
+                                        <tr>
+                <td>BANCO UNION</td>
+                <td>10,31</td>
+                <td>12.048,90</td>
+                <td>48</td>
+              </tr>
+                        <tr class="tco-public-total">
+              <td>TOTALES</td>
+              <td>&nbsp;</td>
+              <td>40.165.575,69</td>
+              <td>2.359</td>
+            </tr>
+            <tr class="tco-public-total">
+              <td>BANCOS (MEDIANA PONDERADA POR MONTO)</td>
+              <td>11,75</td>
+              <td>&nbsp;</td>
+              <td>&nbsp;</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="tco-public-source">
+        Fuente: Entidades de Intermediación Financiera<br>
+        Elaboración: Banco Central de Bolivia - Gerencia de Entidades Financieras
+      </div>
+
+      <div class="tco-public-note">
+        <strong>TCO:</strong> Corresponde a la mediana ponderada por monto de los tipos de cambio de las operaciones de compra de dólares realizadas por los Bancos Múltiples, Bancos PyME,  Banco Público con sus clientes y el Banco Central de Bolivia.      </div>
+    </div>
+
+
+    <div class="tco-daily-card" aria-label="Tipo de Cambio Oficial diario">
+      <h2 class="tco-daily-title">TIPO DE CAMBIO OFICIAL - DIARIO</h2>
+      <div style="margin:-8px 0 16px;text-align:center;color:#5f7284;font-size:13px;font-weight:700">El TCO de Bs 11,75/$us tiene vigencia el martes 10 de noviembre de 2026.</div>
+
+      <div class="tco-daily-table-wrap">
+        <table class="tco-daily-table">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Valor (Bs/$us)</th>
+            </tr>
+          </thead>
+          <tbody>
+                          <tr><td>sábado 27 de junio de 2026</td><td>9,73</td></tr>
+                          <tr><td>domingo 28 de junio de 2026</td><td>9,73</td></tr>
+                          <tr><td>lunes 29 de junio de 2026</td><td>9,73</td></tr>
+                          <tr><td>martes 30 de junio de 2026</td><td>9,76</td></tr>
+                          <tr><td>miércoles 1 de julio de 2026</td><td>9,76</td></tr>
+                          <tr><td>jueves 2 de julio de 2026</td><td>9,78</td></tr>
+                          <tr><td>viernes 3 de julio de 2026</td><td>9,80</td></tr>
+                          <tr><td>sábado 4 de julio de 2026</td><td>9,83</td></tr>
+                          <tr><td>domingo 5 de julio de 2026</td><td>9,83</td></tr>
+                          <tr><td>lunes 6 de julio de 2026</td><td>9,83</td></tr>
+                          <tr><td>martes 7 de julio de 2026</td><td>9,89</td></tr>
+                          <tr><td>miércoles 8 de julio de 2026</td><td>9,96</td></tr>
+                          <tr><td>jueves 9 de julio de 2026</td><td>10,10</td></tr>
+                          <tr><td>viernes 10 de julio de 2026</td><td>10,24</td></tr>
+                          <tr><td>sábado 11 de julio de 2026</td><td>10,40</td></tr>
+                          <tr><td>domingo 12 de julio de 2026</td><td>10,40</td></tr>
+                          <tr><td>lunes 13 de julio de 2026</td><td>10,40</td></tr>
+                          <tr><td>martes 14 de julio de 2026</td><td>10,50</td></tr>
+                          <tr><td>miércoles 15 de julio de 2026</td><td>10,70</td></tr>
+                          <tr><td>jueves 16 de julio de 2026</td><td>10,75</td></tr>
+                          <tr><td>viernes 17 de julio de 2026</td><td>10,75</td></tr>
+                          <tr><td>sábado 18 de julio de 2026</td><td>10,85</td></tr>
+                          <tr><td>domingo 19 de julio de 2026</td><td>10,85</td></tr>
+                          <tr><td>lunes 20 de julio de 2026</td><td>10,85</td></tr>
+                          <tr><td>martes 21 de julio de 2026</td><td>10,90</td></tr>
+                          <tr><td>miércoles 22 de julio de 2026</td><td>11,00</td></tr>
+                          <tr><td>jueves 23 de julio de 2026</td><td>11,13</td></tr>
+                          <tr><td>viernes 24 de julio de 2026</td><td>11,21</td></tr>
+                          <tr><td>sábado 25 de julio de 2026</td><td>11,37</td></tr>
+                          <tr><td>domingo 26 de julio de 2026</td><td>11,37</td></tr>
+                          <tr><td>lunes 27 de julio de 2026</td><td>11,37</td></tr>
+                          <tr><td>martes 28 de julio de 2026</td><td>11,54</td></tr>
+                          <tr><td>miércoles 29 de julio de 2026</td><td>11,80</td></tr>
+                          <tr><td>jueves 30 de julio de 2026</td><td>11,89</td></tr>
+                          <tr><td>viernes 31 de julio de 2026</td><td>12,15</td></tr>
+                          <tr><td>sábado 1 de agosto de 2026</td><td>12,13</td></tr>
+                          <tr><td>domingo 2 de agosto de 2026</td><td>12,13</td></tr>
+                          <tr><td>lunes 3 de agosto de 2026</td><td>12,13</td></tr>
+                          <tr><td>martes 4 de agosto de 2026</td><td>12,08</td></tr>
+                          <tr><td>miércoles 5 de agosto de 2026</td><td>12,02</td></tr>
+                          <tr><td>jueves 6 de agosto de 2026</td><td>11,86</td></tr>
+                          <tr><td>viernes 7 de agosto de 2026</td><td>11,86</td></tr>
+                          <tr><td>sábado 8 de agosto de 2026</td><td>11,86</td></tr>
+                          <tr><td>domingo 9 de agosto de 2026</td><td>11,86</td></tr>
+                          <tr><td>lunes 10 de agosto de 2026</td><td>11,86</td></tr>
+                          <tr><td>martes 11 de agosto de 2026</td><td>11,77</td></tr>
+                          <tr><td>miércoles 12 de agosto de 2026</td><td>11,71</td></tr>
+                          <tr><td>jueves 13 de agosto de 2026</td><td>11,66</td></tr>
+                          <tr><td>viernes 14 de agosto de 2026</td><td>11,62</td></tr>
+                          <tr><td>sábado 15 de agosto de 2026</td><td>11,58</td></tr>
+                          <tr><td>domingo 16 de agosto de 2026</td><td>11,58</td></tr>
+                          <tr><td>lunes 17 de agosto de 2026</td><td>11,58</td></tr>
+                          <tr><td>martes 18 de agosto de 2026</td><td>11,55</td></tr>
+                          <tr><td>miércoles 19 de agosto de 2026</td><td>11,52</td></tr>
+                          <tr><td>jueves 20 de agosto de 2026</td><td>11,52</td></tr>
+                          <tr><td>viernes 21 de agosto de 2026</td><td>11,52</td></tr>
+                          <tr><td>sábado 22 de agosto de 2026</td><td>11,50</td></tr>
+                          <tr><td>domingo 23 de agosto de 2026</td><td>11,50</td></tr>
+                          <tr><td>lunes 24 de agosto de 2026</td><td>11,50</td></tr>
+                          <tr><td>martes 25 de agosto de 2026</td><td>11,54</td></tr>
+                          <tr><td>miércoles 26 de agosto de 2026</td><td>11,57</td></tr>
+                          <tr><td>jueves 27 de agosto de 2026</td><td>11,71</td></tr>
+                          <tr><td>viernes 28 de agosto de 2026</td><td>11,83</td></tr>
+                          <tr><td>sábado 29 de agosto de 2026</td><td>11,92</td></tr>
+                          <tr><td>domingo 30 de agosto de 2026</td><td>11,92</td></tr>
+                          <tr><td>lunes 31 de agosto de 2026</td><td>11,92</td></tr>
+                          <tr><td>martes 1 de septiembre de 2026</td><td>12,12</td></tr>
+                          <tr><td>miércoles 2 de septiembre de 2026</td><td>12,26</td></tr>
+                          <tr><td>jueves 3 de septiembre de 2026</td><td>12,32</td></tr>
+                          <tr><td>viernes 4 de septiembre de 2026</td><td>12,45</td></tr>
+                          <tr><td>sábado 5 de septiembre de 2026</td><td>12,58</td></tr>
+                          <tr><td>domingo 6 de septiembre de 2026</td><td>12,58</td></tr>
+                          <tr><td>lunes 7 de septiembre de 2026</td><td>12,58</td></tr>
+                          <tr><td>martes 8 de septiembre de 2026</td><td>12,60</td></tr>
+                          <tr><td>miércoles 9 de septiembre de 2026</td><td>12,64</td></tr>
+                          <tr><td>jueves 10 de septiembre de 2026</td><td>12,42</td></tr>
+                          <tr><td>viernes 11 de septiembre de 2026</td><td>12,04</td></tr>
+                          <tr><td>sábado 12 de septiembre de 2026</td><td>11,53</td></tr>
+                          <tr><td>domingo 13 de septiembre de 2026</td><td>11,53</td></tr>
+                          <tr><td>lunes 14 de septiembre de 2026</td><td>11,53</td></tr>
+                          <tr><td>martes 15 de septiembre de 2026</td><td>10,99</td></tr>
+                          <tr><td>miércoles 16 de septiembre de 2026</td><td>10,15</td></tr>
+                          <tr><td>jueves 17 de septiembre de 2026</td><td>9,83</td></tr>
+                          <tr><td>viernes 18 de septiembre de 2026</td><td>10,01</td></tr>
+                          <tr><td>sábado 19 de septiembre de 2026</td><td>11,00</td></tr>
+                          <tr><td>domingo 20 de septiembre de 2026</td><td>11,00</td></tr>
+                          <tr><td>lunes 21 de septiembre de 2026</td><td>11,00</td></tr>
+                          <tr><td>martes 22 de septiembre de 2026</td><td>11,90</td></tr>
+                          <tr><td>miércoles 23 de septiembre de 2026</td><td>12,06</td></tr>
+                          <tr><td>jueves 24 de septiembre de 2026</td><td>12,26</td></tr>
+                          <tr><td>viernes 25 de septiembre de 2026</td><td>12,22</td></tr>
+                          <tr><td>sábado 26 de septiembre de 2026</td><td>12,05</td></tr>
+                          <tr><td>domingo 27 de septiembre de 2026</td><td>12,05</td></tr>
+                          <tr><td>lunes 28 de septiembre de 2026</td><td>12,05</td></tr>
+                          <tr><td>martes 29 de septiembre de 2026</td><td>12,02</td></tr>
+                          <tr><td>miércoles 30 de septiembre de 2026</td><td>12,02</td></tr>
+                          <tr><td>jueves 1 de octubre de 2026</td><td>12,00</td></tr>
+                          <tr><td>viernes 2 de octubre de 2026</td><td>11,90</td></tr>
+                          <tr><td>sábado 3 de octubre de 2026</td><td>12,00</td></tr>
+                          <tr><td>domingo 4 de octubre de 2026</td><td>12,00</td></tr>
+                          <tr><td>lunes 5 de octubre de 2026</td><td>12,00</td></tr>
+                          <tr><td>martes 6 de octubre de 2026</td><td>11,97</td></tr>
+                          <tr><td>miércoles 7 de octubre de 2026</td><td>11,97</td></tr>
+                          <tr><td>jueves 8 de octubre de 2026</td><td>11,85</td></tr>
+                          <tr><td>viernes 9 de octubre de 2026</td><td>11,85</td></tr>
+                          <tr><td>sábado 10 de octubre de 2026</td><td>11,73</td></tr>
+                          <tr><td>domingo 11 de octubre de 2026</td><td>11,73</td></tr>
+                          <tr><td>lunes 12 de octubre de 2026</td><td>11,73</td></tr>
+                          <tr><td>martes 13 de octubre de 2026</td><td>11,70</td></tr>
+                          <tr><td>miércoles 14 de octubre de 2026</td><td>11,70</td></tr>
+                          <tr><td>jueves 15 de octubre de 2026</td><td>11,68</td></tr>
+                          <tr><td>viernes 16 de octubre de 2026</td><td>11,68</td></tr>
+                          <tr><td>sábado 17 de octubre de 2026</td><td>11,69</td></tr>
+                          <tr><td>domingo 18 de octubre de 2026</td><td>11,69</td></tr>
+                          <tr><td>lunes 19 de octubre de 2026</td><td>11,69</td></tr>
+                          <tr><td>martes 20 de octubre de 2026</td><td>11,70</td></tr>
+                          <tr><td>miércoles 21 de octubre de 2026</td><td>11,73</td></tr>
+                          <tr><td>jueves 22 de octubre de 2026</td><td>11,75</td></tr>
+                          <tr><td>viernes 23 de octubre de 2026</td><td>11,84</td></tr>
+                          <tr><td>sábado 24 de octubre de 2026</td><td>11,88</td></tr>
+                          <tr><td>domingo 25 de octubre de 2026</td><td>11,88</td></tr>
+                          <tr><td>lunes 26 de octubre de 2026</td><td>11,88</td></tr>
+                          <tr><td>martes 27 de octubre de 2026</td><td>12,02</td></tr>
+                          <tr><td>miércoles 28 de octubre de 2026</td><td>12,02</td></tr>
+                          <tr><td>jueves 29 de octubre de 2026</td><td>12,12</td></tr>
+                          <tr><td>viernes 30 de octubre de 2026</td><td>12,11</td></tr>
+                          <tr><td>sábado 31 de octubre de 2026</td><td>12,09</td></tr>
+                          <tr><td>domingo 1 de noviembre de 2026</td><td>12,09</td></tr>
+                          <tr><td>lunes 2 de noviembre de 2026</td><td>12,09</td></tr>
+                          <tr><td>martes 3 de noviembre de 2026</td><td>12,09</td></tr>
+                          <tr><td>miércoles 4 de noviembre de 2026</td><td>12,06</td></tr>
+                          <tr><td>jueves 5 de noviembre de 2026</td><td>12,00</td></tr>
+                          <tr><td>viernes 6 de noviembre de 2026</td><td>11,89</td></tr>
+                          <tr><td>sábado 7 de noviembre de 2026</td><td>11,81</td></tr>
+                          <tr><td>domingo 8 de noviembre de 2026</td><td>11,81</td></tr>
+                          <tr><td>lunes 9 de noviembre de 2026</td><td>11,81</td></tr>
+                          <tr><td>martes 10 de noviembre de 2026</td><td>11,75</td></tr>
+                      </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</section>
