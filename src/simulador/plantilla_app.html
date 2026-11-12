@@ -326,6 +326,10 @@ svg.chart .pt30{fill:none;stroke:var(--graphite);stroke-width:1.4}
   .seg{flex-wrap:wrap}.seg .chip{flex:1 1 100%}
   .presu input{width:100%}
   .quiebre .zl{font-size:10.5px}
+  /* A 390 px la ubicación se partía palabra por palabra al lado de la píldora: la ubicación ocupa todo el ancho
+     y la píldora baja a su propia línea. */
+  .topbar{flex-wrap:wrap;justify-content:flex-start;padding:10px 0;gap:6px}
+  .topbar #miga{flex:1 1 100%}
 }
 </style>
 </head>
@@ -889,14 +893,17 @@ let PASADO = null;
 function pintarPasado(){
   if(!PASADO) PASADO = seguro(() => POL.map(p => Motor.pasado(D, p[0])), $("bt"));
   if(!PASADO) return;
-  const g = PASADO.map(x => x.ganancia_bs), im = g.indexOf(Math.max(...g)), ip = g.indexOf(Math.min(...g));
+  const g = PASADO.map(x => x.ganancia_bs), im = g.indexOf(Math.max(...g));
   $("bt").innerHTML = POL.map((p,i) => { const x = PASADO[i]; return `<div class="col${i === im ? " gana" : ""}"><h3>${p[1]}${i === im ? ' <span class="tag">Mejor resultado</span>' : ""}</h3><p class="que">${p[2]}</p>
     <dl class="dato"><dt>Ventas perdidas<span class="ayuda">Unidades pedidas por clientes sin stock.</span></dt><dd>${nf(x.ventas_perdidas,1)} u</dd></dl>
     <dl class="dato"><dt>Dinero inmovilizado promedio<span class="ayuda">Dinero en el almacén, mes a mes.</span></dt><dd>${bs(x.capital_promedio_bs)}</dd></dl>
     <dl class="dato"><dt>Pedidos hechos<span class="ayuda">Cada pedido paga flete y trámites.</span></dt><dd>${nf(x.pedidos)}</dd></dl>
     <dl class="dato"><dt>Ganancia en 12 meses<span class="ayuda">Ventas menos compras y costo del capital.</span></dt><dd>${bs(x.ganancia_bs)}</dd></dl></div>`; }).join("");
-  const m = PASADO[im], pe = PASADO[ip];
-  $("bt-nota").innerHTML = `<strong>Lo que enseña:</strong> con las ventas que de verdad ocurrieron, «${POL[im][1].toLowerCase()}» dejó ${bs(m.ganancia_bs)}, ${bs(m.ganancia_bs - pe.ganancia_bs)} más que «${POL[ip][1].toLowerCase()}», con ${nf(m.ventas_perdidas,1)} unidades perdidas frente a ${nf(pe.ventas_perdidas,1)}.`;
+  // La mejor se compara con las otras dos, de la que más ganó a la que menos (antes se comparaba solo con la peor).
+  const m = PASADO[im], otras = POL.map((p,i) => i).filter(i => i !== im).sort((a,b) => g[b] - g[a]);
+  $("bt-nota").innerHTML = `<strong>Lo que enseña:</strong> con las ventas que de verdad ocurrieron, «${POL[im][1].toLowerCase()}» dejó ${bs(m.ganancia_bs)}: `
+    + otras.map(i => `${bs(m.ganancia_bs - g[i])} más que «${POL[i][1].toLowerCase()}»`).join(" y ")
+    + `, con ${nf(m.ventas_perdidas,1)} unidades perdidas frente a ${otras.map(i => nf(PASADO[i].ventas_perdidas,1)).join(" y ")}.`;
 }
 
 /* ==================== CLASIFICACIÓN ==================== */
