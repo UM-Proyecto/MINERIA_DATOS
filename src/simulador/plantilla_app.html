@@ -579,12 +579,14 @@ function ir(v){
 window.addEventListener("hashchange", () => { const v = location.hash.slice(1); if(VISTAS.some(x => x[0] === v)) { ir(v); window.scrollTo(0,0); } });
 
 /* ==================== ALERTAS ==================== */
-const insignia = e => e === 0 ? '<span class="insignia no">Pedir ya</span>' : e === 1 ? '<span class="insignia" style="background:var(--warn-soft);color:var(--warn)">Vigilar</span>' : '<span class="insignia si">Cubierto</span>';
+const insignia = e => e === 0 ? '<span class="insignia no">Pedir ya</span>' : e === 1 ? '<span class="insignia" style="background:var(--warn-soft);color:var(--warn)">Vigilar</span>' : e === 2 ? '<span class="insignia si">Cubierto</span>' : '<span class="insignia na">Sin datos</span>';
+// Motivos de «Sin datos» en palabras: un dato que falta no se reemplaza por cero (criterio de HU-09).
+const MOTIVO = {STOCK_FALTANTE:"falta el stock", PLAZO_FALTANTE:"falta el plazo del proveedor", DEMANDA_FALTANTE:"falta el historial de venta", REGLA_FALTANTE:"falta el punto de pedido"};
 let AL = null, AL_TC = null;
 function alertas(){ if(AL_TC !== tcHoy()){ AL = Motor.alertas(D, tcHoy()); AL_TC = tcHoy(); } return AL; }
 function pintarAlertas(){
   const al = seguro(alertas, $("t-alertas")); if(!al) return;
-  const pedir = al.filter(a => a.est === 0).length, vig = al.filter(a => a.est === 1).length, camino = al.reduce((s,a) => s + a.en_camino, 0);
+  const pedir = al.filter(a => a.est === 0).length, vig = al.filter(a => a.est === 1).length, camino = al.reduce((s,a) => s + (a.en_camino || 0), 0), sinDatos = al.filter(a => a.est === 3).length;
   $("al-kpis").innerHTML = `
     <div class="kpi"><div class="t">Pedir esta semana</div><div class="v c-bad">${pedir}<small>repuestos</small></div><div class="d">llegaron al punto de pedido</div><span class="ayuda">El stock más lo que viene en camino ya no alcanza para esperar.</span></div>
     <div class="kpi"><div class="t">En vigilancia</div><div class="v c-warn">${vig}<small>repuestos</small></div><div class="d">llegan al punto de pedido antes de que llegue un pedido</div><span class="ayuda">Conviene pedirlos pronto aunque todavía no estén en cero.</span></div>
@@ -592,12 +594,12 @@ function pintarAlertas(){
     <div class="kpi"><div class="t">Dólar de hoy</div><div class="v">${nf(tcHoy(),2)}<small>Bs</small></div><div class="d">${S.tcModo === "oficial" ? "oficial BCB · " + fecha(OF.fecha) : marcaTc()}</div><span class="ayuda">Con este valor se calcula el costo de lo que hay que pedir.</span></div>`;
   $("al-marca").innerHTML = marcaTc();
   const filas = S.verTodas ? al : al.slice(0, 12);
-  $("t-alertas").innerHTML = `<thead><tr><th>Repuesto</th><th>Estado</th><th>Stock<span class="ayuda">en almacén</span></th><th>En camino</th><th>Punto de pedido<span class="ayuda">con esto o menos, se pide</span></th><th>Plazo</th><th>Cantidad sugerida</th><th>Costo puesto</th><th style="text-align:left">Proveedor</th></tr></thead><tbody>` +
+  $("t-alertas").innerHTML = `<thead><tr><th>Repuesto</th><th>Estado</th><th>Stock<span class="ayuda">en almacén</span></th><th>En camino</th><th>Punto de pedido<span class="ayuda">con esto o menos, se pide</span></th><th>Plazo</th><th>Venta en el plazo<span class="ayuda">promedio pronosticado; si supera stock y camino, falta</span></th><th>Cantidad sugerida</th><th>Costo puesto</th><th style="text-align:left">Proveedor</th></tr></thead><tbody>` +
     filas.map(a => { const r = REP[a.id], p = PRV[r.proveedor_id];
-      return `<tr class="alerta-fila" tabindex="0" data-rep="${a.id}" aria-label="${a.id}: ${a.etiqueta}. Abrir en el simulador"><td><b>${a.id}</b><span class="ayuda">carparts ${r.codigo_carparts} · ${r.tipo_demanda} ${r.clase_abc}</span></td><td>${insignia(a.est)}</td><td>${nf(a.stock)}</td><td>${nf(a.en_camino)}</td><td>${nf(a.punto_pedido)}</td><td>${nf(a.plazo)} d</td><td>${a.est < 2 ? nf(a.cantidad_sugerida) : "—"}</td><td>${a.est < 2 ? bs(a.costo_bs) : "—"}</td><td style="text-align:left">${esc(nombreProv(p))} · ${esc(p.origen)} · ${p.incoterm}</td></tr>`; }).join("") + "</tbody>";
+      return `<tr class="alerta-fila" tabindex="0" data-rep="${a.id}" aria-label="${a.id}: ${a.etiqueta}. Abrir en el simulador"><td><b>${a.id}</b><span class="ayuda">carparts ${r.codigo_carparts} · ${r.tipo_demanda} ${r.clase_abc}</span></td><td>${insignia(a.est)}${a.est === 3 ? `<span class="ayuda">${a.motivos.map(m => MOTIVO[m] || m).join("; ")}</span>` : ""}</td><td>${nf(a.stock)}</td><td>${nf(a.en_camino)}</td><td>${nf(a.punto_pedido)}</td><td>${a.plazo === null ? "—" : nf(a.plazo) + " d"}</td><td>${a.est === 3 ? "—" : nf(a.demanda_entrega,1) + " u" + (a.faltante_previsto > 0 ? ` <span class="insignia no">faltan ${nf(a.faltante_previsto,1)}</span>` : "")}</td><td>${a.est < 2 ? nf(a.cantidad_sugerida) : "—"}</td><td>${a.est < 2 ? bs(a.costo_bs) : "—"}</td><td style="text-align:left">${esc(nombreProv(p))} · ${esc(p.origen)} · ${p.incoterm}</td></tr>`; }).join("") + "</tbody>";
   $("b-mas").textContent = S.verTodas ? "Mostrar solo los 12 más urgentes" : "Mostrar los 30";
   $("b-mas").setAttribute("aria-expanded", String(S.verTodas));
-  $("al-pie").textContent = `${S.verTodas ? "Se muestran los 30." : "Se muestran los 12 más urgentes de 30."} Stock, punto de pedido y proveedor son SINTÉTICOS sobre ventas reales de carparts (SCRUM-55). Una fila abre el simulador con ese repuesto.`;
+  $("al-pie").textContent = `${S.verTodas ? "Se muestran los 30." : "Se muestran los 12 más urgentes de 30."} Stock, punto de pedido y proveedor son SINTÉTICOS sobre ventas reales de carparts (SCRUM-55). Una fila abre el simulador con ese repuesto. La venta en el plazo es el promedio; el riesgo de cada futuro está en el simulador.${sinDatos ? ` ${sinDatos} sin datos suficientes: no se calculan.` : ""}`;
 }
 function abrirEnSimulador(id){ S.rep = id; S.cat = ""; S.prov = REP[id].proveedor_id; S.elegida = null; location.hash = "#simulador"; }
 $("t-alertas").addEventListener("click", e => { const tr = e.target.closest("tr[data-rep]"); if(tr) abrirEnSimulador(tr.dataset.rep); });

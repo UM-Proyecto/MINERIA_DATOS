@@ -536,7 +536,7 @@ var Motor = (function () {
   var ALFA_SBA = 0.1;
   var ALTERNATIVAS = ["A", "B", "C", "D"];
   var ORDEN_CLASE = { A: 0, B: 1, C: 2 };
-  var ETIQUETAS = ["Pedir ya", "Vigilar", "Cubierto"];
+  var ETIQUETAS = ["Pedir ya", "Vigilar", "Cubierto", "Sin datos"];
   var EPS = 1e-9;
   // Atraso extra cuando el proveedor no cumple (SINTÉTICO): uniforme entre 5 y 20 días.
   var ATRASO_EXTRA_MIN = 5;
@@ -876,33 +876,62 @@ var Motor = (function () {
 
   // ---------------------------------------------------------------- alertas y presupuesto
 
+  // Número finito y no negativo, o null. Un dato vacío no se convierte en cero (criterio de HU-09).
+  function datoValido(x) {
+    if (x === null || x === undefined || (typeof x === "string" && x.trim() === "")) return null;
+    var v = Number(x);
+    if (!isFinite(v) || v < 0) return null;
+    return v;
+  }
+
+  // Lógica única de alertas (SCRUM-66 unida con HU-09). Ver motor_ref.alertas para el detalle.
   function alertas(datos, tc) {
     var filas = [];
     for (var i = 0; i < datos.repuestos.length; i++) {
       var rep = datos.repuestos[i];
-      var prov = buscarProveedor(datos, rep.proveedor_id);
-      var pr = pronostico(datos.ventas[rep.repuesto_id], rep.tipo_demanda);
+      var prov = null;
+      for (var j = 0; j < datos.proveedores.length; j++) if (datos.proveedores[j].proveedor_id === rep.proveedor_id) { prov = datos.proveedores[j]; break; }
+      var ventas = datos.ventas[rep.repuesto_id] || [];
+      var stock = datoValido(rep.stock_al_2026_11_10), camino = datoValido(rep.en_transito_al_2026_11_10);
+      var s = datoValido(rep.punto_pedido_s), S = datoValido(rep.nivel_maximo_S);
+      var plazo = prov ? datoValido(prov.plazo_normal_dias) : null;
+      var motivos = [];
+      if (stock === null || camino === null) motivos.push("STOCK_FALTANTE");
+      if (plazo === null) motivos.push("PLAZO_FALTANTE");
+      if (ventas.length === 0 || ventas.some(function (v) { return datoValido(v[1]) === null; })) motivos.push("DEMANDA_FALTANTE");
+      if (s === null || S === null) motivos.push("REGLA_FALTANTE");
+      var base = {id: rep.repuesto_id, clase: rep.clase_abc, tipo_demanda: rep.tipo_demanda, proveedor_id: rep.proveedor_id};
+      if (motivos.length) {
+        filas.push(Object.assign(base, {
+          est: 3, etiqueta: ETIQUETAS[3], motivos: motivos, stock: stock, en_camino: camino,
+          punto_pedido: s, nivel_maximo: S, plazo: plazo, margen_dias: null,
+          demanda_entrega: null, faltante_previsto: null, cantidad_sugerida: 0,
+          costo_bs: null, venta_mes: null, _m: null, _f: 0
+        }));
+        continue;
+      }
+      var pr = pronostico(ventas, rep.tipo_demanda);
       var tasa = pr.unidades_mes / 30;
-      var stock = num(rep.stock_al_2026_11_10), camino = num(rep.en_transito_al_2026_11_10);
-      var s = num(rep.punto_pedido_s), S = num(rep.nivel_maximo_S);
-      var plazo = num(prov.plazo_normal_dias);
       var pos = stock + camino;
+      var demanda = tasa * plazo;
+      var faltante = demanda > pos ? demanda - pos : 0;
       var margen = tasa > 0 ? (pos - s) / tasa : null;
       var est = pos <= s ? 0 : (margen !== null && margen < plazo ? 1 : 2);
       var cantidad = Math.max(Math.floor(S - pos + 0.5), 0);
       if (est < 2) cantidad = Math.max(cantidad, 1);
       var cp = costoPuesto(rep, prov, tc);
-      filas.push({
-        id: rep.repuesto_id, est: est, etiqueta: ETIQUETAS[est], stock: stock, en_camino: camino,
+      filas.push(Object.assign(base, {
+        est: est, etiqueta: ETIQUETAS[est], motivos: [], stock: stock, en_camino: camino,
         punto_pedido: s, nivel_maximo: S, plazo: plazo,
         margen_dias: margen === null ? null : Math.floor(margen + EPS),
+        demanda_entrega: demanda, faltante_previsto: faltante,
         cantidad_sugerida: cantidad, costo_bs: redondear(cantidad * cp.total_bs, 2),
-        clase: rep.clase_abc, tipo_demanda: rep.tipo_demanda, proveedor_id: prov.proveedor_id,
-        venta_mes: pr.unidades_mes, _m: margen
-      });
+        venta_mes: pr.unidades_mes, _m: margen, _f: faltante
+      }));
     }
     filas.sort(function (x, y) {
       if (x.est !== y.est) return x.est - y.est;
+      if (x._f !== y._f) return y._f - x._f;
       if (x._m !== y._m) {
         if (x._m === null) return 1;
         if (y._m === null) return -1;
@@ -910,7 +939,7 @@ var Motor = (function () {
       }
       return x.id < y.id ? -1 : x.id > y.id ? 1 : 0;
     });
-    filas.forEach(function (x) { delete x._m; });
+    filas.forEach(function (x) { delete x._m; delete x._f; });
     return filas;
   }
 
@@ -1152,12 +1181,14 @@ function ir(v){
 window.addEventListener("hashchange", () => { const v = location.hash.slice(1); if(VISTAS.some(x => x[0] === v)) { ir(v); window.scrollTo(0,0); } });
 
 /* ==================== ALERTAS ==================== */
-const insignia = e => e === 0 ? '<span class="insignia no">Pedir ya</span>' : e === 1 ? '<span class="insignia" style="background:var(--warn-soft);color:var(--warn)">Vigilar</span>' : '<span class="insignia si">Cubierto</span>';
+const insignia = e => e === 0 ? '<span class="insignia no">Pedir ya</span>' : e === 1 ? '<span class="insignia" style="background:var(--warn-soft);color:var(--warn)">Vigilar</span>' : e === 2 ? '<span class="insignia si">Cubierto</span>' : '<span class="insignia na">Sin datos</span>';
+// Motivos de «Sin datos» en palabras: un dato que falta no se reemplaza por cero (criterio de HU-09).
+const MOTIVO = {STOCK_FALTANTE:"falta el stock", PLAZO_FALTANTE:"falta el plazo del proveedor", DEMANDA_FALTANTE:"falta el historial de venta", REGLA_FALTANTE:"falta el punto de pedido"};
 let AL = null, AL_TC = null;
 function alertas(){ if(AL_TC !== tcHoy()){ AL = Motor.alertas(D, tcHoy()); AL_TC = tcHoy(); } return AL; }
 function pintarAlertas(){
   const al = seguro(alertas, $("t-alertas")); if(!al) return;
-  const pedir = al.filter(a => a.est === 0).length, vig = al.filter(a => a.est === 1).length, camino = al.reduce((s,a) => s + a.en_camino, 0);
+  const pedir = al.filter(a => a.est === 0).length, vig = al.filter(a => a.est === 1).length, camino = al.reduce((s,a) => s + (a.en_camino || 0), 0), sinDatos = al.filter(a => a.est === 3).length;
   $("al-kpis").innerHTML = `
     <div class="kpi"><div class="t">Pedir esta semana</div><div class="v c-bad">${pedir}<small>repuestos</small></div><div class="d">llegaron al punto de pedido</div><span class="ayuda">El stock más lo que viene en camino ya no alcanza para esperar.</span></div>
     <div class="kpi"><div class="t">En vigilancia</div><div class="v c-warn">${vig}<small>repuestos</small></div><div class="d">llegan al punto de pedido antes de que llegue un pedido</div><span class="ayuda">Conviene pedirlos pronto aunque todavía no estén en cero.</span></div>
@@ -1165,12 +1196,12 @@ function pintarAlertas(){
     <div class="kpi"><div class="t">Dólar de hoy</div><div class="v">${nf(tcHoy(),2)}<small>Bs</small></div><div class="d">${S.tcModo === "oficial" ? "oficial BCB · " + fecha(OF.fecha) : marcaTc()}</div><span class="ayuda">Con este valor se calcula el costo de lo que hay que pedir.</span></div>`;
   $("al-marca").innerHTML = marcaTc();
   const filas = S.verTodas ? al : al.slice(0, 12);
-  $("t-alertas").innerHTML = `<thead><tr><th>Repuesto</th><th>Estado</th><th>Stock<span class="ayuda">en almacén</span></th><th>En camino</th><th>Punto de pedido<span class="ayuda">con esto o menos, se pide</span></th><th>Plazo</th><th>Cantidad sugerida</th><th>Costo puesto</th><th style="text-align:left">Proveedor</th></tr></thead><tbody>` +
+  $("t-alertas").innerHTML = `<thead><tr><th>Repuesto</th><th>Estado</th><th>Stock<span class="ayuda">en almacén</span></th><th>En camino</th><th>Punto de pedido<span class="ayuda">con esto o menos, se pide</span></th><th>Plazo</th><th>Venta en el plazo<span class="ayuda">promedio pronosticado; si supera stock y camino, falta</span></th><th>Cantidad sugerida</th><th>Costo puesto</th><th style="text-align:left">Proveedor</th></tr></thead><tbody>` +
     filas.map(a => { const r = REP[a.id], p = PRV[r.proveedor_id];
-      return `<tr class="alerta-fila" tabindex="0" data-rep="${a.id}" aria-label="${a.id}: ${a.etiqueta}. Abrir en el simulador"><td><b>${a.id}</b><span class="ayuda">carparts ${r.codigo_carparts} · ${r.tipo_demanda} ${r.clase_abc}</span></td><td>${insignia(a.est)}</td><td>${nf(a.stock)}</td><td>${nf(a.en_camino)}</td><td>${nf(a.punto_pedido)}</td><td>${nf(a.plazo)} d</td><td>${a.est < 2 ? nf(a.cantidad_sugerida) : "—"}</td><td>${a.est < 2 ? bs(a.costo_bs) : "—"}</td><td style="text-align:left">${esc(nombreProv(p))} · ${esc(p.origen)} · ${p.incoterm}</td></tr>`; }).join("") + "</tbody>";
+      return `<tr class="alerta-fila" tabindex="0" data-rep="${a.id}" aria-label="${a.id}: ${a.etiqueta}. Abrir en el simulador"><td><b>${a.id}</b><span class="ayuda">carparts ${r.codigo_carparts} · ${r.tipo_demanda} ${r.clase_abc}</span></td><td>${insignia(a.est)}${a.est === 3 ? `<span class="ayuda">${a.motivos.map(m => MOTIVO[m] || m).join("; ")}</span>` : ""}</td><td>${nf(a.stock)}</td><td>${nf(a.en_camino)}</td><td>${nf(a.punto_pedido)}</td><td>${a.plazo === null ? "—" : nf(a.plazo) + " d"}</td><td>${a.est === 3 ? "—" : nf(a.demanda_entrega,1) + " u" + (a.faltante_previsto > 0 ? ` <span class="insignia no">faltan ${nf(a.faltante_previsto,1)}</span>` : "")}</td><td>${a.est < 2 ? nf(a.cantidad_sugerida) : "—"}</td><td>${a.est < 2 ? bs(a.costo_bs) : "—"}</td><td style="text-align:left">${esc(nombreProv(p))} · ${esc(p.origen)} · ${p.incoterm}</td></tr>`; }).join("") + "</tbody>";
   $("b-mas").textContent = S.verTodas ? "Mostrar solo los 12 más urgentes" : "Mostrar los 30";
   $("b-mas").setAttribute("aria-expanded", String(S.verTodas));
-  $("al-pie").textContent = `${S.verTodas ? "Se muestran los 30." : "Se muestran los 12 más urgentes de 30."} Stock, punto de pedido y proveedor son SINTÉTICOS sobre ventas reales de carparts (SCRUM-55). Una fila abre el simulador con ese repuesto.`;
+  $("al-pie").textContent = `${S.verTodas ? "Se muestran los 30." : "Se muestran los 12 más urgentes de 30."} Stock, punto de pedido y proveedor son SINTÉTICOS sobre ventas reales de carparts (SCRUM-55). Una fila abre el simulador con ese repuesto. La venta en el plazo es el promedio; el riesgo de cada futuro está en el simulador.${sinDatos ? ` ${sinDatos} sin datos suficientes: no se calculan.` : ""}`;
 }
 function abrirEnSimulador(id){ S.rep = id; S.cat = ""; S.prov = REP[id].proveedor_id; S.elegida = null; location.hash = "#simulador"; }
 $("t-alertas").addEventListener("click", e => { const tr = e.target.closest("tr[data-rep]"); if(tr) abrirEnSimulador(tr.dataset.rep); });

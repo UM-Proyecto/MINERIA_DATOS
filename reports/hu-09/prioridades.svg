@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="308" viewBox="0 0 720 308" font-family="sans-serif" font-size="13" role="img" aria-label="Repuestos para pedir o vigilar: venta durante la entrega contra stock y en camino">
+<rect width="720" height="308" fill="#ffffff"/>
+<text x="20" y="26" font-size="15" font-weight="bold" fill="#18201b">Pedir ya y vigilar: venta durante la entrega frente a lo disponible</text>
+<rect x="20" y="38" width="12" height="10" fill="#01863e"/><text x="38" y="47" fill="#4b564f">stock + en camino</text>
+<rect x="170" y="38" width="12" height="10" fill="#c0392b"/><text x="188" y="47" fill="#4b564f">venta promedio durante la entrega</text>
+<text x="20" y="82" fill="#18201b">REP-0022 · Pedir ya</text>
+<rect x="200" y="70" width="157.5" height="11" fill="#01863e"/>
+<rect x="200" y="83" width="23.8" height="11" fill="#c0392b"/>
+<text x="367.5" y="87" fill="#4b564f">6 u · 0.9 u</text>
+<text x="20" y="116" fill="#18201b">REP-0020 · Pedir ya</text>
+<rect x="200" y="104" width="420.0" height="11" fill="#01863e"/>
+<rect x="200" y="117" width="26.6" height="11" fill="#c0392b"/>
+<text x="630.0" y="121" fill="#4b564f">16 u · 1.0 u</text>
+<text x="20" y="150" fill="#18201b">REP-0030 · Pedir ya</text>
+<rect x="200" y="138" width="52.5" height="11" fill="#01863e"/>
+<rect x="200" y="151" width="5.9" height="11" fill="#c0392b"/>
+<text x="262.5" y="155" fill="#4b564f">2 u · 0.2 u</text>
+<text x="20" y="184" fill="#18201b">REP-0019 · Vigilar</text>
+<rect x="200" y="172" width="315.0" height="11" fill="#01863e"/>
+<rect x="200" y="185" width="49.5" height="11" fill="#c0392b"/>
+<text x="525.0" y="189" fill="#4b564f">12 u · 1.9 u</text>
+<text x="20" y="218" fill="#18201b">REP-0029 · Vigilar</text>
+<rect x="200" y="206" width="105.0" height="11" fill="#01863e"/>
+<rect x="200" y="219" width="56.2" height="11" fill="#c0392b"/>
+<text x="315.0" y="223" fill="#4b564f">4 u · 2.1 u</text>
+<text x="20" y="252" fill="#18201b">REP-0023 · Vigilar</text>
+<rect x="200" y="240" width="183.8" height="11" fill="#01863e"/>
+<rect x="200" y="253" width="45.6" height="11" fill="#c0392b"/>
+<text x="393.8" y="257" fill="#4b564f">7 u · 1.7 u</text>
+<text x="20" y="286" fill="#18201b">REP-0003 · Vigilar</text>
+<rect x="200" y="274" width="157.5" height="11" fill="#01863e"/>
+<rect x="200" y="287" width="30.1" height="11" fill="#c0392b"/>
+<text x="367.5" y="291" fill="#4b564f">6 u · 1.1 u</text>
+</svg>
