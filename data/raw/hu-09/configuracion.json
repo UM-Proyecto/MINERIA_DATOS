@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "fuentes": {
+    "depuracion": "data/processed/hu-17/reporte_depuracion_final.csv",
+    "conciliacion": "data/processed/hu-18/conciliacion_inventario.csv",
+    "stock_inicial": "data/raw/hu-18/stock_inicial.csv",
+    "ajustes": "data/processed/hu-18/ajustes_inventario.csv",
+    "historial": "data/processed/hu-18/historial_ajustes.csv",
+    "cotizaciones": "data/processed/hu-30-31/sintetico/hu31_cotizaciones_proveedor_sintetico.csv"
+  },
+  "modo": "INTEGRACION",
+  "fecha_evaluacion": "2026-11-10",
+  "fecha_stock": "2026-09-30",
+  "max_antiguedad_stock_dias": 30,
+  "disponibilidad": {
+    "politica": "no_confirmada",
+    "motivo": "No hay datos de reservas ni bloqueos; el stock registrado o contado no se presenta como disponible."
+  },
+  "permitir_pendientes_con_conteo_coincidente": false,
+  "tipo_dias_plazo": "no_definido",
+  "motivo_calendario": "HU-31 indica días pero no confirma naturales o hábiles; no se asume un calendario operativo.",
+  "calendario_laboral": null,
+  "proveedores": {
+    "REP-0001": "Bosch Bolivia",
+    "REP-0002": "Importadora Toyota",
+    "REP-0003": "Frenos Bolivia",
+    "REP-0004": "NGK Bolivia",
+    "REP-0005": "Bosch Bolivia",
+    "REP-0006": "Autopartes Andinas",
+    "REP-0007": "NGK Bolivia",
+    "REP-0008": "Importadora Toyota",
+    "REP-0009": "Suspensiones SRL",
+    "REP-0010": "NGK Bolivia"
+  },
+  "demanda": "data/raw/hu-09/demanda_prevista.csv",
+  "supuestos": [
+    "Las fuentes de inventario y cotizaciones son ficticias/sintéticas del repositorio; esta integración no contiene datos operativos reales.",
+    "El corte de stock es explícito y tiene 41 días de antigüedad respecto a la evaluación; el límite configurable de 30 días es una política de esta ejecución, no una prueba de actualidad.",
+    "La selección de proveedor es explícita. No se sustituye una cotización vencida por otra ni se interpreta crédito o vigencia como plazo de entrega.",
+    "El CSV de demanda contiene solo el contrato de columnas porque no existe previsión futura validada exportada en el repositorio.",
+    "No se propaga el stock desde septiembre suponiendo ausencia de movimientos. Pendientes y discrepancias físicas impiden verificar disponibilidad según la política seleccionada."
+  ]
+}

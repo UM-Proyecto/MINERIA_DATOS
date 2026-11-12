@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "fuentes": {
+    "depuracion": "data/processed/hu-17/reporte_depuracion_final.csv",
+    "conciliacion": "data/processed/hu-18/conciliacion_inventario.csv",
+    "stock_inicial": "data/raw/hu-18/stock_inicial.csv",
+    "ajustes": "data/processed/hu-18/ajustes_inventario.csv",
+    "historial": "data/processed/hu-18/historial_ajustes.csv",
+    "cotizaciones": "data/processed/hu-30-31/sintetico/hu31_cotizaciones_proveedor_sintetico.csv"
+  },
+  "modo": "DEMOSTRACION_SINTETICA",
+  "fecha_evaluacion": "2026-10-20",
+  "fecha_stock": "2026-09-30",
+  "max_antiguedad_stock_dias": 20,
+  "disponibilidad": {
+    "politica": "asumir_libre_solo_simulacion",
+    "motivo": "Solo para esta demostración se declaran reservas y bloqueos cero. Se usa el saldo de septiembre como stock hipotético del ejercicio, sin afirmar disponibilidad real al 20/10."
+  },
+  "permitir_pendientes_con_conteo_coincidente": true,
+  "tipo_dias_plazo": "naturales",
+  "motivo_calendario": "Supuesto explícito de simulación: los plazos sintéticos de HU-31 se interpretan como días naturales.",
+  "calendario_laboral": null,
+  "proveedores": {
+    "REP-0001": "Bosch Bolivia",
+    "REP-0002": "Importadora Toyota",
+    "REP-0003": "Frenos Bolivia",
+    "REP-0004": "NGK Bolivia",
+    "REP-0005": "Bosch Bolivia",
+    "REP-0006": "Autopartes Andinas",
+    "REP-0007": "NGK Bolivia",
+    "REP-0008": "Importadora Toyota",
+    "REP-0009": "Suspensiones SRL",
+    "REP-0010": "NGK Bolivia"
+  },
+  "demanda": "data/raw/hu-09/demostracion/demanda_prevista.csv",
+  "supuestos": [
+    "DEMOSTRACION SINTETICA: las previsiones están elegidas para demostrar los estados, no fueron estimadas ni validadas con ventas de MULTIPARTES. validado=true significa revisión de los casos del ejemplo, no validación estadística de un modelo.",
+    "Se acepta explícitamente la antigüedad de 20 días del stock solo para la simulación. No se reconstruye el stock operativo entre corte y evaluación.",
+    "Se permite utilizar pendientes HU-17 cuando conteo y saldo ajustado coinciden; sus IDs permanecen visibles. Las discrepancias físicas de REP-0005 y REP-0007 siguen bloqueadas.",
+    "La recepción incluye la demanda del día de llegada; la ventana comienza el día posterior a la evaluación.",
+    "Se conserva la vigencia de cada cotización al 20/10/2026 inclusive. REP-0003 y REP-0005 no reciben un plazo alternativo al vencer su referencia.",
+    "La tasa semanal de REP-0010 se distribuye uniformemente entre siete días naturales. REP-0009 usa treinta valores diarios explícitos."
+  ]
+}
