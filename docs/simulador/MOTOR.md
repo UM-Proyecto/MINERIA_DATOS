@@ -129,7 +129,7 @@ El contrato de la app dejaba algunos puntos abiertos o con resultados absurdos. 
 Con los supuestos de base (dólar de hoy y a 90 días = 11,75 Bs, sin cambio de venta, sin atraso, precio fijo en bolivianos), 1.500 futuros y la semilla 20261112, con el TCO al 12-11-2026:
 
 - La mejor alternativa es A en los 30 repuestos, con un puntaje de 55 a 62. El stock actual alcanza para casi todos, así que comprar de más solo conviene si el dólar sube lo suficiente para pagar el costo del capital.
-- Los 30 repuestos tienen dólar de quiebre: entre 12,30 y 12,55 Bs. En 18 cambia de A a B y en 12 de A a C. D no gana en ningún repuesto: con pedidos de una a cinco unidades, pagar dos veces los 350 Bs del pedido cuesta más de lo que ahorra repartir la compra.
+- Los 30 repuestos tienen dólar de quiebre: entre 12,30 y 12,55 Bs. En 18 cambia de A a B y en 12 de A a C. La app parte del oficial más reciente (11,70 Bs al 12-11-2026); con esa base el quiebre cae entre 12,25 y 12,50 Bs, con el mismo reparto. D no gana en ningún repuesto: con pedidos de una a cinco unidades, pagar dos veces los 350 Bs del pedido cuesta más de lo que ahorra repartir la compra.
 - «¿Qué hubiera pasado?» (los 30 repuestos, noviembre de 2025 a octubre de 2026):
 
 | Política | Ventas perdidas (unidades) | Capital promedio | Pedidos | Ganancia |
