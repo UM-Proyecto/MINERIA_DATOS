@@ -522,6 +522,8 @@ const OF = D.tc.oficial, PA = D.tc.paralelo, PAR = D.parametros;
 const OPC = {n: PAR.simulaciones, semilla: PAR.semilla, horizonte_dias: 90};
 const REP = {}; D.repuestos.forEach(r => REP[r.repuesto_id] = r);
 const PRV = {}; D.proveedores.forEach(p => PRV[p.proveedor_id] = p);
+// El stock de SCRUM-55 es al 10-11-2026 (columna stock_al_2026_11_10); el dólar puede ser de un día posterior.
+const FECHA_STOCK = "2026-11-10";
 
 /* ---- Formato. Se agrupan los miles a mano: toLocaleString("es") no agrupa números de 4 cifras en Chromium. ---- */
 function nf(n, d = 0){
@@ -678,7 +680,7 @@ function pintarFijos(){
   const est = alcanza < plazo ? ["bad","Urgente"] : alcanza < plazo + 30 ? ["warn","Margen corto"] : ["ok","Con margen"];
   const metodo = f.metodo === "SBA" ? "SBA (Croston corregido)" : "media de 12 meses";
   $("kpis").innerHTML = `
-    <div class="kpi"><div class="t">Stock actual</div><div class="v">${nf(stock)}<small>u</small></div><div class="d">al ${fecha(D.corte)} · ${nf(r.en_transito_al_2026_11_10)} en camino</div><span class="ayuda">Unidades en el almacén hoy.</span></div>
+    <div class="kpi"><div class="t">Stock actual</div><div class="v">${nf(stock)}<small>u</small></div><div class="d">al ${fecha(FECHA_STOCK)} · ${nf(r.en_transito_al_2026_11_10)} en camino</div><span class="ayuda">Unidades en el almacén hoy.</span></div>
     <div class="kpi"><div class="t">Venta pronosticada</div><div class="v">${nf(dia,2)}<small>u/día</small></div><div class="d">${nf(dia*30,1)} u al mes · ${metodo}</div><span class="ayuda">Lo que se espera vender por día, con el ajuste de venta elegido.</span></div>
     <div class="kpi"><div class="t">El stock alcanza para</div><div class="v c-${est[0]}">${alcanza > 999 ? "+999" : nf(alcanza)}<small>días</small><span class="est ${est[0]}">${est[1]}</span></div><div class="d">a ese ritmo de venta</div><span class="ayuda">Días hasta quedarse sin stock si no llega nada.</span></div>
     <div class="kpi"><div class="t">Entrega del proveedor</div><div class="v">${nf(plazo)}<small>días</small></div><div class="d">${p.plazo_normal_dias} de plazo normal + ${S.atraso} de atraso supuesto</div><span class="ayuda">Días que tarda el proveedor, con el atraso supuesto.</span></div>`;

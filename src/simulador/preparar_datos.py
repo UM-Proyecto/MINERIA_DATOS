@@ -25,7 +25,6 @@ TCO = BASE / "data/processed/scrum-54/tco_bcb_diario.csv"
 PARALELO = BASE / "data/raw/hu-32/insumos_publicos/puntos_documentados.csv"
 SALIDA = BASE / "data/processed/simulador/datos_app.json"
 
-CORTE = "2026-11-10"  # fecha de corte de stock y de dólar (SCRUM-55)
 
 # Parámetros del motor. Los dos primeros son SINTÉTICOS: no hay dato de MULTIPARTES para ellos.
 PARAMETROS = {
@@ -85,8 +84,8 @@ def preparar():
 
     tco = sorted(leer(TCO), key=lambda r: r["fecha"])
     ultimo = tco[-1]
-    if ultimo["fecha"] != CORTE:
-        raise SystemExit(f"El TCO termina el {ultimo['fecha']} y el corte es {CORTE}")
+    # El corte es el último día publicado por el BCB (SCRUM-54); no se fija a mano para que la app
+    # tome sola el dato nuevo cada vez que se actualiza el CSV.
 
     clasif = leer(S55 / "clasificacion_2674.csv")
     puntos = [[float(r["adi"]), float(r["cv2"]), r["tipo_demanda"]]
@@ -96,7 +95,7 @@ def preparar():
 
     return {
         "generado": date.today().isoformat(),
-        "corte": CORTE,
+        "corte": ultimo["fecha"],
         "tc": {
             "oficial": {"valor": float(ultimo["tco_bs_por_usd"]), "fecha": ultimo["fecha"], "fuente": ultimo["fuente"]},
             "serie": [[r["fecha"], float(r["tco_bs_por_usd"])] for r in tco],

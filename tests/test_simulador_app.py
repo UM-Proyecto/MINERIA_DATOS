@@ -3,6 +3,7 @@
 El motor real (src/simulador/motor.js) lo construye el frente A. Mientras no esté, las pruebas arman la app con
 tests/_motor_stub.js, que respeta la misma API.
 """
+import csv
 import json
 import re
 import subprocess
@@ -40,7 +41,7 @@ class DatosApp(unittest.TestCase):
         self.assertEqual(set(self.d), CLAVES)
         self.assertEqual(set(self.d["tc"]), {"oficial", "serie", "paralelo"})
         self.assertEqual(set(self.d["parametros"]), {"costo_pedido_bs", "costo_capital_mensual", "simulaciones", "semilla"})
-        self.assertEqual(self.d["corte"], "2026-11-10")
+        self.assertEqual(self.d["corte"], self.d["tc"]["oficial"]["fecha"])
 
     def test_treinta_repuestos_con_numeros(self):
         reps = self.d["repuestos"]
@@ -55,8 +56,12 @@ class DatosApp(unittest.TestCase):
 
     def test_dolar_oficial_y_paralelo(self):
         tc = self.d["tc"]
-        self.assertEqual(tc["oficial"]["valor"], 11.75)
-        self.assertEqual(tc["oficial"]["fecha"], "2026-11-10")
+        # El oficial es la ÚLTIMA fila del CSV del BCB, sin valor fijo.
+        with open(pd.TCO, encoding="utf-8-sig", newline="") as f:
+            ultima = list(csv.DictReader(f))[-1]
+        self.assertEqual(tc["oficial"]["valor"], float(ultima["tco_bs_por_usd"]))
+        self.assertEqual(tc["oficial"]["fecha"], ultima["fecha"])
+        self.assertEqual(tc["serie"][-1], [ultima["fecha"], float(ultima["tco_bs_por_usd"])])
         self.assertIn("BCB", tc["oficial"]["fuente"])
         self.assertEqual(tc["serie"][0], ["2026-06-27", 9.73])
         self.assertEqual(tc["paralelo"]["valor"], 11.99)
