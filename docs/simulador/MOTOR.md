@@ -109,7 +109,7 @@ Estos valores no salen de MULTIPARTES ni de una fuente pública. Son supuestos d
 | Llegada de lo que ya está en camino | a la mitad del plazo normal del proveedor asignado | constante en `motor.js` |
 | Proveedores, plazos, costos en USD, precios, stock, punto de pedido y nivel máximo | ver `docs/scrum-55/LEEME.md` | `repuestos.csv`, `proveedores.csv` |
 
-La **volatilidad del dólar** sí sale de datos reales: es el desvío de los cambios diarios del TCO del BCB desde el 27-06-2026, llevado a 90 días (por la raíz de 90). Con la serie actual da 15,1 % a 90 días. Es alta porque la serie incluye el salto de 9,73 a casi 12 Bs; si el dólar se calma, el número baja solo al regenerar los datos.
+La **volatilidad del dólar** sí sale de datos reales: es el desvío de los cambios diarios del TCO del BCB desde el 27-06-2026, llevado a 90 días (por la raíz de 90). Con la serie al 12-11-2026 (139 días, último valor 11,70 Bs) da 15,0 % a 90 días. Es alta porque la serie incluye el salto de 9,73 a casi 12 Bs; si el dólar se calma, el número baja solo al regenerar los datos.
 
 ## Decisiones tomadas donde el contrato no alcanzaba
 
@@ -126,7 +126,7 @@ El contrato de la app dejaba algunos puntos abiertos o con resultados absurdos. 
 
 ## Lo que muestra con los datos actuales
 
-Con los supuestos de base (dólar de hoy y a 90 días = 11,75 Bs, sin cambio de venta, sin atraso, precio fijo en bolivianos), 1.500 futuros y la semilla 20261112:
+Con los supuestos de base (dólar de hoy y a 90 días = 11,75 Bs, sin cambio de venta, sin atraso, precio fijo en bolivianos), 1.500 futuros y la semilla 20261112, con el TCO al 12-11-2026:
 
 - La mejor alternativa es A en los 30 repuestos, con un puntaje de 55 a 62. El stock actual alcanza para casi todos, así que comprar de más solo conviene si el dólar sube lo suficiente para pagar el costo del capital.
 - Los 30 repuestos tienen dólar de quiebre: entre 12,30 y 12,55 Bs. En 18 cambia de A a B y en 12 de A a C. D no gana en ningún repuesto: con pedidos de una a cinco unidades, pagar dos veces los 350 Bs del pedido cuesta más de lo que ahorra repartir la compra.
