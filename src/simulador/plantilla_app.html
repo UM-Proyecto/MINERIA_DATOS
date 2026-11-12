@@ -1,0 +1,928 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Poppins es la tipografía del sitio de MULTIPARTES. Sin conexión, la app usa la fuente del sistema. -->
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,800&display=swap">
+<title>MULTIPARTES · Simulador de compras</title>
+<!--
+  Simulador de compras de MULTIPARTES (Minería de Datos, SCRUM-64 y siguientes).
+  Seis funciones en un menú lateral; se cambia de una a otra sin recargar (#alertas, #simulador, ...).
+  El CSS de las secciones 1 a 9 es el de la pantalla de decisión de compra (src/hu-12/plantilla_panel.html), sin
+  cambios, para que las dos pantallas se vean iguales. Lo propio del simulador va en la sección 10.
+  Archivo autónomo: generar_app.py pone los datos, el motor de cálculo y el logotipo en sus marcas.
+  Toda cifra sale del motor (src/simulador/motor.js); esta página solo pide, ordena y dibuja.
+-->
+<style>
+/* 1. VARIABLES */
+:root{
+  --side:#016726;          /* fondo exacto del logotipo de multipartes.com.bo */
+  --side-2:#015a21; --side-ink:#d7eadc; --side-mute:#a6cdb1;
+  --brand:#01863e; --brand-dark:#016a31; --brand-soft:#e3f2e8;
+  --ink:#161922; --ink-2:#3f4650; --ink-3:#5f6670;
+  --bg:#f4f5f3; --card:#fff; --line:#e3e6e2; --line-2:#cdd2cc;
+  --graphite:#1b1f24;
+  --s1:#2f6f9f; --s2:#a8741a; --s3:#b0307a;          /* técnicas de pronóstico (validadas) */
+  --ok:#1d7a52; --ok-soft:#e1f1e8; --warn:#9a6700; --warn-soft:#fbf1d9; --bad:#b42318; --bad-soft:#fbe7e4;
+  --r:11px; --ease:cubic-bezier(.2,.8,.2,1);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 Poppins,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;font-variant-numeric:tabular-nums}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--brand);outline-offset:3px;border-radius:6px}
+h1,h2,h3{margin:0;letter-spacing:-.01em;text-wrap:balance}
+p{margin:0}
+a{color:inherit}
+
+/* 2. BARRA LATERAL (como el panel de Fiorella) */
+.side{position:fixed;inset:0 auto 0 0;width:236px;background:var(--side);color:var(--side-ink);padding:26px 18px;display:flex;flex-direction:column;z-index:5}
+.side .logo{display:block;width:100%;max-width:200px;height:auto;margin:0 0 6px -4px}
+.side .sub{font-size:10.5px;letter-spacing:1.6px;color:var(--side-mute);text-transform:uppercase;margin:4px 0 40px}
+.side .navt{font-size:10px;letter-spacing:1.6px;color:var(--side-mute);text-transform:uppercase;margin:0 12px 10px}
+.side nav a{display:flex;gap:10px;align-items:center;min-height:44px;padding:10px 12px;border-radius:8px;margin:3px 0;text-decoration:none;font-size:13px;color:var(--side-ink)}
+.side nav a:hover{background:var(--side-2)}
+.side nav a[aria-current=page]{background:#fff;color:var(--side);font-weight:600}
+.side nav svg{width:16px;height:16px;flex:none}
+.side .foot{margin-top:auto;border-top:1px solid #ffffff2e;padding-top:18px;font-size:11.5px;line-height:1.75;color:var(--side-mute)}
+.side .foot strong{display:block;color:#fff;font-size:12.5px}
+
+.main{margin-left:236px;padding:0 36px 120px}
+.inner{max-width:1600px;margin:0 auto}
+.topbar{min-height:64px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);font-size:12.5px;color:var(--ink-3)}
+.pill{display:inline-flex;align-items:center;gap:7px;border:1px solid #eeddbb;border-radius:99px;padding:6px 12px;background:#fff9ed;color:#7a5600;font-size:11.5px;font-weight:600}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:#d69630}
+
+.hero{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;padding:24px 0 20px}
+.eyebrow{text-transform:uppercase;font-size:10.5px;letter-spacing:1.8px;color:var(--ink-3);font-weight:600;margin-bottom:6px}
+.hero h1{font-size:32px;font-weight:700;line-height:1.1;margin-bottom:6px}
+.hero p{color:var(--ink-3);max-width:70ch}
+.btn2{min-height:44px;border:1px solid var(--line-2);background:#fff;border-radius:8px;padding:0 16px;font-weight:600;font-size:13px;white-space:nowrap;transition:background .12s,transform .12s var(--ease)}
+.btn2:hover{background:#eef3ef}
+.btn2:active{transform:scale(.97)}
+
+/* 3. TARJETAS */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px 22px;box-shadow:0 2px 4px #16192205}
+.card+.card,.grid-k+.card,.card+.grid-k,.nota-sit+.card{margin-top:18px}
+.card-h{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:14px}
+.card-h h2{font-size:18px;font-weight:600}
+.card-h p{color:var(--ink-3);font-size:12.5px;max-width:78ch;margin-top:3px}
+.num{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:6px;background:var(--brand);color:#fff;font-size:12px;font-weight:700;margin-right:8px;vertical-align:1px}
+
+/* 4. FILTROS */
+.filtros .fila{display:grid;grid-template-columns:1.1fr 1.3fr 1fr 2fr;gap:14px 16px;align-items:end}
+.filtros .fila+.fila{margin-top:14px;padding-top:14px;border-top:1px dashed var(--line)}
+.filtros .sup{grid-template-columns:repeat(3,1fr) 1fr}
+label,.lab{display:block;font-size:11.5px;font-weight:600;color:var(--ink-2);margin-bottom:5px;letter-spacing:.2px}
+select,input[type=number]{width:100%;height:44px;border:1px solid var(--line-2);border-radius:8px;background:#fff;padding:0 12px}
+select:hover,input:hover{border-color:var(--ink-3)}
+.tcrow{display:flex;gap:6px}
+.tcrow input{width:86px;flex:none}
+.chip{height:44px;flex:1;min-width:0;padding:0 8px;border:1px solid var(--line-2);border-radius:8px;background:#fff;font-size:13px;line-height:1.15;text-align:left;transition:transform .12s var(--ease),border-color .12s,background .12s}
+.chip small{display:block;color:var(--ink-3);font-size:10.5px}
+.chip:hover{border-color:var(--ink-3)}
+.chip:active{transform:scale(.97)}
+.chip[aria-pressed=true]{border-color:var(--brand);background:var(--brand-soft)}
+.sup-t{font-size:12px;color:var(--ink-3);align-self:center}
+.sup-t b{color:var(--ink-2)}
+
+/* 5. CIFRAS CLAVE */
+.grid-k{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-top:18px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px 20px}
+.kpi .t{font-size:10.5px;font-weight:600;letter-spacing:1.4px;text-transform:uppercase;color:var(--ink-3)}
+.kpi .v{font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.2;margin-top:4px}
+.kpi .v small{font-size:14px;font-weight:600;color:var(--ink-3);margin-left:4px;letter-spacing:0}
+.kpi .d{font-size:12px;color:var(--ink-3);margin-top:2px}
+.est{display:inline-block;font-size:11px;font-weight:600;border-radius:99px;padding:2px 9px;margin-left:6px;vertical-align:4px;letter-spacing:0}
+.est.bad{background:var(--bad-soft);color:var(--bad)} .est.warn{background:var(--warn-soft);color:var(--warn)} .est.ok{background:var(--ok-soft);color:var(--ok)}
+.c-bad{color:var(--bad)} .c-warn{color:var(--warn)} .c-ok{color:var(--ok)}
+.nota-sit{margin-top:18px;background:#eef6f0;border:1px solid #d3e8da;border-radius:var(--r);padding:13px 18px;color:#1f5137;font-size:13.5px}
+.nota-sit strong{color:#123a26}
+
+/* 6. ALTERNATIVAS */
+.como{display:flex;gap:14px;align-items:flex-start;background:#f7f8f6;border:1px solid var(--line);border-radius:9px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:var(--ink-2)}
+.como b{color:var(--ink)}
+.como svg{flex:none;margin-top:2px}
+.alts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0 16px}
+.alt{display:grid;grid-template-rows:subgrid;grid-row:span 10;border:1px solid var(--line);border-radius:var(--r);padding:16px 16px 14px;background:#fff;position:relative;transition:border-color .15s,box-shadow .2s var(--ease)}
+.alt.mejor{border-color:var(--brand);box-shadow:inset 0 3px 0 var(--brand)}
+.alt[data-elegida=true]{border-color:var(--graphite);box-shadow:0 0 0 2px var(--graphite),0 10px 24px -12px #16192266}
+.alt h3{font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.alt h3 i{font-style:normal;display:inline-grid;place-items:center;width:26px;height:26px;border-radius:7px;background:var(--graphite);color:#fff;font-size:13px}
+.alt.mejor h3 i{background:var(--brand)}
+.tag{font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:99px;background:var(--brand-soft);color:var(--brand-dark)}
+.alt .que{color:var(--ink-3);font-size:12.5px;padding:6px 0 10px}
+.score{padding:12px 0 12px;border-top:1px solid var(--line)}
+.score .big{font-size:34px;font-weight:700;letter-spacing:-.03em;line-height:1}
+.score .big small{font-size:15px;font-weight:600;color:var(--ink-3);margin-left:2px}
+.score .lbl{font-size:12px;color:var(--ink-3);margin-top:4px}
+.meter{height:8px;border-radius:4px;background:#edf0ec;margin-top:9px;overflow:hidden}
+.meter span{display:block;height:100%;border-radius:4px;background:var(--line-2);transform-origin:left;transition:width .5s var(--ease)}
+.alt.mejor .meter span{background:var(--brand)}
+.dato{padding:9px 0;border-top:1px solid var(--line);margin:0}
+.dato dt{font-size:11.5px;color:var(--ink-3)}
+.dato dd{margin:1px 0 0;font-size:17px;font-weight:600}
+.dato dd small{display:block;font-size:11.5px;font-weight:400;color:var(--ink-3)}
+.porque{padding:10px 0 4px;border-top:1px solid var(--line)}
+.porque .lt{font-size:11.5px;color:var(--ink-3);margin-bottom:6px}
+.porque p{font-size:12.5px;color:var(--ink-2);margin-bottom:8px}
+.tools{display:flex;flex-wrap:wrap;gap:5px}
+.tool{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;border:1px solid var(--line-2);border-radius:6px;padding:3px 7px;color:var(--ink-2);background:#fafbf9;text-decoration:none}
+.tool b{font-weight:600;color:var(--brand-dark)}
+.tool:hover{border-color:var(--brand)}
+.elegir{margin-top:10px;min-height:44px;border-radius:8px;border:1px solid var(--graphite);background:var(--graphite);color:#fff;font-weight:600;transition:transform .12s var(--ease),background .12s}
+.elegir:hover{background:#2a3037}
+.elegir:active{transform:scale(.98)}
+.alt[data-elegida=true] .elegir{background:var(--brand);border-color:var(--brand)}
+.pie{font-size:12px;color:var(--ink-3);margin-top:12px;max-width:110ch}
+
+/* 7. TABLAS Y GRÁFICOS */
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{padding:9px 10px;text-align:right;border-bottom:1px solid var(--line);vertical-align:middle}
+th:first-child,td:first-child{text-align:left}
+th{font-size:11.5px;color:var(--ink-3);font-weight:600;background:#fafbf9}
+tr[data-sel=true] td{background:var(--brand-soft)}
+.sens td.gana{font-weight:700;background:var(--brand-soft);color:var(--brand-dark)}
+td .barra{display:block;height:6px;border-radius:3px;background:var(--graphite);margin-top:5px;min-width:2px}
+.insignia{font-size:11px;font-weight:600;border-radius:99px;padding:2px 8px;white-space:nowrap}
+.insignia.si{background:var(--ok-soft);color:#1d5a3e} .insignia.no{background:var(--bad-soft);color:#8a2a1c} .insignia.na{background:#eceae5;color:var(--ink-3)}
+.dos{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:24px}
+.chartbox{position:relative}
+svg.chart{display:block;width:100%;height:auto;overflow:visible}
+svg.chart text{font:11.5px Poppins,system-ui,sans-serif;fill:var(--ink-3)}
+svg.chart .lbl{font-weight:600;font-size:12px}
+svg.chart .grid{stroke:var(--line);stroke-width:1}
+.tip{position:absolute;pointer-events:none;background:var(--graphite);color:#fff;border-radius:6px;padding:8px 10px;font-size:12px;line-height:1.45;min-width:150px;opacity:0;transform:translateY(4px);transition:opacity .12s,transform .12s var(--ease);z-index:3}
+.tip.on{opacity:1;transform:none}
+.tip b{display:block;margin-bottom:2px}
+.sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--ink-2);margin-top:8px}
+.nota{font-size:12px;color:var(--ink-3);margin-top:10px}
+details{margin-top:10px;font-size:13px}
+summary{cursor:pointer;color:var(--ink-2);font-weight:600;min-height:32px;display:flex;align-items:center}
+.prov input{accent-color:var(--brand);width:16px;height:16px;vertical-align:-3px;margin-right:6px}
+.herr{margin-top:28px}
+.herr>h2{font-size:20px;font-weight:600;margin-bottom:4px}
+.herr>p{color:var(--ink-3);font-size:13px;margin-bottom:14px;max-width:90ch}
+.metodo{margin-top:18px;font-size:12.5px;color:var(--ink-3)}
+.metodo ul{margin:6px 0 0;padding-left:18px;max-width:120ch}
+.metodo li{margin:3px 0}
+
+/* 8. BARRA DE DECISIÓN */
+.decision{visibility:hidden;position:fixed;left:236px;right:0;bottom:0;background:var(--graphite);color:#fff;border-top:3px solid var(--brand);transform:translateY(105%);transition:transform .35s var(--ease);z-index:10}
+.decision.on{transform:none;visibility:visible}
+.decision .in{display:flex;gap:16px;align-items:center;justify-content:space-between;padding:12px 36px;flex-wrap:wrap}
+.decision p{font-size:14px;max-width:110ch}
+.decision button{min-height:44px;padding:0 14px;border-radius:8px;border:1px solid #fff5;background:transparent;color:#fff;font-weight:600;margin-left:6px}
+.decision button:hover{background:#fff1}
+
+@keyframes dibuja{from{stroke-dashoffset:var(--len)}to{stroke-dashoffset:0}}
+.draw{stroke-dasharray:var(--len);animation:dibuja .7s var(--ease) both}
+@media (prefers-reduced-motion:reduce){.draw{animation:none;stroke-dasharray:none}*{transition:none!important}}
+
+/* 9. ADAPTACIÓN: 1080 de ancho (pantalla vertical) y celular */
+@media (max-width:1400px){
+  .alts{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+  .alt{grid-template-rows:none;grid-row:auto}
+  .filtros .fila,.filtros .sup{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .dos{grid-template-columns:1fr}
+}
+@media (max-width:1100px){
+  .side{width:200px;padding:22px 14px}
+  .main{margin-left:200px;padding:0 24px 120px}
+  .decision{left:200px}
+  .grid-k{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:760px){
+  .side{position:static;width:auto;flex-direction:row;align-items:center;justify-content:space-between;padding:10px 16px;gap:10px}
+  .side .logo{width:150px;margin:0}
+  .side .sub,.side .navt,.side .foot{display:none}
+  .side nav{display:flex;gap:4px}
+  .side nav a{margin:0;padding:8px 10px;font-size:12px}
+  .side nav a span{display:none}
+  .main{margin-left:0;padding:0 16px 140px}
+  .decision{left:0}.decision .in{padding:10px 16px}
+  .hero{flex-direction:column;align-items:flex-start;gap:12px;padding:18px 0 14px}
+  .pill{white-space:nowrap}
+  .topbar{min-height:52px}
+  .hero h1{font-size:26px}
+  .filtros .fila,.filtros .sup{grid-template-columns:1fr}
+  .tcrow{flex-wrap:wrap}.tcrow input{width:100%}
+  .chip{flex:1 1 calc(50% - 6px)}
+  .grid-k{gap:10px}
+  .kpi{padding:12px 14px}.kpi .v{font-size:24px}
+  .alts{grid-template-columns:1fr}
+  .card{padding:16px}
+  th,td{padding:8px 6px;font-size:12.5px}
+  .como{flex-direction:column;gap:6px}
+}
+@media print{.side,.filtros,.decision,.elegir{display:none}.main{margin:0}body{background:#fff}.alt,.card{break-inside:avoid}}
+
+/* 10. SIMULADOR (tomado de los renders aprobados: render/mod.js y render2/mod2.js) */
+.ayuda{display:block;font-size:11.5px;font-weight:400;color:var(--ink-3);line-height:1.4;margin-top:2px;letter-spacing:0;text-transform:none}
+.kpi .ayuda{margin-top:6px}
+.side nav a .hu{margin-left:auto;font-size:9.5px;letter-spacing:.4px;color:var(--side-mute);font-weight:500;font-style:normal}
+.side nav a[aria-current=page] .hu{color:var(--brand-dark)}
+.side nav a .nuevo{margin-left:auto;font-size:9px;font-weight:700;letter-spacing:.5px;background:#ffffff26;border-radius:99px;padding:1px 6px;font-style:normal}
+.side nav a[aria-current=page] .nuevo{background:var(--brand-soft);color:var(--brand-dark)}
+.vista{animation:entra .18s var(--ease) both}
+@keyframes entra{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.vista[hidden]{display:none}
+.pill.stub{border-color:#f0c4bd;background:#fdf0ee;color:var(--bad)}
+.pill.stub::before{background:var(--bad)}
+.pill.neutra{border-color:var(--line-2);background:#fff;color:var(--ink-2)}
+/* Marca que acompaña a cada resultado cuando el dólar elegido no es el oficial */
+.marca-tc{display:inline-block;font-size:10.5px;font-weight:600;border-radius:99px;padding:2px 8px;background:var(--warn-soft);color:var(--warn);vertical-align:2px;margin-left:6px;letter-spacing:0;white-space:nowrap}
+.tchoy{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,2fr) minmax(0,1fr);gap:22px;align-items:stretch}
+.tchoy .oficial .v{font-size:40px;font-weight:700;letter-spacing:-.02em;line-height:1.05}
+.tchoy .oficial .v small{font-size:15px;color:var(--ink-3);font-weight:600;margin-left:4px}
+.tchoy .src{font-size:11.5px;color:var(--ink-3);margin-top:6px}
+.tchoy .src b{color:var(--ink-2)}
+.badge-real{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.6px;border-radius:99px;padding:2px 8px;background:var(--ok-soft);color:var(--ok);margin-left:6px;vertical-align:3px}
+.badge-priv{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.6px;border-radius:99px;padding:2px 8px;background:#eceae5;color:var(--ink-3);margin-left:6px;vertical-align:2px}
+.paralelo{border:1px dashed var(--line-2);border-radius:9px;padding:12px 14px;background:#fafbf9}
+.paralelo .v{font-size:22px;font-weight:600;color:var(--ink-2)}
+.spark svg{width:100%;height:96px;display:block}
+.spark .l{fill:none;stroke:var(--brand);stroke-width:2}
+.spark text{font:11px Poppins,system-ui;fill:var(--ink-3)}
+.tcsel{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.tcsel .chip{flex:1 1 0;min-width:0}
+.tcotro{display:flex;gap:8px;align-items:center;margin-top:8px}
+.tcotro input{width:120px;flex:none}
+.tcotro[hidden]{display:none}
+.sims{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) minmax(0,1.1fr);gap:16px 22px;align-items:start}
+.sim .val{font-size:22px;font-weight:700;letter-spacing:-.01em;margin:2px 0 4px}
+.sim .val small{font-size:12.5px;font-weight:600;color:var(--ink-3);margin-left:4px}
+.sim input[type=range]{width:100%;accent-color:var(--brand);height:44px;margin:0;touch-action:pan-y}
+.sim .esc{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-3);margin-top:-8px}
+.seg{display:flex;gap:6px}
+.seg .chip{text-align:center}
+.filtros .rep4{grid-template-columns:1fr 1.4fr 1.2fr 1.4fr}
+.dos-desc{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:18px;margin-top:18px}
+.dos-desc .card+.card{margin-top:0}
+.calc{transition:opacity .15s}
+.calc[aria-busy=true]{opacity:.45}
+.quiebre .linea{position:relative;height:44px;margin:44px 8px 34px}
+.quiebre .zona{position:absolute;top:12px;height:20px;border-radius:5px}
+.quiebre .za{background:#dfe9f3}.quiebre .zc{background:var(--brand-soft)}
+.quiebre .marca{position:absolute;top:0;bottom:0;width:2px;background:var(--graphite)}
+.quiebre .marca span{position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-size:12px;font-weight:600;white-space:nowrap}
+.quiebre .marca.alto span{top:-40px}
+.quiebre .marca.q{background:var(--bad)} .quiebre .marca.q span{color:var(--bad);top:auto;bottom:-22px}
+.quiebre .marca.su{background:var(--brand)} .quiebre .marca.su span{color:var(--brand-dark)}
+.quiebre .eje{position:absolute;bottom:-22px;white-space:nowrap;font-size:11px;color:var(--ink-3);transform:translateX(-50%)}
+.quiebre .zl{position:absolute;top:14px;font-size:11.5px;font-weight:600;color:var(--ink-2);padding:0 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:48%}
+.tornado .fila{display:grid;grid-template-columns:200px minmax(0,1fr) 120px;gap:12px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.tornado .fila:first-of-type{border-top:0}
+.tornado .bar{height:16px;border-radius:0 4px 4px 0;background:var(--graphite);transition:width .3s var(--ease)}
+.tornado .fila:first-of-type .bar{background:var(--brand)}
+.tornado .n{font-weight:600;text-align:right}
+.tool{cursor:pointer}
+.alerta-fila{cursor:pointer}
+.alerta-fila:hover td{background:#f7f8f6}
+.alerta-fila:focus-visible{outline:2px solid var(--brand);outline-offset:-2px}
+.alerta-fila td:first-child b{display:block}
+.vac{color:var(--ink-3)}
+.mas{margin-top:12px}
+.seg-cl{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:24px}
+.cuad{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cuad div{border:1px solid var(--line);border-radius:9px;padding:10px 12px}
+.cuad b{display:block;font-size:20px}
+.bt{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.bt .col{border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+.bt .col.gana{border-color:var(--brand);box-shadow:inset 0 3px 0 var(--brand)}
+.bt .col h3{font-size:15px;font-weight:600;margin-bottom:6px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.bt .col .que{color:var(--ink-3);font-size:12.5px;margin-bottom:6px}
+.presu{display:flex;gap:14px;align-items:end;flex-wrap:wrap}
+.presu input{width:180px}
+.acum{height:10px;border-radius:5px;background:#edf0ec;overflow:hidden;margin-top:6px}
+.acum span{display:block;height:100%;background:var(--brand);transition:width .3s var(--ease)}
+tr.fuera td{color:var(--ink-3);background:#fafbf9}
+.selrep{max-width:420px;margin-bottom:14px}
+svg.chart .pt30{fill:none;stroke:var(--graphite);stroke-width:1.4}
+.barras rect{fill:var(--graphite)}
+.err{color:var(--bad);font-size:13px}
+/* En el celular el bloque del título se encogía a su contenido y desbordaba (medido: 512 px en 390). */
+.hero>div{min-width:0;max-width:100%}
+@media (max-width:1400px){
+  .filtros .rep4{grid-template-columns:1fr 1fr}
+  .tchoy{grid-template-columns:1fr 1fr}.tchoy .spark{grid-column:1/-1;grid-row:2}
+  .sims{grid-template-columns:1fr 1fr}
+  .dos-desc,.seg-cl{grid-template-columns:1fr}
+}
+@media (max-width:760px){
+  .side{flex-wrap:wrap}
+  .side nav{flex:1 1 100%;overflow-x:auto;scrollbar-width:none}
+  .side nav a{flex:none;min-width:44px;justify-content:center}
+  .side nav a .hu,.side nav a .nuevo{display:none}
+  .tchoy,.sims,.filtros .rep4{grid-template-columns:1fr}
+  .tchoy .spark{grid-row:auto}
+  .tchoy .oficial .v{font-size:34px}
+  .tcsel .chip{min-width:0;flex:1 1 100%}
+  .tornado .fila{grid-template-columns:110px minmax(0,1fr) 78px}
+  .bt,.cuad{grid-template-columns:1fr}
+  .seg{flex-wrap:wrap}.seg .chip{flex:1 1 100%}
+  .presu input{width:100%}
+  .quiebre .zl{font-size:10.5px}
+}
+</style>
+</head>
+<body>
+<aside class="side" aria-label="Navegación">
+  <img class="logo" src="__LOGO__" alt="MULTIPARTES Santa Cruz" width="300" height="111">
+  <div class="sub">Inteligencia de compras</div>
+  <div class="navt">Funciones del simulador</div>
+  <nav id="menu"></nav>
+  <div class="foot"><strong>Jefatura de compras</strong>Santa Cruz de la Sierra<br>Proyecto académico · Univalle<br><br>Ventas: carparts (Hyndman), reales y re-fechadas. Proveedores, costos y stock: SINTÉTICO. Dólar: oficial del BCB.</div>
+</aside>
+
+<div class="main"><div class="inner">
+  <div class="topbar"><span id="miga">Funciones &nbsp;/&nbsp; Alertas de reposición</span><span class="pill" id="pill-datos">Datos SINTÉTICOS sobre ventas reales</span></div>
+
+  <!-- ============ ALERTAS ============ -->
+  <section class="vista" id="v-alertas" hidden aria-labelledby="h1-alertas">
+    <div class="hero"><div><div class="eyebrow">Lo primero que ve el jefe de compras</div><h1 id="h1-alertas">¿Qué hay que pedir esta semana?</h1>
+      <p>Los 30 repuestos ordenados por urgencia: cuánto stock queda, cuánto tarda el proveedor y si ya llegó al punto de pedido.</p></div>
+      <span class="pill neutra">historia nueva</span></div>
+    <div class="grid-k" id="al-kpis" aria-live="polite"></div>
+    <section class="card" style="margin-top:18px">
+      <div class="card-h"><div><h2>Los 30 repuestos, del más urgente al menos urgente<span id="al-marca"></span></h2>
+        <p>Primero los que ya llegaron al punto de pedido; después, los que llegarán antes de que el proveedor pueda entregar.</p></div></div>
+      <div class="scroll"><table id="t-alertas"></table></div>
+      <button class="btn2 mas" id="b-mas" type="button" aria-expanded="false">Mostrar los 30</button>
+      <p class="pie" id="al-pie"></p>
+    </section>
+  </section>
+
+  <!-- ============ SIMULADOR ============ -->
+  <section class="vista" id="v-simulador" hidden aria-labelledby="h1-sim">
+    <div class="hero"><div><div class="eyebrow">Simulador de decisiones de compra</div><h1 id="h1-sim">¿Cuánto pedir y cuándo?</h1>
+      <p id="sim-intro"></p></div>
+      <button class="btn2" id="b-reset" type="button">↻ Restablecer</button></div>
+
+    <section class="card" aria-labelledby="h-tchoy">
+      <div class="card-h"><div><h2 id="h-tchoy"><span class="num">1</span>Tipo de cambio de hoy</h2>
+        <p>Es el precio del dólar con el que se calcula el costo de cada pedido. Se usa el oficial porque tiene fuente y fecha.</p></div></div>
+      <div class="tchoy">
+        <div class="oficial">
+          <div class="lab">Oficial del BCB <span class="badge-real">REAL</span></div>
+          <div class="v" id="of-v"></div>
+          <p class="src" id="of-src"></p>
+          <div class="lab" style="margin-top:12px" id="tc-lab">Dólar para calcular<span class="ayuda">El oficial es la base. Puede probar otro para comparar.</span></div>
+          <div class="tcsel" role="group" aria-labelledby="tc-lab" id="tcsel"></div>
+          <div class="tcotro" id="tcotro" hidden><input id="f-otro" type="number" min="5" max="20" step="0.01" inputmode="decimal" aria-label="Otro valor del dólar, en bolivianos"><span class="ayuda" style="margin:0">Bs por dólar, entre 5 y 20.</span></div>
+        </div>
+        <div class="spark"><div class="lab">Cómo se movió desde que el BCB lo publica <span class="ayuda" style="display:inline" id="spark-dias"></span></div><div id="spark"></div></div>
+        <div class="paralelo">
+          <div class="lab">Dólar paralelo <span class="badge-priv">PRIVADO</span></div>
+          <div class="v" id="pa-v"></div>
+          <span class="ayuda" id="pa-ayuda"></span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="h-rep">
+      <div class="card-h"><div><h2 id="h-rep"><span class="num">2</span>¿Qué repuesto quiere comprar?</h2></div></div>
+      <div class="filtros"><div class="fila rep4">
+        <div><label for="f-cat">Categoría<span class="ayuda">Agrupa repuestos por cómo se venden.</span></label><select id="f-cat"></select></div>
+        <div><label for="f-rep">Repuesto<span class="ayuda">Entre paréntesis, los días que alcanza el stock de hoy.</span></label><select id="f-rep"></select></div>
+        <div><label for="f-prov">Proveedor<span class="ayuda">El de menor costo puesto en Santa Cruz va primero.</span></label><select id="f-prov"></select></div>
+        <div><span class="lab" id="sigue-lab">¿Sube su precio de venta cuando sube el dólar?<span class="ayuda">Si no lo sube, un dólar caro se come su ganancia.</span></span>
+          <div class="seg" role="group" aria-labelledby="sigue-lab" id="seg-sigue"><button class="chip" type="button" data-v="1">Sí, igual que el dólar</button><button class="chip" type="button" data-v="0">No, precio fijo</button></div></div>
+      </div></div>
+    </section>
+
+    <section class="card" aria-labelledby="h-sup">
+      <div class="card-h"><div><h2 id="h-sup"><span class="num">3</span>Mueva los supuestos</h2>
+        <p>Son lo que usted cree que va a pasar. Al moverlos, el simulador vuelve a probar las cuatro alternativas al instante.</p></div></div>
+      <div class="sims">
+        <div class="sim"><label for="s-tc">¿A cuánto estará el dólar en 90 días?</label><div class="val" id="v-tc"></div>
+          <input id="s-tc" type="range" min="9" max="15" step="0.05"><div class="esc"><span>9</span><span>15</span></div>
+          <span class="ayuda">Si espera que suba, comprar antes sale más barato.</span></div>
+        <div class="sim"><label for="s-ven">¿Cuánto más o menos venderá?</label><div class="val" id="v-ven"></div>
+          <input id="s-ven" type="range" min="-30" max="30" step="5"><div class="esc"><span>−30 %</span><span>+30 %</span></div>
+          <span class="ayuda">Mueve la venta esperada para ver si el pedido alcanza.</span></div>
+        <div class="sim"><label for="s-atr">¿Cuántos días puede atrasarse el proveedor?</label><div class="val" id="v-atr"></div>
+          <input id="s-atr" type="range" min="0" max="30" step="1"><div class="esc"><span>0</span><span>30</span></div>
+          <span class="ayuda" id="atr-ayuda"></span></div>
+        <p class="sup-t"><b>Lo real y lo simulado.</b> El dólar de hoy es real (BCB). Las ventas vienen de carparts y lo demás es SINTÉTICO.</p>
+      </div>
+    </section>
+
+    <div class="grid-k" id="kpis" aria-live="polite"></div>
+    <div class="nota-sit" id="situ"></div>
+
+    <section class="card calc" style="margin-top:18px" aria-labelledby="h-alt" id="c-alts">
+      <div class="card-h"><div><h2 id="h-alt">Cuatro alternativas para <span id="h-rep2"></span><span id="alt-marca"></span></h2><p id="h-sub"></p></div></div>
+      <div class="como">
+        <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="var(--brand)" stroke-width="1.6" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><path d="M8 7v4M8 5h.01"/></svg>
+        <p id="como-txt"></p>
+      </div>
+      <div class="alts" id="alts"></div>
+      <p class="pie" id="alts-nota"></p>
+    </section>
+
+    <div class="dos-desc">
+      <section class="card quiebre calc" aria-labelledby="h-q" id="c-quiebre">
+        <div class="card-h"><div><h2 id="h-q"><span class="num">4</span>Lo que descubre: el dólar de quiebre<span id="q-marca"></span></h2><p id="q-txt"></p></div></div>
+        <div id="q-cuerpo"></div>
+      </section>
+      <section class="card tornado calc" aria-labelledby="h-t" id="c-sens">
+        <div class="card-h"><div><h2 id="h-t"><span class="num">5</span>¿Qué supuesto pesa más?<span id="t-marca"></span></h2>
+          <p>Cuánto cambia la ganancia esperada al mover cada supuesto de un extremo al otro. Vigile primero el de arriba.</p></div></div>
+        <div id="t-cuerpo"></div>
+      </section>
+    </div>
+
+    <div class="herr">
+      <h2>Las herramientas que respaldan cada alternativa</h2>
+      <p>Lo que el simulador usa para calcular. Cada etiqueta de las alternativas apunta a una de estas.</p>
+      <section class="card" id="h-pro" aria-labelledby="t-pro">
+        <div class="card-h"><div><h2 id="t-pro"><span class="num">a</span>Pronóstico de la venta</h2><p id="pro-txt"></p></div></div>
+        <div class="chartbox" id="chart-ven"></div>
+        <div class="legend"><span><i class="sw" style="background:var(--graphite)"></i>Ventas reales por mes (carparts, re-fechadas)</span><span><i class="sw" style="background:var(--brand)"></i>Pronóstico mensual que usa el simulador</span></div>
+        <details><summary>Ver los datos del gráfico como tabla</summary><div class="scroll"><table id="t-ven"></table></div></details>
+      </section>
+      <section class="card" id="h-prv" aria-labelledby="t-prv">
+        <div class="card-h"><div><h2 id="t-prv"><span class="num">b</span>Proveedores de este repuesto (SINTÉTICO, sobre carparts)<span id="prv-marca"></span></h2>
+          <p>Costo puesto en Santa Cruz por unidad con el dólar elegido. Elegir otro proveedor recalcula las alternativas.</p></div></div>
+        <div class="scroll"><table id="t-prov" class="prov"></table></div>
+      </section>
+    </div>
+    <div class="metodo" id="metodo"><strong>Cómo se calcula</strong><ul id="metodo-ul"></ul></div>
+  </section>
+
+  <!-- ============ PROVEEDORES ============ -->
+  <section class="vista" id="v-proveedores" hidden aria-labelledby="h1-pv">
+    <div class="hero"><div><div class="eyebrow">Para un repuesto, todos los proveedores lado a lado</div><h1 id="h1-pv">¿A quién le compro?</h1>
+      <p>El más barato en fábrica no siempre es el más barato en Santa Cruz: el Incoterm, el flete y la puntualidad cambian la cuenta.</p></div>
+      <span class="pill neutra">historia nueva</span></div>
+    <section class="card">
+      <div class="selrep"><label for="pv-rep">Repuesto<span class="ayuda">El precio de fábrica es el mismo para todos; cambia lo que suma cada proveedor.</span></label><select id="pv-rep"></select></div>
+      <div class="card-h"><div><h2 id="pv-tit"></h2><p>Mismo precio de fábrica para comparar; cambia lo que suma cada proveedor.</p></div></div>
+      <div class="scroll"><table id="t-pv"></table></div>
+      <p class="nota-sit" style="margin-top:14px" id="pv-nota"></p>
+      <p class="pie">Proveedores, plazos y puntualidad: SINTÉTICOS (SCRUM-55). Flete de China: INE vía HU-31; Brasil y EE. UU.: supuestos del equipo. Gastos de aduana: HU-31.</p>
+    </section>
+  </section>
+
+  <!-- ============ PLAN ============ -->
+  <section class="vista" id="v-plan" hidden aria-labelledby="h1-plan">
+    <div class="hero"><div><div class="eyebrow">Cuando el dinero no alcanza para todo</div><h1 id="h1-plan">¿Qué compro primero con lo que tengo?</h1>
+      <p>Escriba cuánto puede gastar. El simulador ordena los pedidos por urgencia y marca hasta dónde llega el presupuesto.</p></div>
+      <span class="pill neutra">historia nueva</span></div>
+    <section class="card">
+      <div class="presu"><div><label for="f-presu">Presupuesto para importar<span class="ayuda" id="presu-ayuda"></span></label><input id="f-presu" type="number" min="0" step="500" inputmode="numeric"></div>
+        <div style="flex:1;min-width:220px"><span class="lab">Usado<span class="ayuda" id="usado-txt"></span></span><div class="acum" aria-hidden="true"><span id="acum"></span></div></div></div>
+      <div class="scroll" style="margin-top:14px"><table id="t-plan"></table></div>
+      <p class="pie">Ordena por urgencia; a igual urgencia, primero el de clase A. Costos SINTÉTICOS (SCRUM-55) con el dólar elegido en el simulador.</p>
+    </section>
+  </section>
+
+  <!-- ============ QUÉ HUBIERA PASADO ============ -->
+  <section class="vista" id="v-backtest" hidden aria-labelledby="h1-bt">
+    <div class="hero"><div><div class="eyebrow">Probar las reglas con las ventas que de verdad ocurrieron</div><h1 id="h1-bt">¿Qué hubiera pasado si…?</h1>
+      <p>Se repiten los últimos 12 meses con las ventas reales de carparts y el dólar oficial real, aplicando cada forma de comprar. Así se ve cuál habría funcionado mejor, no solo cuál promete.</p></div>
+      <span class="pill neutra">historia nueva</span></div>
+    <section class="card">
+      <div class="card-h"><div><h2>Los 30 repuestos, de noviembre de 2025 a octubre de 2026</h2><p>Mismo punto de partida para las tres; solo cambia la forma de comprar.</p></div></div>
+      <div class="bt" id="bt"></div>
+      <p class="nota-sit" style="margin-top:14px" id="bt-nota"></p>
+      <p class="pie">Ventas reales (carparts re-fechado) y dólar oficial real del día de cada orden (6,96 Bs antes del 27-06-2026); proveedores y costos SINTÉTICOS. Plazo normal de cada proveedor, sin atrasos.</p>
+    </section>
+  </section>
+
+  <!-- ============ CLASIFICACIÓN ============ -->
+  <section class="vista" id="v-clasificacion" hidden aria-labelledby="h1-cl">
+    <div class="hero"><div><div class="eyebrow">Minería de datos: descubrir cómo se vende cada repuesto</div><h1 id="h1-cl">¿Qué clase de repuesto es?</h1>
+      <p id="cl-intro"></p></div>
+      <span class="pill neutra">historia nueva</span></div>
+    <section class="card"><div class="seg-cl">
+      <div><div class="chartbox" id="chart-cl"></div><div class="legend" id="leg-cl"></div>
+        <details><summary>Ver los datos del gráfico como tabla</summary><div class="scroll"><table id="t-cl"></table></div></details></div>
+      <div><div class="cuad" id="cuad"></div><p class="nota-sit" style="margin-top:12px" id="cl-nota"></p></div>
+    </div><p class="pie" id="cl-pie"></p></section>
+  </section>
+</div></div>
+
+<script type="application/json" id="datos">__DATA__</script>
+<script>
+__MOTOR__
+</script>
+<script>
+(function(){
+"use strict";
+const D = JSON.parse(document.getElementById("datos").textContent);
+const $ = id => document.getElementById(id);
+const OF = D.tc.oficial, PA = D.tc.paralelo, PAR = D.parametros;
+const OPC = {n: PAR.simulaciones, semilla: PAR.semilla, horizonte_dias: 90};
+const REP = {}; D.repuestos.forEach(r => REP[r.repuesto_id] = r);
+const PRV = {}; D.proveedores.forEach(p => PRV[p.proveedor_id] = p);
+
+/* ---- Formato. Se agrupan los miles a mano: toLocaleString("es") no agrupa números de 4 cifras en Chromium. ---- */
+function nf(n, d = 0){
+  if(n === null || n === undefined || !isFinite(n)) return "—";
+  const neg = n < 0, s = Math.abs(n).toFixed(d), [e, f] = s.split(".");
+  return (neg && +s !== 0 ? "−" : "") + e.replace(/\B(?=(\d{3})+(?!\d))/g, ".") + (f ? "," + f : "");
+}
+const bs = n => "Bs " + nf(n);
+const MES = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+const DIA = ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
+const fecha = f => { const [y,m,d] = f.split("-"); return +d + "-" + MES[+m-1] + "-" + y; };
+const fechaDia = f => DIA[new Date(f + "T12:00:00").getDay()] + " " + fecha(f);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const nombreProv = p => p.nombre.replace(" (ficticio)", "");
+const capital = s => s.charAt(0).toUpperCase() + s.slice(1);
+
+/* ---- Estado ---- */
+const INI = {tcModo:"oficial", tcOtro:OF.valor, tc90:OF.valor, venta:0, atraso:0, sigue:true};
+const S = Object.assign({vista:"alertas", cat:"", rep:"", prov:"", elegida:null, verTodas:false, presu:null, pvRep:""}, INI);
+const tcHoy = () => S.tcModo === "oficial" ? OF.valor : S.tcModo === "paralelo" ? PA.valor : S.tcOtro;
+// Cada resultado calculado con un dólar que no es el oficial lo dice (pedido de Sam: no confundir con el dato real).
+const marcaTc = () => S.tcModo === "oficial" ? "" : S.tcModo === "paralelo"
+  ? `<span class="marca-tc">con paralelo ${nf(PA.valor,2)} (PRIVADO)</span>` : `<span class="marca-tc">con dólar supuesto ${nf(S.tcOtro,2)}</span>`;
+const sup = () => ({tc_base:tcHoy(), tc_90:S.tc90, venta_pct:S.venta, atraso_dias:S.atraso, precio_sigue_dolar:S.sigue});
+function seguro(fn, donde){ try { return fn(); } catch(e){ console.warn("Motor:", e); if(donde) donde.innerHTML = `<p class="err">El motor no pudo calcular esto: ${esc(e.message)}</p>`; return undefined; } }
+
+const pron = {}; const pronostico = id => pron[id] || (pron[id] = Motor.pronostico(D.ventas[id]));
+const ventaDia = id => Math.max(pronostico(id).unidades_mes / 30, 1e-6);
+
+/* ---- Menú ---- */
+const IC = {al:'<path d="M8 2l6 11H2z"/><path d="M8 6.5v3M8 11.5h.01"/>', sim:'<path d="M2 13h12M4 10l3-3 2 2 4-5"/>',
+  prov:'<rect x="2" y="4" width="12" height="9" rx="1"/><path d="M5 4V2.5h6V4"/>', cl:'<circle cx="5" cy="10" r="1.5"/><circle cx="10" cy="5" r="1.5"/><circle cx="11" cy="11" r="1.5"/><path d="M2 2v12h12"/>',
+  bt:'<path d="M3 8a5 5 0 1 0 1.5-3.5"/><path d="M3 2.5V5h2.5"/>', plan:'<path d="M3 3h10v10H3z"/><path d="M5.5 6.5h5M5.5 9.5h3"/>'};
+const VISTAS = [["alertas","Alertas de reposición","al","nuevo"],["simulador","Simulador de compra","sim","SCRUM-61"],["proveedores","Comparar proveedores","prov","nuevo"],
+  ["plan","Plan con presupuesto","plan","nuevo"],["backtest","¿Qué hubiera pasado?","bt","nuevo"],["clasificacion","Clasificación de repuestos","cl","nuevo"]];
+$("menu").innerHTML = VISTAS.map(([k,t,i,h]) => `<a href="#${k}" data-v="${k}" aria-label="${t}" title="${t}"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">${IC[i]}</svg><span>${t}</span>${h.startsWith("SCRUM") ? `<i class="hu">${h}</i>` : `<i class="nuevo">${h}</i>`}</a>`).join("");
+if(Motor.ES_STUB){ const p = $("pill-datos"); p.classList.add("stub"); p.textContent = "Motor de prueba: cifras no válidas"; }
+
+const pintado = {};
+function ir(v){
+  if(!VISTAS.some(x => x[0] === v)) v = "alertas";
+  S.vista = v;
+  document.querySelectorAll(".vista").forEach(s => s.hidden = s.id !== "v-" + v);
+  document.querySelectorAll("#menu a").forEach(a => { if(a.dataset.v === v) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current"); });
+  $("miga").innerHTML = "Funciones &nbsp;/&nbsp; " + VISTAS.find(x => x[0] === v)[1];
+  ({alertas:pintarAlertas, simulador:pintarSimulador, proveedores:pintarProveedoresVista, plan:pintarPlan, backtest:pintarPasado, clasificacion:pintarClasificacion})[v]();
+  pintado[v] = true;
+}
+window.addEventListener("hashchange", () => { const v = location.hash.slice(1); if(VISTAS.some(x => x[0] === v)) { ir(v); window.scrollTo(0,0); } });
+
+/* ==================== ALERTAS ==================== */
+const insignia = e => e === 0 ? '<span class="insignia no">Pedir ya</span>' : e === 1 ? '<span class="insignia" style="background:var(--warn-soft);color:var(--warn)">Vigilar</span>' : '<span class="insignia si">Cubierto</span>';
+let AL = null, AL_TC = null;
+function alertas(){ if(AL_TC !== tcHoy()){ AL = Motor.alertas(D, tcHoy()); AL_TC = tcHoy(); } return AL; }
+function pintarAlertas(){
+  const al = seguro(alertas, $("t-alertas")); if(!al) return;
+  const pedir = al.filter(a => a.est === 0).length, vig = al.filter(a => a.est === 1).length, camino = al.reduce((s,a) => s + a.en_camino, 0);
+  $("al-kpis").innerHTML = `
+    <div class="kpi"><div class="t">Pedir esta semana</div><div class="v c-bad">${pedir}<small>repuestos</small></div><div class="d">llegaron al punto de pedido</div><span class="ayuda">El stock más lo que viene en camino ya no alcanza para esperar.</span></div>
+    <div class="kpi"><div class="t">En vigilancia</div><div class="v c-warn">${vig}<small>repuestos</small></div><div class="d">llegan al punto de pedido antes de que llegue un pedido</div><span class="ayuda">Conviene pedirlos pronto aunque todavía no estén en cero.</span></div>
+    <div class="kpi"><div class="t">En camino</div><div class="v">${nf(camino)}<small>unidades</small></div><div class="d">pedidos que todavía no llegan</div><span class="ayuda">Se cuentan como stock futuro al decidir.</span></div>
+    <div class="kpi"><div class="t">Dólar de hoy</div><div class="v">${nf(tcHoy(),2)}<small>Bs</small></div><div class="d">${S.tcModo === "oficial" ? "oficial BCB · " + fecha(OF.fecha) : marcaTc()}</div><span class="ayuda">Con este valor se calcula el costo de lo que hay que pedir.</span></div>`;
+  $("al-marca").innerHTML = marcaTc();
+  const filas = S.verTodas ? al : al.slice(0, 12);
+  $("t-alertas").innerHTML = `<thead><tr><th>Repuesto</th><th>Estado</th><th>Stock<span class="ayuda">en almacén</span></th><th>En camino</th><th>Punto de pedido<span class="ayuda">con esto o menos, se pide</span></th><th>Plazo</th><th>Cantidad sugerida</th><th>Costo puesto</th><th style="text-align:left">Proveedor</th></tr></thead><tbody>` +
+    filas.map(a => { const r = REP[a.id], p = PRV[r.proveedor_id];
+      return `<tr class="alerta-fila" tabindex="0" data-rep="${a.id}" aria-label="${a.id}: ${a.etiqueta}. Abrir en el simulador"><td><b>${a.id}</b><span class="ayuda">carparts ${r.codigo_carparts} · ${r.tipo_demanda} ${r.clase_abc}</span></td><td>${insignia(a.est)}</td><td>${nf(a.stock)}</td><td>${nf(a.en_camino)}</td><td>${nf(a.punto_pedido)}</td><td>${nf(a.plazo)} d</td><td>${a.est < 2 ? nf(a.cantidad_sugerida) : "—"}</td><td>${a.est < 2 ? bs(a.costo_bs) : "—"}</td><td style="text-align:left">${esc(nombreProv(p))} · ${esc(p.origen)} · ${p.incoterm}</td></tr>`; }).join("") + "</tbody>";
+  $("b-mas").textContent = S.verTodas ? "Mostrar solo los 12 más urgentes" : "Mostrar los 30";
+  $("b-mas").setAttribute("aria-expanded", String(S.verTodas));
+  $("al-pie").textContent = `${S.verTodas ? "Se muestran los 30." : "Se muestran los 12 más urgentes de 30."} Stock, punto de pedido y proveedor son SINTÉTICOS sobre ventas reales de carparts (SCRUM-55). Una fila abre el simulador con ese repuesto.`;
+}
+function abrirEnSimulador(id){ S.rep = id; S.cat = ""; S.prov = REP[id].proveedor_id; S.elegida = null; location.hash = "#simulador"; }
+$("t-alertas").addEventListener("click", e => { const tr = e.target.closest("tr[data-rep]"); if(tr) abrirEnSimulador(tr.dataset.rep); });
+$("t-alertas").addEventListener("keydown", e => { const tr = e.target.closest("tr[data-rep]"); if(tr && (e.key === "Enter" || e.key === " ")){ e.preventDefault(); abrirEnSimulador(tr.dataset.rep); } });
+$("b-mas").addEventListener("click", () => { S.verTodas = !S.verTodas; pintarAlertas(); });
+
+/* ==================== SIMULADOR ==================== */
+const ALT = {
+  A:{t:"Reponer lo justo", que:"Pedir solo lo que cubre la venta mientras llega el pedido, con el atraso supuesto.",
+     por:"Compra lo mínimo para no quedarse sin stock mientras llega el pedido. Inmoviliza menos dinero, pero deja poco margen si las ventas suben o el proveedor se atrasa.", t2:["a","b"]},
+  B:{t:"Cubrir 30 días más", que:"Sumar un mes de ventas pronosticadas después de que llegue el pedido.",
+     por:"Suma un mes de ventas pronosticadas. Un solo pedido, con un mes de respiro después de la entrega.", t2:["a","b"]},
+  C:{t:"Cubrir 60 días más", que:"Comprar para dos meses: menos pedidos y menos exposición a un dólar más caro después.",
+     por:"Compra para dos meses hoy. Conviene si se espera que el dólar suba, porque fija el costo con el dólar de hoy; a cambio, inmoviliza más dinero.", t2:["tc","a"]},
+  D:{t:"Dividir en dos pedidos", que:"Misma cantidad que cubrir 60 días, pero la mitad hoy y la mitad dentro de 30 días.",
+     por:"La misma cantidad que C, pero la mitad hoy y la mitad en 30 días. Reparte el desembolso y el riesgo del dólar en dos momentos.", t2:["tc","b"]}
+};
+const TOOL = {a:'<button type="button" class="tool" data-ir="h-pro"><b>a</b> Pronóstico de la venta</button>', b:'<button type="button" class="tool" data-ir="h-prv"><b>b</b> Proveedores y plazos</button>',
+  tc:'<button type="button" class="tool" data-ir="h-tchoy"><b>1</b> Tipo de cambio</button>', sim:`<span class="tool">Simulación · ${nf(PAR.simulaciones)} futuros</span>`};
+const CATS = [...new Set(D.repuestos.map(r => r.tipo_demanda + "|" + r.clase_abc))].sort();
+const catTxt = c => { const [t,a] = c.split("|"); return capital(t) + " · clase " + a; };
+
+function listaProveedores(){ return Motor.compararProveedores(D, S.rep, tcHoy()); }
+
+function controles(){
+  $("f-cat").innerHTML = '<option value="">Todas</option>' + CATS.map(c => `<option value="${c}">${catTxt(c)}</option>`).join("");
+  $("f-cat").value = S.cat;
+  const lista = D.repuestos.filter(r => !S.cat || r.tipo_demanda + "|" + r.clase_abc === S.cat);
+  if(!lista.some(r => r.repuesto_id === S.rep)){ S.rep = lista[0].repuesto_id; S.prov = REP[S.rep].proveedor_id; }
+  $("f-rep").innerHTML = lista.map(r => `<option value="${r.repuesto_id}">${r.repuesto_id} · carparts ${r.codigo_carparts} (${nf(r.stock_al_2026_11_10 / ventaDia(r.repuesto_id))} d)</option>`).join("");
+  $("f-rep").value = S.rep;
+  if(!S.prov) S.prov = REP[S.rep].proveedor_id;
+  const provs = seguro(listaProveedores) || [];
+  $("f-prov").innerHTML = provs.map(p => `<option value="${p.proveedor_id}">${esc(nombreProv(p))} · ${esc(p.origen)} · ${p.incoterm}${p.proveedor_id === REP[S.rep].proveedor_id ? " (el de hoy)" : ""}</option>`).join("");
+  $("f-prov").value = S.prov;
+  document.querySelectorAll("#seg-sigue .chip").forEach(c => c.setAttribute("aria-pressed", String((c.dataset.v === "1") === S.sigue)));
+  $("tcsel").innerHTML = [["oficial",`Oficial BCB · ${nf(OF.valor,2)}`,"base, con fuente"],["paralelo",`Paralelo · ${nf(PA.valor,2)}`,"privado"],["otro","Otro valor","escríbalo usted"]]
+    .map(([k,t,s]) => `<button class="chip" type="button" data-tc="${k}" aria-pressed="${S.tcModo === k}">${t}<small>${s}</small></button>`).join("");
+  $("tcotro").hidden = S.tcModo !== "otro";
+  $("f-otro").value = S.tcOtro;
+  $("s-tc").value = S.tc90; $("s-ven").value = S.venta; $("s-atr").value = S.atraso;
+  etiquetas();
+}
+function etiquetas(){
+  const p = PRV[S.prov];
+  $("v-tc").innerHTML = `${nf(S.tc90,2)}<small>Bs (hoy ${nf(tcHoy(),2)})</small>`;
+  $("v-ven").innerHTML = `${S.venta > 0 ? "+" : ""}${nf(S.venta)} %<small>sobre el pronóstico</small>`;
+  $("v-atr").innerHTML = `${nf(S.atraso)}<small>días más que su plazo normal (${p.plazo_normal_dias})</small>`;
+  $("atr-ayuda").textContent = `Este proveedor llegó a tiempo en ${p.pct_entregas_a_tiempo} de cada 100 entregas.`;
+}
+
+function pintarCabecera(){
+  $("sim-intro").textContent = `Elija un repuesto y mueva los supuestos: el dólar, la venta y el atraso del proveedor. El simulador prueba cada alternativa en ${nf(PAR.simulaciones)} futuros posibles y le muestra cuál conviene. La decisión la toma usted.`;
+  $("of-v").innerHTML = `${nf(OF.valor,2)}<small>Bs por dólar</small>`;
+  $("of-src").innerHTML = `Vigente el <b>${fechaDia(OF.fecha)}</b>. Fuente: Banco Central de Bolivia, tabla «Tipo de cambio oficial, diario».`;
+  $("pa-v").innerHTML = `${nf(PA.valor,2)} <small style="font-size:12px;color:var(--ink-3);font-weight:500">Bs</small>`;
+  $("pa-ayuda").textContent = `Promedio de plataformas P2P al ${fecha(PA.fecha)}. Se puede elegir arriba para comparar; el resultado queda marcado.`;
+  const se = D.tc.serie, W = 520, H = 96, vs = se.map(x => x[1]);
+  const lo = Math.floor(Math.min(...vs) * 2) / 2 - .25, hi = Math.ceil(Math.max(...vs) * 2) / 2 + .25, n = se.length - 1;
+  const X = i => 4 + i * (W - 8) / n, Y = v => 6 + (hi - v) * (H - 26) / (hi - lo);
+  const im = vs.indexOf(Math.max(...vs));
+  $("spark").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Tipo de cambio oficial del BCB desde el ${fecha(se[0][0])}: de ${nf(vs[0],2)} a ${nf(vs[n],2)} Bs"><polyline class="l" points="${se.map((x,i) => X(i).toFixed(1) + "," + Y(x[1]).toFixed(1)).join(" ")}"/>
+    <circle cx="${X(n)}" cy="${Y(vs[n])}" r="4" fill="var(--brand)"/>
+    <text x="4" y="${H-2}">${se[0][0].slice(8)}-${MES[+se[0][0].slice(5,7)-1]} · ${nf(vs[0],2)}</text><text x="${W/2}" y="${H-2}" text-anchor="middle">máx. ${nf(vs[im],2)} (${+se[im][0].slice(8)}-${MES[+se[im][0].slice(5,7)-1]})</text><text x="${W-4}" y="${H-2}" text-anchor="end">hoy · ${nf(vs[n],2)}</text></svg>`;
+  $("spark-dias").textContent = `· ${se.length} días`;
+  $("metodo-ul").innerHTML = `<li>Ventas: carparts (Hyndman, Koehler, Ord y Snyder, 2008), ventas mensuales reales de repuestos de auto, re-fechadas a 2022-2026. Proveedores, plazos, costos y stock: SINTÉTICOS.</li>
+    <li>Tipo de cambio: oficial del BCB del día, con fuente y fecha. El paralelo (PRIVADO) solo entra si usted lo elige, y entonces cada resultado lo dice.</li>
+    <li>Puntaje: en cuántos de cada 100 futuros simulados de 90 días cada alternativa deja la mayor ganancia (${nf(PAR.simulaciones)} futuros, semilla ${PAR.semilla}).</li>
+    <li>Costo de cada pedido (trámites y despacho): ${bs(PAR.costo_pedido_bs)}; costo del dinero inmovilizado: ${nf(PAR.costo_capital_mensual*100,1)} % al mes. Los dos son supuestos SINTÉTICOS del equipo.</li>`;
+}
+
+function pintarSimulador(){
+  if(!S.rep){ const al = seguro(alertas); S.rep = al ? al[0].id : D.repuestos[0].repuesto_id; S.prov = REP[S.rep].proveedor_id; }
+  if(!pintado.simulador) pintarCabecera();
+  controles();
+  pintarFijos();
+  recalcular(true);
+}
+
+// Lo que no depende de los deslizadores: cifras clave, pronóstico y tabla de proveedores.
+function pintarFijos(){
+  const r = REP[S.rep], p = PRV[S.prov], f = pronostico(S.rep), dia = ventaDia(S.rep) * (1 + S.venta / 100);
+  const stock = r.stock_al_2026_11_10, alcanza = stock / dia, plazo = p.plazo_normal_dias + S.atraso;
+  const est = alcanza < plazo ? ["bad","Urgente"] : alcanza < plazo + 30 ? ["warn","Margen corto"] : ["ok","Con margen"];
+  const metodo = f.metodo === "SBA" ? "SBA (Croston corregido)" : "media de 12 meses";
+  $("kpis").innerHTML = `
+    <div class="kpi"><div class="t">Stock actual</div><div class="v">${nf(stock)}<small>u</small></div><div class="d">al ${fecha(D.corte)} · ${nf(r.en_transito_al_2026_11_10)} en camino</div><span class="ayuda">Unidades en el almacén hoy.</span></div>
+    <div class="kpi"><div class="t">Venta pronosticada</div><div class="v">${nf(dia,2)}<small>u/día</small></div><div class="d">${nf(dia*30,1)} u al mes · ${metodo}</div><span class="ayuda">Lo que se espera vender por día, con el ajuste de venta elegido.</span></div>
+    <div class="kpi"><div class="t">El stock alcanza para</div><div class="v c-${est[0]}">${alcanza > 999 ? "+999" : nf(alcanza)}<small>días</small><span class="est ${est[0]}">${est[1]}</span></div><div class="d">a ese ritmo de venta</div><span class="ayuda">Días hasta quedarse sin stock si no llega nada.</span></div>
+    <div class="kpi"><div class="t">Entrega del proveedor</div><div class="v">${nf(plazo)}<small>días</small></div><div class="d">${p.plazo_normal_dias} de plazo normal + ${S.atraso} de atraso supuesto</div><span class="ayuda">Días que tarda el proveedor, con el atraso supuesto.</span></div>`;
+  $("situ").innerHTML = (stock === 0 ? "<strong>El stock está en cero.</strong> Las ventas recientes pueden estar subestimadas por falta de mercadería. " : "")
+    + (alcanza < plazo ? "<strong>El stock se agota antes de que llegue un pedido hecho hoy.</strong> Conviene decidir hoy." : alcanza < plazo + 30 ? "<strong>El margen después de la entrega es corto.</strong> Conviene decidir pronto." : "<strong>Hay margen para esperar.</strong> Ninguna alternativa es urgente.");
+  $("h-rep2").textContent = S.rep;
+  $("h-sub").textContent = `${S.rep} · ${nombreProv(p)} (${p.incoterm}) · dólar esperado ${nf(S.tc90,2)} Bs · venta ${S.venta > 0 ? "+" : ""}${S.venta} % · atraso de ${S.atraso} días · precio ${S.sigue ? "sigue al dólar" : "fijo"}`;
+  $("como-txt").innerHTML = `<b>Cómo leer el puntaje.</b> Cada alternativa se probó en ${nf(PAR.simulaciones)} futuros de 90 días, cada uno con un dólar, una venta y una demora distintos, alrededor de los supuestos que usted eligió. El puntaje dice en cuántos de cada 100 futuros esa alternativa dejó más ganancia que las otras tres.`;
+  pintarVentas(f);
+  const provs = seguro(listaProveedores, $("t-prov")); if(!provs) return;
+  $("prv-marca").innerHTML = marcaTc();
+  $("t-prov").innerHTML = `<thead><tr><th>Proveedor</th><th>Origen</th><th>Incoterm<span class="ayuda">Qué gastos de envío ya incluye el precio.</span></th><th>Costo puesto por unidad<span class="ayuda">Precio + flete + aduana, en Bs.</span></th><th>Plazo normal</th><th>Entregas a tiempo<span class="ayuda">De cada 100 pedidos pasados.</span></th></tr></thead><tbody>` +
+    provs.map((q,i) => `<tr data-sel="${q.proveedor_id === S.prov}"><td><label style="display:inline;font-weight:${q.proveedor_id === S.prov ? 600 : 400};font-size:13.5px;color:var(--ink)"><input type="radio" name="prov" value="${q.proveedor_id}"${q.proveedor_id === S.prov ? " checked" : ""}>${esc(nombreProv(q))}</label>${i === 0 ? ' <span class="tag">Menor costo</span>' : ""}${q.proveedor_id === r.proveedor_id ? ' <span class="tag" style="background:#eceae5;color:var(--ink-2)">El de hoy</span>' : ""}</td><td>${esc(q.origen)}</td><td>${q.incoterm}</td><td>${bs(q.costo.total_bs)}</td><td>${q.plazo_normal_dias} días</td><td class="${q.pct_entregas_a_tiempo < 80 ? "c-warn" : ""}">${q.pct_entregas_a_tiempo}</td></tr>`).join("") + "</tbody>";
+}
+
+function pintarVentas(f){
+  // El viewBox toma el ancho real de la tarjeta: así la letra mide lo mismo en 1920 que en un celular.
+  const se = D.ventas[S.rep], n = se.length, W = Math.max(320, Math.round($("chart-ven").clientWidth || 900)), H = 230, pl = 36, pb = 28, pr = 16;
+  const mx = Math.max(1, ...se.map(x => x[1]), f.unidades_mes) * 1.1;
+  const bw = (W - pl - pr) / (n + 3), X = i => pl + i * bw, Y = v => 8 + (1 - v / mx) * (H - pb - 8);
+  const ticks = [0, Math.round(mx / 2), Math.floor(mx)];
+  const barras = se.map((x,i) => `<rect x="${(X(i) + bw*.15).toFixed(1)}" y="${Y(x[1]).toFixed(1)}" width="${(bw*.7).toFixed(1)}" height="${(H - pb - Y(x[1])).toFixed(1)}"><title>${x[0]}: ${x[1]} u</title></rect>`).join("");
+  const xs = se.map((x,i) => i % 6 === 0 ? `<text x="${X(i) + bw/2}" y="${H-8}" text-anchor="middle">${MES[+x[0].slice(5)-1]} ${x[0].slice(2,4)}</text>` : "").join("");
+  $("chart-ven").innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Ventas mensuales de ${S.rep} y pronóstico de ${nf(f.unidades_mes,1)} unidades por mes">
+    ${ticks.map(t => `<line class="grid" x1="${pl}" x2="${W-pr}" y1="${Y(t)}" y2="${Y(t)}"/><text x="${pl-6}" y="${Y(t)+4}" text-anchor="end">${t}</text>`).join("")}
+    <g class="barras">${barras}</g>
+    <line x1="${X(n - 12)}" x2="${X(n + 3)}" y1="${Y(f.unidades_mes)}" y2="${Y(f.unidades_mes)}" stroke="var(--brand)" stroke-width="2.5"/>
+    <text x="${X(n + 3)}" y="${Y(f.unidades_mes) - 6}" text-anchor="end" fill="var(--brand-dark)" style="fill:var(--brand-dark);font-weight:600">${nf(f.unidades_mes,1)} u/mes</text>
+    ${xs}<text x="${X(n) + bw}" y="${H-8}" text-anchor="middle">sig.</text></svg>`;
+  $("pro-txt").textContent = f.metodo === "SBA"
+    ? `Este repuesto se vende de vez en cuando (${REP[S.rep].tipo_demanda}). Para ese patrón se usa SBA, la versión corregida de Croston, que no sobreestima como un promedio simple.`
+    : "Este repuesto se vende casi todos los meses, así que alcanza con la media de los últimos 12 meses.";
+  $("t-ven").innerHTML = "<thead><tr><th>Mes</th><th>Unidades vendidas</th></tr></thead><tbody>" + se.map(x => `<tr><td>${x[0]}</td><td>${x[1]}</td></tr>`).join("") + "</tbody>";
+}
+
+/* Recalcular: la simulación principal primero (las cuatro alternativas); el dólar de quiebre y la sensibilidad,
+   que corren el motor varias veces, después y en tareas separadas para no trabar la página. Si el usuario vuelve
+   a mover algo antes de que terminen, `gen` cambia y los resultados viejos se descartan. */
+let gen = 0, ultimo = null;
+function recalcular(){
+  const g = ++gen, s = sup();
+  ["c-alts","c-quiebre","c-sens"].forEach(id => $(id).setAttribute("aria-busy","true"));
+  setTimeout(() => {
+    if(g !== gen) return;
+    const R = seguro(() => Motor.simular(D, S.rep, S.prov, s, OPC), $("alts"));
+    $("c-alts").removeAttribute("aria-busy");
+    if(!R) return;
+    ultimo = R; pintarAlternativas(R);
+    setTimeout(() => {
+      if(g !== gen) return;
+      const Q = seguro(() => Motor.quiebreDolar(D, S.rep, S.prov, s, OPC), $("q-cuerpo"));
+      $("c-quiebre").removeAttribute("aria-busy");
+      if(Q !== undefined) pintarQuiebre(Q, s);
+      setTimeout(() => {
+        if(g !== gen) return;
+        const T = seguro(() => Motor.sensibilidad(D, S.rep, S.prov, s, OPC), $("t-cuerpo"));
+        $("c-sens").removeAttribute("aria-busy");
+        if(T) pintarSens(T);
+      }, 0);
+    }, 0);
+  }, 0);
+}
+let tRec = null;
+const recalcularLuego = () => { clearTimeout(tRec); tRec = setTimeout(recalcular, 150); };
+
+function pintarAlternativas(R){
+  const L = ["A","B","C","D"], todasCero = L.every(k => R[k].cantidad === 0);
+  $("alt-marca").innerHTML = marcaTc();
+  $("alts").innerHTML = L.map(k => {
+    const o = R[k], a = ALT[k], mejor = k === R.mejor && !todasCero, sel = S.elegida === k, c = o.costo;
+    const r = o.riesgo_quiebre, rc = r > 30 ? "c-bad" : r > 10 ? "c-warn" : "c-ok";
+    const md = o.margen_dias, mc = md < 0 ? "c-bad" : md < 7 ? "c-warn" : "c-ok";
+    const hoy = Math.ceil(o.cantidad / 2);
+    const desg = k === "D" ? `dos envíos: el trámite se paga dos veces · fábrica ${nf(c.fabrica_bs)}`
+      : `fábrica ${nf(c.fabrica_bs)} · flete ${c.flete_bs > 0 ? nf(c.flete_bs) : "incluido"} · aduana ${nf(c.gastos_bs)}`;
+    return `<article class="alt${mejor ? " mejor" : ""}" data-elegida="${sel}" aria-label="Alternativa ${k}" style="grid-row:span 11">
+      <h3><i>${k}</i>${a.t}${mejor ? '<span class="tag">Gana más veces</span>' : ""}</h3>
+      <p class="que">${a.que}</p>
+      <div class="score"><div class="big">${o.puntaje}<small>de 100</small></div>
+        <div class="lbl">futuros simulados en que deja más ganancia${marcaTc()}<span class="ayuda">Compara alternativas entre sí; no es la probabilidad de acertar.</span></div>
+        <div class="meter" aria-hidden="true"><span style="width:${Math.max(2, o.puntaje)}%"></span></div></div>
+      <dl class="dato"><dt>Cantidad a pedir<span class="ayuda">Unidades que entran en este pedido.</span></dt><dd>${o.cantidad === 0 ? "Nada por ahora" : nf(o.cantidad) + (o.cantidad === 1 ? " unidad" : " unidades")}${k === "D" && o.cantidad > 0 ? `<small>${nf(hoy)} hoy y ${nf(o.cantidad - hoy)} en 30 días</small>` : ""}</dd></dl>
+      <dl class="dato"><dt>Costo puesto en Santa Cruz<span class="ayuda">Lo que paga hasta tener el repuesto en el almacén.</span></dt><dd>${bs(c.total_bs)}<small>${o.cantidad ? desg : "sin pedido"}</small></dd></dl>
+      <dl class="dato"><dt>Margen después de la entrega<span class="ayuda">Días de venta que quedan cubiertos cuando llega el pedido.</span></dt><dd class="${mc}">${md < 0 ? "Falta stock" : nf(md) + " días"}<small>${md < 0 ? "se pierden " + nf(-md) + " días de venta" : "de venta cubiertos"}</small></dd></dl>
+      <dl class="dato"><dt>Riesgo de quedarse sin stock<span class="ayuda">En cuántos futuros de cada 100 se agota antes de reponer.</span></dt><dd><span class="${rc}">${r} de 100</span><small>futuros simulados · ${nf(o.unidades_perdidas,1)} u perdidas en promedio</small></dd></dl>
+      <dl class="dato"><dt>Dinero inmovilizado<span class="ayuda">Dinero guardado en stock que no está disponible en caja.</span></dt><dd>${bs(o.capital_inmovilizado_bs)}<small>se vende en ${nf(o.dias_venta_capital)} días</small></dd></dl>
+      <dl class="dato"><dt>Ganancia esperada en 90 días<span class="ayuda">Ventas menos costos, en promedio de los futuros simulados.</span></dt><dd>${bs(o.ganancia_media_bs)}<small>en un mal escenario (1 de cada 10): ${bs(o.ganancia_p10_bs)}</small></dd></dl>
+      <div class="porque"><div class="lt">¿Por qué esta alternativa?</div><p>${a.por}</p><div class="tools">${a.t2.map(x => TOOL[x]).join("")}${TOOL.sim}</div></div>
+      <button class="elegir" type="button" data-alt="${k}" aria-pressed="${sel}">${sel ? "Elegida ✓" : "Elegir esta"}</button>
+    </article>`;
+  }).join("");
+  $("alts-nota").textContent = todasCero
+    ? "Con el stock y lo que viene en camino no hace falta pedir hoy: las cuatro alternativas piden cero. Vuelva a mirar cuando el stock baje al punto de pedido."
+    : `La cantidad de cada alternativa cubre la venta esperada durante la entrega, con el atraso supuesto, más los días de cobertura elegidos. El costo usa el dólar de hoy (${nf(tcHoy(),2)} Bs); lo que se paga a los 30 días, el dólar simulado.`;
+}
+
+function pintarQuiebre(Q, s){
+  $("q-marca").innerHTML = marcaTc();
+  if(Q === null){
+    const m = ultimo ? ultimo.mejor : "";
+    $("q-txt").textContent = "Entre 9 y 15 Bs por dólar la mejor alternativa no cambia.";
+    $("q-cuerpo").innerHTML = `<p class="nota-sit" style="margin-top:6px"><strong>Para ${S.rep}:</strong> ${m ? `gana la alternativa ${m} (${ALT[m].t.toLowerCase()}) con cualquier dólar entre 9 y 15 Bs, así que la decisión no depende de adivinar el dólar.` : "la decisión no depende del dólar."}</p>`;
+    return;
+  }
+  const pos = v => (Math.min(15, Math.max(9, v)) - 9) / 6 * 100, q = Q.valor, A = ALT[Q.antes].t.toLowerCase(), B = ALT[Q.despues].t.toLowerCase();
+  // Si «hoy» y «su supuesto» quedan muy cerca, la etiqueta del supuesto sube un renglón para no pisarse.
+  const cerca = Math.abs(pos(s.tc_base) - pos(s.tc_90)) < 14;
+  $("q-txt").textContent = `Por debajo de este dólar conviene ${A}. Por encima, conviene ${B}.`;
+  const dist = q - s.tc_base;
+  $("q-cuerpo").innerHTML = `<div class="linea" role="img" aria-label="Dólar de quiebre ${nf(q,2)} Bs; hoy ${nf(s.tc_base,2)}; su supuesto ${nf(s.tc_90,2)}">
+      <div class="zona za" style="left:0;width:${pos(q)}%"></div><div class="zona zc" style="left:${pos(q)}%;right:0"></div>
+      <span class="zl" style="left:0">Gana ${Q.antes} · ${A}</span><span class="zl" style="right:0;text-align:right">Gana ${Q.despues} · ${B}</span>
+      <div class="marca" style="left:${pos(s.tc_base)}%"><span>hoy ${nf(s.tc_base,2)}</span></div>
+      <div class="marca q" style="left:${pos(q)}%"><span>quiebre ${nf(q,2)}</span></div>
+      <div class="marca su${cerca ? " alto" : ""}" style="left:${pos(s.tc_90)}%"><span>su supuesto ${nf(s.tc_90,2)}</span></div>
+      <span class="eje" style="left:0">9</span><span class="eje" style="left:100%">15 Bs</span>
+    </div>
+    <p class="nota-sit" style="margin-top:6px"><strong>Para ${S.rep}:</strong> si cree que el dólar pasará de <strong>${nf(q,2)} Bs</strong> en 90 días, conviene ${B}. ${Math.abs(dist) < 0.005 ? "Hoy está justo en ese punto." : `Hoy está a ${nf(Math.abs(dist),2)} Bs ${dist > 0 ? "por debajo" : "por encima"} de ese punto.`}</p>`;
+}
+
+const SUP = {dolar:["Dólar en 90 días", (a,b) => `de ${nf(a)} a ${nf(b)} Bs`], venta:["Venta", (a,b) => `de ${a > 0 ? "+" : ""}${nf(a)} % a ${b > 0 ? "+" : ""}${nf(b)} %`], atraso:["Atraso del proveedor", (a,b) => `de ${nf(a)} a ${nf(b)} días`]};
+function pintarSens(T){
+  $("t-marca").innerHTML = marcaTc();
+  const mx = Math.max(...T.map(x => Math.abs(x.rango_bs)), 1);
+  const fr = {dolar:"el dólar", venta:"la venta", atraso:"el atraso del proveedor"};
+  $("t-cuerpo").innerHTML = T.map(x => `<div class="fila"><span>${SUP[x.supuesto][0]}<span class="ayuda">${SUP[x.supuesto][1](x.de, x.a)}</span></span><div class="bar" style="width:${Math.max(1, Math.abs(x.rango_bs) / mx * 100)}%"></div><span class="n">${bs(Math.abs(x.rango_bs))}</span></div>`).join("")
+    + `<p class="nota">En este repuesto, lo que más mueve la ganancia es ${fr[T[0].supuesto]}${T[0].supuesto === "dolar" ? "" : `, más que ${fr[T[1].supuesto]}`}. Vigílelo primero.</p>`;
+}
+
+/* Eventos del simulador */
+$("f-cat").addEventListener("change", e => { S.cat = e.target.value; S.elegida = null; controles(); pintarFijos(); recalcular(); });
+$("f-rep").addEventListener("change", e => { S.rep = e.target.value; S.prov = REP[S.rep].proveedor_id; S.elegida = null; controles(); pintarFijos(); recalcular(); });
+$("f-prov").addEventListener("change", e => { S.prov = e.target.value; etiquetas(); pintarFijos(); recalcular(); });
+$("t-prov").addEventListener("change", e => { if(e.target.name === "prov"){ S.prov = e.target.value; $("f-prov").value = S.prov; etiquetas(); pintarFijos(); recalcular(); } });
+$("seg-sigue").addEventListener("click", e => { const c = e.target.closest(".chip"); if(!c) return; S.sigue = c.dataset.v === "1"; document.querySelectorAll("#seg-sigue .chip").forEach(b => b.setAttribute("aria-pressed", String(b === c))); pintarFijos(); recalcular(); });
+$("tcsel").addEventListener("click", e => {
+  const c = e.target.closest(".chip"); if(!c) return;
+  S.tcModo = c.dataset.tc; AL_TC = null;
+  document.querySelectorAll("#tcsel .chip").forEach(b => b.setAttribute("aria-pressed", String(b === c)));
+  $("tcotro").hidden = S.tcModo !== "otro"; if(S.tcModo === "otro") $("f-otro").focus();
+  etiquetas(); pintarFijos(); recalcular();
+});
+$("f-otro").addEventListener("input", e => { const v = parseFloat(e.target.value); if(v >= 5 && v <= 20){ S.tcOtro = v; AL_TC = null; etiquetas(); recalcularLuego(); } });
+$("s-tc").addEventListener("input", e => { S.tc90 = +e.target.value; etiquetas(); pintarFijos(); recalcularLuego(); });
+$("s-ven").addEventListener("input", e => { S.venta = +e.target.value; etiquetas(); pintarFijos(); recalcularLuego(); });
+$("s-atr").addEventListener("input", e => { S.atraso = +e.target.value; etiquetas(); pintarFijos(); recalcularLuego(); });
+$("alts").addEventListener("click", e => {
+  const b = e.target.closest(".elegir");
+  if(b){ S.elegida = S.elegida === b.dataset.alt ? null : b.dataset.alt; if(ultimo) pintarAlternativas(ultimo); return; }
+});
+document.addEventListener("click", e => { const t = e.target.closest("[data-ir]"); if(t) $(t.dataset.ir).scrollIntoView({behavior:"smooth", block:"start"}); });
+$("b-reset").addEventListener("click", () => { Object.assign(S, INI, {elegida:null, cat:"", prov:REP[S.rep].proveedor_id}); AL_TC = null; controles(); pintarFijos(); recalcular(); });
+
+/* ==================== PROVEEDORES ==================== */
+function pintarProveedoresVista(){
+  if(!S.pvRep) S.pvRep = S.rep || (seguro(alertas) || [{id:D.repuestos[0].repuesto_id}])[0].id;
+  $("pv-rep").innerHTML = D.repuestos.map(r => `<option value="${r.repuesto_id}">${r.repuesto_id} · carparts ${r.codigo_carparts} · ${r.tipo_demanda} ${r.clase_abc}</option>`).join("");
+  $("pv-rep").value = S.pvRep;
+  const f = seguro(() => Motor.compararProveedores(D, S.pvRep, tcHoy()), $("t-pv")); if(!f) return;
+  const r = REP[S.pvRep], max = f[f.length - 1].costo.total_bs;
+  $("pv-tit").innerHTML = `${S.pvRep} · costo puesto en Santa Cruz con ${S.tcModo === "oficial" ? "el dólar oficial (" + nf(OF.valor,2) + ")" : "el dólar elegido (" + nf(tcHoy(),2) + ")"}${marcaTc()}`;
+  $("t-pv").innerHTML = `<thead><tr><th>Proveedor</th><th>Origen</th><th>Incoterm<span class="ayuda">qué gastos ya incluye el precio</span></th><th>Costo puesto<span class="ayuda">fábrica + flete + aduana, en Bs</span></th><th>Plazo normal</th><th>Variación del plazo<span class="ayuda">cuántos días puede correrse</span></th><th>A tiempo<span class="ayuda">de cada 100 entregas</span></th></tr></thead><tbody>` +
+    f.map((p,i) => `<tr${i === 0 ? ' data-sel="true"' : ""}><td><b>${esc(nombreProv(p))}</b>${i === 0 ? ' <span class="tag">Menor costo</span>' : ""}${p.proveedor_id === r.proveedor_id ? ' <span class="tag" style="background:#eceae5;color:var(--ink-2)">El de hoy</span>' : ""}</td><td>${esc(p.origen)}</td><td>${p.incoterm}</td><td>Bs ${nf(p.costo.total_bs,2)}<span class="barra" style="width:${Math.round(p.costo.total_bs / max * 100)}%"></span></td><td>${p.plazo_normal_dias} d</td><td>± ${p.desvio_plazo_dias} d</td><td class="${p.pct_entregas_a_tiempo < 80 ? "c-warn" : ""}">${p.pct_entregas_a_tiempo}</td></tr>`).join("") + "</tbody>";
+  const hoy = f.find(p => p.proveedor_id === r.proveedor_id), lentos = f.filter(p => p.pct_entregas_a_tiempo < 80).length;
+  $("pv-nota").innerHTML = `<strong>Lo que se ve al comparar:</strong> el más barato puesto en Santa Cruz es ${esc(nombreProv(f[0]))}, Bs ${nf(f[0].costo.total_bs,2)} por unidad${hoy && hoy !== f[0] ? `; el proveedor de hoy cuesta Bs ${nf(hoy.costo.total_bs - f[0].costo.total_bs,2)} más` : hoy === f[0] ? ", y es el proveedor de hoy" : ""}. ${lentos ? `Ojo con los ${lentos} que llegan a tiempo menos de 80 de cada 100 veces: el simulador les suma el riesgo de atraso.` : ""}`;
+}
+$("pv-rep").addEventListener("change", e => { S.pvRep = e.target.value; pintarProveedoresVista(); });
+
+/* ==================== PLAN CON PRESUPUESTO ==================== */
+function pintarPlan(){
+  const al = seguro(alertas, $("t-plan")); if(!al) return;
+  if(S.presu === null){ // por defecto, la mitad de lo que costaría pedir todo lo urgente, redondeado a 1.000
+    const urg = al.filter(a => a.est < 2).reduce((s,a) => s + a.costo_bs, 0);
+    S.presu = Math.max(1000, Math.round(urg / 2 / 1000) * 1000);
+  }
+  $("f-presu").value = S.presu;
+  $("presu-ayuda").innerHTML = `En bolivianos, con el dólar ${S.tcModo === "oficial" ? "oficial de hoy" : "elegido"}.${marcaTc()}`;
+  const filas = seguro(() => Motor.planPresupuesto(al, S.presu), $("t-plan")); if(!filas) return;
+  const total = filas.length ? filas[filas.length - 1].acumulado_bs : 0, usado = filas.filter(f => f.alcanza).reduce((s,f) => s + f.costo_bs, 0);
+  $("acum").style.width = (S.presu > 0 ? Math.min(100, usado / S.presu * 100) : 0) + "%";
+  $("usado-txt").textContent = `${bs(usado)} de ${bs(S.presu)}. Pedir todo costaría ${bs(total)}.`;
+  $("t-plan").innerHTML = `<thead><tr><th>Orden</th><th style="text-align:left">Repuesto</th><th style="text-align:left">Por qué ahora<span class="ayuda">días que faltan para el punto de pedido</span></th><th>Cantidad</th><th>Costo puesto</th><th>Acumulado</th></tr></thead><tbody>` +
+    filas.map((a,i) => `<tr${a.alcanza ? "" : ' class="fuera"'}><td>${i + 1}</td><td style="text-align:left"><b>${a.id}</b><span class="ayuda">clase ${REP[a.id].clase_abc}</span></td><td style="text-align:left">${a.est === 2 ? '<span class="insignia si">Puede esperar</span>' : insignia(a.est)} ${a.margen_dias <= 0 ? "ya está en el punto de pedido" : nf(a.margen_dias) + " días para el punto de pedido"}</td><td>${nf(a.cantidad_sugerida)}</td><td>${bs(a.costo_bs)}</td><td>${bs(a.acumulado_bs)}${a.alcanza ? "" : ' <span class="insignia na">No alcanza</span>'}</td></tr>`).join("") + "</tbody>";
+}
+let tPresu = null;
+$("f-presu").addEventListener("input", e => { const v = parseFloat(e.target.value); if(v >= 0){ clearTimeout(tPresu); tPresu = setTimeout(() => { S.presu = v; pintarPlan(); }, 150); } });
+
+/* ==================== ¿QUÉ HUBIERA PASADO? ==================== */
+const POL = [["lo_justo","Reponer lo justo","Cada mes, pedir solo lo que cubre la venta durante el plazo."],["cubrir_60","Cubrir 60 días","Cada pedido suma dos meses de venta."],["dos_pedidos","Dividir en dos pedidos","Lo de cubrir 60 días, en dos envíos separados por un mes."]];
+let PASADO = null;
+function pintarPasado(){
+  if(!PASADO) PASADO = seguro(() => POL.map(p => Motor.pasado(D, p[0])), $("bt"));
+  if(!PASADO) return;
+  const g = PASADO.map(x => x.ganancia_bs), im = g.indexOf(Math.max(...g)), ip = g.indexOf(Math.min(...g));
+  $("bt").innerHTML = POL.map((p,i) => { const x = PASADO[i]; return `<div class="col${i === im ? " gana" : ""}"><h3>${p[1]}${i === im ? ' <span class="tag">Mejor resultado</span>' : ""}</h3><p class="que">${p[2]}</p>
+    <dl class="dato"><dt>Ventas perdidas<span class="ayuda">Unidades pedidas por clientes sin stock.</span></dt><dd>${nf(x.ventas_perdidas)} u</dd></dl>
+    <dl class="dato"><dt>Dinero inmovilizado promedio<span class="ayuda">Dinero en el almacén, mes a mes.</span></dt><dd>${bs(x.capital_promedio_bs)}</dd></dl>
+    <dl class="dato"><dt>Pedidos hechos<span class="ayuda">Cada pedido paga flete y trámites.</span></dt><dd>${nf(x.pedidos)}</dd></dl>
+    <dl class="dato"><dt>Ganancia en 12 meses<span class="ayuda">Ventas menos compras y costo del capital.</span></dt><dd>${bs(x.ganancia_bs)}</dd></dl></div>`; }).join("");
+  const m = PASADO[im], pe = PASADO[ip];
+  $("bt-nota").innerHTML = `<strong>Lo que enseña:</strong> con las ventas que de verdad ocurrieron, «${POL[im][1].toLowerCase()}» dejó ${bs(m.ganancia_bs)}, ${bs(m.ganancia_bs - pe.ganancia_bs)} más que «${POL[ip][1].toLowerCase()}», con ${nf(m.ventas_perdidas)} unidades perdidas frente a ${nf(pe.ventas_perdidas)}.`;
+}
+
+/* ==================== CLASIFICACIÓN ==================== */
+const TIPO = {intermitente:["Intermitente","var(--s1)","Se vende de vez en cuando, en cantidades parecidas. Pronóstico: SBA (Croston corregido)."],
+  irregular:["Irregular","var(--s2)","De vez en cuando y en cantidades muy distintas. Necesita más stock de reserva."],
+  suave:["Suave","var(--s3)","Se vende casi todos los meses, parejo. Un promedio alcanza."],
+  erratica:["Errática","#7a7f87","Casi todos los meses pero con saltos grandes. En carparts no aparece."]};
+function pintarClasificacion(){
+  if(pintado.clasificacion) return;  // no depende del dólar ni de los supuestos
+  const P = D.clasificacion.puntos, C = D.clasificacion.conteo, tot = Object.values(C).reduce((a,b) => a + b, 0), clas = P.length;
+  // Igual que el gráfico de ventas: el viewBox mide lo que mide la caja, para que la letra no se achique en el celular.
+  const W = Math.max(320, Math.round($("chart-cl").clientWidth || 640)), H = Math.round(Math.min(380, Math.max(280, W * .56))), pl = 46, pb = 36, XM = 26, YM = 4;
+  const x = a => pl + Math.log(Math.min(a, XM)) / Math.log(XM) * (W - pl - 10), y = c => 10 + (1 - Math.min(c, YM) / YM) * (H - pb - 10);
+  // Se dibuja primero lo más numeroso para que los grupos chicos queden encima y se vean.
+  const orden = ["intermitente","irregular","suave"];
+  const pts = orden.map(t => P.filter(p => p[2] === t).map(([a,c]) => `<circle cx="${x(a).toFixed(1)}" cy="${y(c).toFixed(1)}" r="2.6" fill="${TIPO[t][1]}" fill-opacity=".55"/>`).join("")).join("");
+  const r30 = D.repuestos.map(r => `<circle class="pt30" cx="${x(r.adi).toFixed(1)}" cy="${y(r.cv2).toFixed(1)}" r="5"><title>${r.repuesto_id}: ADI ${nf(r.adi,2)}, CV² ${nf(r.cv2,2)}</title></circle>`).join("");
+  $("cl-intro").textContent = `Cada punto es uno de los ${nf(tot)} repuestos de carparts. Según cada cuánto se vende y cuánto varía la cantidad, cae en un tipo; cada tipo pide una forma distinta de pronosticar y de comprar.`;
+  $("chart-cl").innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Dispersión de ${nf(clas)} repuestos según ADI y CV², con los cortes 1,32 y 0,49">
+    <line class="grid" x1="${x(1.32)}" x2="${x(1.32)}" y1="10" y2="${H-pb}" stroke-dasharray="4 3" style="stroke:var(--ink-3)"/><line class="grid" x1="${pl}" x2="${W-10}" y1="${y(.49)}" y2="${y(.49)}" stroke-dasharray="4 3" style="stroke:var(--ink-3)"/>
+    ${pts}${r30}<text x="${x(1.32)+4}" y="22">ADI 1,32</text><text x="${W-12}" y="${y(.49)-6}" text-anchor="end">CV² 0,49</text>
+    ${[1,2,5,10,25].map(v => `<text x="${x(v)}" y="${H-16}" text-anchor="middle">${v}</text>`).join("")}<text x="${(W+pl)/2}" y="${H-2}" text-anchor="middle" class="lbl">Cada cuántos meses se vende (ADI)</text>
+    ${[0,1,2,3,4].map(v => `<text x="${pl-6}" y="${y(v)+4}" text-anchor="end">${v}</text>`).join("")}<text transform="translate(12 ${(H-pb)/2}) rotate(-90)" text-anchor="middle" class="lbl">Variación de la cantidad (CV²)</text></svg>`;
+  $("leg-cl").innerHTML = orden.map(t => `<span><i class="sw" style="background:${TIPO[t][1]}"></i>${TIPO[t][0]} · ${nf(C[t] || 0)}</span>`).join("") + '<span><i class="sw" style="background:#fff;border:1.5px solid var(--graphite);border-radius:50%"></i>Los 30 del simulador</span>';
+  $("cuad").innerHTML = ["intermitente","irregular","suave","erratica"].map(t => `<div><span class="lab">${TIPO[t][0]}</span><b>${nf(C[t] || 0)}</b><span class="ayuda">${TIPO[t][2]}</span></div>`).join("");
+  const pi = Math.round((C.intermitente || 0) / clas * 100);
+  $("cl-nota").innerHTML = `<strong>Lo que descubre:</strong> ${pi} de cada 100 repuestos clasificados son intermitentes. Pronosticarlos con un promedio simple los sobreestima; por eso el simulador usa una técnica distinta para cada tipo.`;
+  const sinc = C["sin clasificar"] || 0;
+  $("cl-pie").textContent = `${nf(clas)} de ${nf(tot)} series (${sinc} tienen menos de dos meses con venta y no se clasifican). Valores de ADI mayores que 26 o de CV² mayores que 4 se dibujan en el borde. Ventas REALES de carparts; cortes de Syntetos y Boylan (1,32 y 0,49). Cálculo del equipo (SCRUM-55).`;
+  const med = arr => { const s = arr.slice().sort((a,b) => a - b), n = s.length; return n ? (n % 2 ? s[(n-1)/2] : (s[n/2-1] + s[n/2]) / 2) : null; };
+  $("t-cl").innerHTML = `<thead><tr><th>Tipo</th><th>Repuestos</th><th>De cada 100</th><th>ADI mediano</th><th>CV² mediano</th><th>Regla</th></tr></thead><tbody>` +
+    ["suave","erratica","intermitente","irregular"].map(t => { const g = P.filter(p => p[2] === t), rg = {suave:"ADI ≤ 1,32 y CV² ≤ 0,49", erratica:"ADI ≤ 1,32 y CV² > 0,49", intermitente:"ADI > 1,32 y CV² ≤ 0,49", irregular:"ADI > 1,32 y CV² > 0,49"}[t];
+      return `<tr><td>${TIPO[t][0]}</td><td>${nf(C[t] || 0)}</td><td>${nf((C[t] || 0) / clas * 100, 1)}</td><td>${g.length ? nf(med(g.map(p => p[0])),2) : "—"}</td><td>${g.length ? nf(med(g.map(p => p[1])),2) : "—"}</td><td>${rg}</td></tr>`; }).join("")
+    + `<tr><td>Sin clasificar</td><td>${nf(sinc)}</td><td>—</td><td>—</td><td>—</td><td>menos de dos meses con venta</td></tr></tbody>`;
+}
+
+let tRz = null;
+window.addEventListener("resize", () => { clearTimeout(tRz); tRz = setTimeout(() => { if(S.vista === "simulador") pintarVentas(pronostico(S.rep));
+  if(S.vista === "clasificacion"){ pintado.clasificacion = false; pintarClasificacion(); pintado.clasificacion = true; } }, 150); });
+
+/* ---- Arranque ---- */
+ir(location.hash.slice(1) || "alertas");
+})();
+</script>
+</body>
+</html>
