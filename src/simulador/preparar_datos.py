@@ -4,6 +4,8 @@ Junta en un solo JSON lo que la app necesita y que ya existe en el repositorio:
 - los 30 repuestos, los 10 proveedores, las ventas mensuales y la clasificación de las 2.674 series (SCRUM-55);
 - el tipo de cambio oficial diario del BCB (SCRUM-54);
 - el dólar paralelo del 23-10-2026 (HU-32), que se muestra marcado PRIVADO;
+- el catálogo ILUSTRATIVO de SCRUM-74 (nombre, categoría, descripción e imagen de cada repuesto) y la fuente de
+  cada foto; las fotos las incrusta generar_app.py;
 - los parámetros del motor. `costo_pedido_bs` y `costo_capital_mensual` son SINTÉTICOS (supuestos del equipo).
 
 No calcula nada del motor: solo lee, convierte números y ordena.
@@ -23,6 +25,8 @@ BASE = Path(__file__).resolve().parents[2]
 S55 = BASE / "data/processed/scrum-55"
 TCO = BASE / "data/processed/scrum-54/tco_bcb_diario.csv"
 PARALELO = BASE / "data/raw/hu-32/insumos_publicos/puntos_documentados.csv"
+CATALOGO = BASE / "data/processed/scrum-74/catalogo.csv"
+FUENTES_IMG = BASE / "data/raw/scrum-74/fuentes_imagenes.csv"
 SALIDA = BASE / "data/processed/simulador/datos_app.json"
 
 
@@ -105,6 +109,8 @@ def preparar():
         "proveedores": proveedores,
         "ventas": dict(sorted(ventas.items())),
         "clasificacion": {"puntos": puntos, "conteo": dict(sorted(conteo.items()))},
+        "catalogo": {"repuestos": sorted(leer(CATALOGO), key=lambda r: r["repuesto_id"]),
+                     "fuentes": leer(FUENTES_IMG)},
         "parametros": PARAMETROS,
     }
 

@@ -17,7 +17,7 @@ sys.path.insert(0, str(SRC))
 import preparar_datos as pd  # noqa: E402
 import generar_app as ga  # noqa: E402
 
-CLAVES = {"generado", "corte", "tc", "repuestos", "proveedores", "ventas", "clasificacion", "parametros"}
+CLAVES = {"generado", "corte", "tc", "repuestos", "proveedores", "ventas", "clasificacion", "catalogo", "parametros"}
 
 # Textos que no pueden aparecer en la app (ver contrato y pedido de claudia-mineria del 12-nov-2026).
 PROHIBIDOS = [
@@ -99,8 +99,8 @@ class ArmadoApp(unittest.TestCase):
         self.assertIn("data:image/jpeg;base64,", h)
         self.assertEqual(h.lower().count("</script>"), 3)  # datos, motor y código de la app
 
-    def test_ocho_vistas_sin_mis_decisiones(self):
-        for v in ["alertas", "simulador", "proveedores", "plan", "backtest", "clasificacion", "temporadas", "cotizar"]:
+    def test_nueve_vistas_sin_mis_decisiones(self):
+        for v in ["alertas", "simulador", "proveedores", "plan", "backtest", "clasificacion", "temporadas", "catalogo", "cotizar"]:
             self.assertIn(f'id="v-{v}"', self.html)
         self.assertNotIn("Mis decisiones", self.html)
 
