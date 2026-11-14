@@ -7,11 +7,34 @@ Encuadre (decisión de Sam del 13-11-2026): el portal es una **fuente de datos d
 Una cotización guardada dice qué pidió un cliente aunque no haya comprado. Las que no se convierten en venta son
 demanda que no se cerró, y las que sí se convierten alimentan el tablero de clientes (SCRUM-76).
 
+## Dos entradas: la tienda y el área de la empresa (mejora v2, 14-11-2026)
+
+| Dirección | Para quién | Qué es |
+|---|---|---|
+| `/` | Clientes, sin cuenta | Tienda pública: mejora del sitio actual de MULTIPARTES (www.multipartes.com.bo) |
+| `/empresa` | Importador y proveedor, con usuario | La app del simulador y del portal; sin sesión solo muestra la pantalla de entrada |
+
+La tienda (`src/tienda/`, generada en `reports/tienda/MULTIPARTES_Tienda.html`) **mantiene** lo del sitio actual: barra
+verde con el logotipo, marcas de vehículos, «¿Por qué elegirnos?», los nueve rubros con sus fotos, los catálogos PDF,
+WhatsApp y redes. **Mejora** la portada (el carrusel del sitio se veía vacío), los rubros (los que tienen productos
+llevan al catálogo), los distribuidores (en texto, porque los logos del sitio no cargan) y suma sucursales y horario
+a la misma página. **Agrega** el catálogo con precio y stock, el cotizador (en la portada y en su sección) y el acceso
+a la empresa.
+
+Todo el texto real sale de `data/raw/tienda/contenido_sitio.json`, copiado del sitio el 14-11-2026, y las imágenes
+de `data/raw/tienda/imagenes/`, con su origen en `fuentes_imagenes.csv`. Lo que hay que confirmar con MULTIPARTES
+va marcado «A CONFIRMAR» en la página: el WhatsApp de la portada (se usa el de ventas de Casa Matriz, 690 08189) y la
+cantidad de sucursales («Nosotros» dice cinco; «Contacto» lista seis más Accesorios, y se muestra lo de Contacto).
+
+Como usa la marca, los teléfonos y las sucursales reales pero con precios de prueba, la tienda dice siempre, en una
+franja fija arriba, que es un prototipo académico y no el sitio oficial, con el enlace al sitio oficial. Además pide
+no ser indexada (`<meta name="robots">` y la cabecera `X-Robots-Tag` en las dos páginas).
+
 ## Quién ve qué
 
 | Rol | Cómo entra | Qué ve |
 |---|---|---|
-| Cliente | Sin cuenta | Catálogo y cotizador; cada cotización que emite queda guardada |
+| Cliente | Sin cuenta, en la tienda (`/`) | Catálogo y cotizador; cada cotización que emite queda guardada |
 | Importador | Usuario `importador` | Todo el simulador, más cotizaciones guardadas y carga de repuestos y clientes |
 | Proveedor | Usuario `proveedor` | Solo sus repuestos: estado, stock y cuánto se le pediría |
 

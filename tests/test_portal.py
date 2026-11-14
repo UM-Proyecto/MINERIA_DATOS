@@ -38,7 +38,7 @@ class Portal(unittest.TestCase):
         liv = Path(cls.tmp.name) / "liviano"
         ap.main(["--salida", str(liv), "--liviano"])
         out = subprocess.run(["node", "--no-warnings", str(RAIZ / "tests/_portal_runner.mjs"), str(Path(cls.tmp.name) / "_worker.js"),
-                              str(liv / "_worker.js"), str(ap.DATOS), str(ap.APP)],
+                              str(liv / "_worker.js"), str(ap.DATOS), str(ap.APP), str(ap.TIENDA)],
                              capture_output=True, text=True, check=True).stdout
         cls.r = json.loads(out)
         with open(ap.DATOS, encoding="utf-8") as f:
@@ -51,9 +51,14 @@ class Portal(unittest.TestCase):
     def st(self, k):
         return self.r[k]["status"]
 
-    def test_sirve_la_app_como_portal(self):
+    def test_tienda_en_la_raiz_y_empresa_aparte(self):
         self.assertEqual(self.st("html"), 200)
-        self.assertTrue(self.r["html"]["cuerpo"]["portal"])
+        self.assertEqual(self.r["html"]["cuerpo"], {"portal": True, "tienda": True, "empresa": False})
+        for k in ("empresa", "empresa_barra"):
+            self.assertEqual(self.r[k]["cuerpo"], {"portal": True, "tienda": False, "empresa": True}, k)
+        self.assertEqual(self.st("pagina_rara"), 404)
+        self.assertEqual(self.r["html"]["robots"], "noindex, nofollow")
+        self.assertEqual(self.r["empresa"]["robots"], "noindex, nofollow")
         self.assertEqual(self.st("post_raiz"), 405)
         self.assertEqual(self.st("no_existe"), 404)
 
@@ -139,7 +144,8 @@ class Portal(unittest.TestCase):
     def test_liviano_lee_datos_y_app_de_la_rama(self):
         self.assertEqual(self.st("liv_caido"), 503)
         self.assertEqual(self.st("liv_html"), 200)
-        self.assertTrue(self.r["liv_html"]["cuerpo"]["portal"])
+        self.assertEqual(self.r["liv_html"]["cuerpo"], {"portal": True, "tienda": True, "empresa": False})
+        self.assertEqual(self.r["liv_empresa"]["cuerpo"], {"portal": True, "tienda": False, "empresa": True})
         self.assertEqual(self.st("liv_cot"), 201)
         esperado = ref.cotizar(self.d, "REP-0022", 10, 11.65)
         self.assertAlmostEqual(self.r["liv_cot"]["cuerpo"]["total_bs"], esperado["total_bs"], places=6)

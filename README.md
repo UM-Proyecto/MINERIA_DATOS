@@ -104,6 +104,7 @@ aunque no haya comprado.
 | [SCRUM-74](https://fsandoval09.atlassian.net/browse/SCRUM-74) | Catálogo con foto, nombres ILUSTRATIVOS y fotos con licencia libre | [`src/scrum-74`](src/scrum-74) | [`data/raw/scrum-74/fuentes_imagenes.csv`](data/raw/scrum-74/fuentes_imagenes.csv) |
 | [SCRUM-76](https://fsandoval09.atlassian.net/browse/SCRUM-76) | Clientes que más compran, en temporada y fuera de ella (clientes SINTÉTICOS) | [`src/scrum-76`](src/scrum-76) | [`docs/simulador/LEEME.md`](docs/simulador/LEEME.md) |
 | [SCRUM-73](https://fsandoval09.atlassian.net/browse/SCRUM-73), [SCRUM-77](https://fsandoval09.atlassian.net/browse/SCRUM-77) y [SCRUM-78](https://fsandoval09.atlassian.net/browse/SCRUM-78) | Portal con roles: cotizaciones guardadas, carga de repuestos y clientes, vista del proveedor | [`src/portal`](src/portal) | [`docs/portal/LEEME.md`](docs/portal/LEEME.md) |
+| Mejora v2 (14-11-2026) | Tienda pública en `/`, como mejora del sitio actual de MULTIPARTES, y área de la empresa aparte en `/empresa` | [`src/tienda`](src/tienda) | [`docs/portal/LEEME.md`](docs/portal/LEEME.md) |
 
 ## Estructura
 

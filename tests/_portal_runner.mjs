@@ -19,12 +19,13 @@ function d1() {
 }
 
 import { readFileSync } from "node:fs";
-const [LIVIANO, DATOS_LOCAL, HTML_LOCAL] = process.argv.slice(3);
+const [LIVIANO, DATOS_LOCAL, HTML_LOCAL, TIENDA_LOCAL] = process.argv.slice(3);
 let modo = "csv";
 globalThis.fetch = async url => {
   if (modo === "falla") throw new Error("sin red");
   url = String(url);
   if (url.endsWith("/datos_app.json")) return modo === "github_404" ? new Response("no", { status: 404 }) : new Response(readFileSync(DATOS_LOCAL));
+  if (url.endsWith("/MULTIPARTES_Tienda.html")) return modo === "github_404" ? new Response("no", { status: 404 }) : new Response(readFileSync(TIENDA_LOCAL));
   if (url.endsWith(".html")) return modo === "github_404" ? new Response("no", { status: 404 }) : new Response(readFileSync(HTML_LOCAL));
   salida.urls = (salida.urls || []).concat(url.replace(/^https:\/\/raw\.githubusercontent\.com\/UM-Proyecto\/MINERIA_DATOS\//, ""));
   return new Response("fecha,tco_bs_por_usd,fuente,fecha_lectura\n2026-11-13,11.67,x,2026-11-13\n2026-11-14,11.65,x,2026-11-14\n");
@@ -41,14 +42,20 @@ async function pedir(w, env, nombre, metodo, ruta, cuerpo, token, crudo) {
   const r = await w.fetch(new Request("https://portal.prueba" + ruta, { method: metodo, headers: h, body: cuerpo === undefined ? undefined : (typeof cuerpo === "string" ? cuerpo : JSON.stringify(cuerpo)) }), env);
   const t = await r.text();
   let b = t; if (!crudo) { try { b = JSON.parse(t); } catch (e) {} }
-  salida[nombre] = { status: r.status, tipo: r.headers.get("content-type"), cuerpo: crudo ? t.slice(0, 20000) : b };
+  salida[nombre] = { status: r.status, tipo: r.headers.get("content-type"), robots: r.headers.get("x-robots-tag"), cuerpo: crudo ? t.slice(0, 20000) : b };
   return salida[nombre];
 }
 
 const SEC = "x".repeat(40);
 const w = await cargar(), env = { DB: d1(), SECRETO: SEC };
+const marcas = x => ({ portal: String(x).includes("window.PORTAL=1"), tienda: String(x).includes("PROTOTIPO ACADÉMICO"), empresa: String(x).includes('id="v-entrar"') });
 await pedir(w, env, "html", "GET", "/");
-salida.html.cuerpo = { portal: String(salida.html.cuerpo).includes("window.PORTAL=1"), largo: String(salida.html.cuerpo).length };
+salida.html.cuerpo = marcas(salida.html.cuerpo);
+await pedir(w, env, "empresa", "GET", "/empresa");
+salida.empresa.cuerpo = marcas(salida.empresa.cuerpo);
+await pedir(w, env, "empresa_barra", "GET", "/empresa/");
+salida.empresa_barra.cuerpo = marcas(salida.empresa_barra.cuerpo);
+await pedir(w, env, "pagina_rara", "GET", "/otra-cosa");
 await pedir(w, env, "post_raiz", "POST", "/", {});
 await pedir(w, env, "no_existe", "GET", "/api/no-existe");
 await pedir(w, env, "tc", "GET", "/api/tc");
@@ -113,7 +120,9 @@ if (LIVIANO) {
   const l2 = (await import(pathToFileURL(LIVIANO).href + "?v=l2")).default;
   const env2 = { DB: d1(), SECRETO: SEC, FUENTE_REF: "rama-x" };
   await pedir(l2, env2, "liv_html", "GET", "/");
-  salida.liv_html.cuerpo = { portal: String(salida.liv_html.cuerpo).includes("window.PORTAL=1") };
+  salida.liv_html.cuerpo = marcas(salida.liv_html.cuerpo);
+  await pedir(l2, env2, "liv_empresa", "GET", "/empresa");
+  salida.liv_empresa.cuerpo = marcas(salida.liv_empresa.cuerpo);
   await pedir(l2, env2, "liv_cot", "POST", "/api/cotizaciones", { repuesto_id: "REP-0022", cantidad: 10 });
 }
 process.stdout.write(JSON.stringify(salida));

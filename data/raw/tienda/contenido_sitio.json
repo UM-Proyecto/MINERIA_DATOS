@@ -1,0 +1,217 @@
+{
+ "fuente": "https://www.multipartes.com.bo/ (Inicio, Nosotros, Repuestos y Contacto), leído el 2026-11-14",
+ "marca": {
+  "nombre": "MULTIPARTES",
+  "razon_social": "MULTIPARTES SANTA CRUZ S.R.L.",
+  "verde": "#01863e",
+  "verde_oscuro": "#016726",
+  "tipografia": "Poppins"
+ },
+ "quienes_somos": "Multipartes dio inicio a su actividad con una pequeña tienda, alrededor del año 1979; debido al incremento de la demanda de repuestos y al crecimiento del parque automotor del país, fue creciendo a pasos agigantados, siendo una de las más antiguas, con experiencia desde 1980 y actualmente consolidándose como la mayor empresa del rubro a nivel nacional, conocida como LA EMPRESA MULTI-MARCAS, debido a la variedad de stock con el que cuenta.",
+ "oficina": "La oficina central se encuentra ubicada en la Avenida Cristo Redentor Nº 282, Zona Norte, un lugar muy estratégico y de fácil accesibilidad. Además cuenta con cinco sucursales -en diferentes puntos de la ciudad ofreciendo facilidad y mayores vías de acceso a nuestros clientes-.",
+ "mision": "Brindar el servicio más completo en la provisión de repuestos y accesorios para vehículos, en el mercado local y nacional, aportando responsablemente al desarrollo económico de nuestro país.",
+ "vision": "Otorgar al sector automotriz, diferentes opciones en la provisión de sus repuestos y accesorios, ofertándoles piezas originales y alternativas de excelente calidad, según la tendencia del mercado, permitiendo que todos los sectores de la población logren cubrir su necesidad. Reponiendo constantemente el stock, realizando importaciones directas, implementando nuevos servicios y manteniendo la vanguardia en todas las líneas comercializadas. Conformada por un equipo de personas de una gran calidad humana, el cual recibe periódicamente capacitación en las diferentes áreas.",
+ "por_que": [
+  [
+   "Calidad",
+   "Ofrecemos los mejores productos para su vehículo a precio justo."
+  ],
+  [
+   "Más de 40 años de experiencia",
+   "Con experiencia desde 1980, estamos consolidándonos como la mayor empresa del rubro a nivel nacional."
+  ],
+  [
+   "Equipo especializado",
+   "Contamos con un equipo especializado para atenderlo de la mejor manera posible."
+  ],
+  [
+   "Perfección",
+   "Buscamos ofrecer los mejores servicios y productos para la satisfacción de nuestros clientes."
+  ]
+ ],
+ "marcas_vehiculos": [
+  "TOYOTA",
+  "NISSAN",
+  "SUZUKI",
+  "MAZDA",
+  "MITSUBISHI",
+  "HONDA",
+  "HYUNDAI",
+  "KIA",
+  "DAIHATSU",
+  "ISUZU"
+ ],
+ "rubros": [
+  [
+   "Motor",
+   "motor.jpg"
+  ],
+  [
+   "Suspensión/Dirección",
+   "suspension.jpg"
+  ],
+  [
+   "Caja y roster corona, palier, cardan",
+   "caja.jpg"
+  ],
+  [
+   "Sistema eléctrico",
+   "sistema-electrico.jpg"
+  ],
+  [
+   "Frenos y embrague",
+   "frenos.jpg"
+  ],
+  [
+   "Filtros",
+   "filtros-2.jpg"
+  ],
+  [
+   "Piezas de carrocería",
+   "carroceria.jpg"
+  ],
+  [
+   "Retenes, rodamientos, crucetas y correas",
+   "correa.jpg"
+  ],
+  [
+   "Otros artículos",
+   "otros-articulos.jpg"
+  ]
+ ],
+ "catalogos_pdf": [
+  [
+   "Ver productos ARB",
+   "http://www.multipartes.com.bo/wp-content/uploads/2018/08/catalogo_baja.pdf"
+  ],
+  [
+   "Ver promociones",
+   "http://www.multipartes.com.bo/wp-content/uploads/2018/08/catalogo_30.pdf"
+  ]
+ ],
+ "distribuidores": [
+  "EMU",
+  "KYB",
+  "Bilstein",
+  "555",
+  "Aisin",
+  "TRC",
+  "Exedy",
+  "FGM",
+  "Koyo",
+  "TZK",
+  "Advics",
+  "LD",
+  "FBL",
+  "NOK",
+  "Toyo",
+  "Kyosan",
+  "NPW"
+ ],
+ "distribuidores_a_revisar": [
+  "Aisin",
+  "Advics"
+ ],
+ "distribuidores_nota": "Nombres leídos de los archivos de logos del sitio (los logos no cargan). «asisin» y «advios» se leyeron como Aisin y Advics: a confirmar.",
+ "sucursales": [
+  {
+   "nombre": "Casa Matriz",
+   "direccion": "Av. Cristo Redentor Nº 282",
+   "admin": "690 34344",
+   "ventas": [
+    "784 51543",
+    "690 08189"
+   ],
+   "correo": "admin.central@multipartes.com.bo"
+  },
+  {
+   "nombre": "Sucursal Grigotá",
+   "direccion": "Av. Grigotá Nº 281",
+   "admin": "776 11750",
+   "ventas": [
+    "781 87422",
+    "785 25078"
+   ],
+   "correo": "admin.grigota@multipartes.com.bo"
+  },
+  {
+   "nombre": "Sucursal Madre India",
+   "direccion": "Av. El Trompillo Nº 974",
+   "admin": "776 11860",
+   "ventas": [
+    "785 25075",
+    "784 51540"
+   ],
+   "correo": "admin.madreindia@multipartes.com.bo"
+  },
+  {
+   "nombre": "Sucursal Paraguá",
+   "direccion": "Av. Paraguá Nº 3755",
+   "admin": "776 11760",
+   "ventas": [
+    "785 25072",
+    "784 51542"
+   ],
+   "correo": "admin.paragua@multipartes.com.bo"
+  },
+  {
+   "nombre": "Sucursal Doble Vía",
+   "direccion": "Doble Vía a La Guardia (entre 3er y 4to Anillo)",
+   "admin": "750 30707",
+   "ventas": [
+    "785 25079",
+    "784 51541"
+   ],
+   "correo": "katterine.lijeron@multipartes.com.bo"
+  },
+  {
+   "nombre": "Sucursal Virgen de Cotoca",
+   "direccion": "Av. Virgen de Cotoca, entre 4to y 5to Anillo",
+   "admin": "750 20120",
+   "ventas": [
+    "785 25073",
+    "750 20121"
+   ],
+   "correo": "admin.cotoca@multipartes.com.bo"
+  },
+  {
+   "nombre": "Accesorios",
+   "direccion": "Av. Cristo Redentor, Calle El Bi Nº 2014",
+   "admin": "780 00043",
+   "ventas": [
+    "690 53860",
+    "781 87421"
+   ],
+   "correo": "accesorios@multipartes.com.bo"
+  }
+ ],
+ "sucursales_a_revisar": "«Nosotros» dice cinco sucursales; «Contacto» lista seis más la tienda de Accesorios. Se muestra lo de Contacto.",
+ "horario": [
+  "Lunes a viernes 07:45 a 18:30",
+  "Sábados 07:45 a 14:00"
+ ],
+ "whatsapp_portada": {
+  "numero": "690 08189",
+  "enlace": "https://wa.me/59169008189",
+  "a_revisar": "Es el número de ventas de Casa Matriz que figura en Contacto y en Facebook; MULTIPARTES debe confirmar cuál usar."
+ },
+ "redes": [
+  [
+   "Facebook",
+   "https://www.facebook.com/multipartessc"
+  ],
+  [
+   "YouTube",
+   "https://www.youtube.com/@multipartessantacruz9837"
+  ],
+  [
+   "Instagram",
+   "https://www.instagram.com/multipartes_sc/"
+  ],
+  [
+   "TikTok",
+   "https://www.tiktok.com/@multipartessantacruz"
+  ]
+ ],
+ "sitio_oficial": "https://www.multipartes.com.bo/"
+}

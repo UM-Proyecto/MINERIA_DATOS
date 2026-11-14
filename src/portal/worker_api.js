@@ -6,7 +6,7 @@
  * DATOS_INCLUIDOS (datos_app.json) y APP_INCLUIDA (la app generada); en la liviana (--liviano), el servidor lee esos
  * dos archivos del repositorio público en GitHub, en la rama o commit de la variable FUENTE_REF (por defecto main), y
  * los guarda 10 minutos en memoria. Así el portal toma solo el dólar diario que actualiza SCRUM-71. El servidor:
- *  - sirve la app en «/» marcada como portal;
+ *  - sirve la tienda pública en «/» y la app de la empresa en «/empresa», las dos marcadas como portal;
  *  - guarda cada cotización con su número correlativo, recalculada aquí con el motor (no se confía en el precio
  *    que manda el navegador);
  *  - deja al importador cargar repuestos y dar de alta clientes, listar y exportar cotizaciones y marcar las que se
@@ -117,18 +117,19 @@ async function exigir(env, req, rol) {
 
 // ------------------------------------------------------------------ datos y app
 
-let DATOS = null, APP_HTML = null, recursosT = 0;
+let DATOS = null, APP_HTML = null, TIENDA_HTML = null, recursosT = 0;
 async function cargarRecursos(env) {
-  if (typeof DATOS_INCLUIDOS !== "undefined") { DATOS = DATOS_INCLUIDOS; APP_HTML = APP_INCLUIDA; return; }
+  if (typeof DATOS_INCLUIDOS !== "undefined") { DATOS = DATOS_INCLUIDOS; APP_HTML = APP_INCLUIDA; TIENDA_HTML = TIENDA_INCLUIDA; return; }
   if (DATOS && Date.now() - recursosT < 600e3) return;
   const ref = env.FUENTE_REF || "main";
   try {
-    const [d, h] = await Promise.all([fetch(REPO + ref + "/data/processed/simulador/datos_app.json"),
-                                      fetch(REPO + ref + "/reports/simulador/MULTIPARTES_Simulador_Compras.html")]);
-    if (!d.ok || !h.ok) throw new Error("GitHub respondió " + d.status + " y " + h.status);
-    const datos = await d.json(), html = await h.text();
-    if (!datos.repuestos || !html.includes("</head>")) throw new Error("archivos inesperados");
-    DATOS = datos; APP_HTML = html; recursosT = Date.now();
+    const [d, h, t] = await Promise.all([fetch(REPO + ref + "/data/processed/simulador/datos_app.json"),
+                                         fetch(REPO + ref + "/reports/simulador/MULTIPARTES_Simulador_Compras.html"),
+                                         fetch(REPO + ref + "/reports/tienda/MULTIPARTES_Tienda.html")]);
+    if (!d.ok || !h.ok || !t.ok) throw new Error("GitHub respondió " + d.status + ", " + h.status + " y " + t.status);
+    const datos = await d.json(), html = await h.text(), tienda = await t.text();
+    if (!datos.repuestos || !html.includes("</head>") || !tienda.includes("</head>")) throw new Error("archivos inesperados");
+    DATOS = datos; APP_HTML = html; TIENDA_HTML = tienda; recursosT = Date.now();
   } catch (e) {
     // Si ya había una copia, se sigue con ella; si no, se avisa en vez de responder con datos vacíos.
     if (!DATOS) throw new ErrorPedido(503, "No se pudieron leer los datos del portal. Intente de nuevo en un momento.");
@@ -224,7 +225,8 @@ async function api(req, env, url) {
     const db = await base(env);
     return json((await repuestosCargados(db)).map(r => ({
       repuesto_id: r.repuesto_id, nombre: r.nombre, categoria: r.categoria, descripcion: r.descripcion,
-      precio_venta_usd: comoRepuesto(r).precio_venta_usd, stock: r.stock, proveedor_id: r.proveedor_id, fecha_ingreso: r.fecha_ingreso,
+      precio_venta_usd: comoRepuesto(r).precio_venta_usd, costo_unitario_usd: r.costo_unitario_usd, margen_pct: r.margen_pct,
+      stock: r.stock, proveedor_id: r.proveedor_id, fecha_ingreso: r.fecha_ingreso,
     })));
   }
 
@@ -352,10 +354,14 @@ export default {
       await cargarRecursos(env);
       if (url.pathname.startsWith("/api/")) return await api(req, env, url);
       if (req.method !== "GET" && req.method !== "HEAD") return error(405, "Método no permitido.");
-      // La app es la misma para todos; qué pantallas ve cada rol lo decide la sesión, y cada dato guardado lo
-      // protege la API. El marcador PORTAL hace que la app hable con este servidor.
-      const html = APP_HTML.replace("</head>", "<script>window.PORTAL=1</script></head>");
-      return new Response(html, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-cache", "x-content-type-options": "nosniff", "referrer-policy": "same-origin" } });
+      // «/» es la tienda pública (mejora del sitio de MULTIPARTES); «/empresa» es la app del importador y el
+      // proveedor. Qué pantallas ve cada rol lo decide la sesión, y cada dato guardado lo protege la API. El
+      // marcador PORTAL hace que las dos páginas hablen con este servidor. Es un prototipo: no se indexa.
+      const empresa = url.pathname === "/empresa" || url.pathname.startsWith("/empresa/");
+      if (!empresa && url.pathname !== "/" && url.pathname !== "/index.html") return error(404, "No existe esa página.");
+      const html = (empresa ? APP_HTML : TIENDA_HTML).replace("</head>", "<script>window.PORTAL=1</script></head>");
+      return new Response(html, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-cache", "x-content-type-options": "nosniff",
+        "referrer-policy": "same-origin", "x-robots-tag": "noindex, nofollow" } });
     } catch (e) {
       if (e instanceof ErrorPedido) return error(e.status, e.message);
       return error(500, "Error del servidor.");

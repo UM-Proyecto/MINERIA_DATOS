@@ -354,6 +354,24 @@ svg.chart .bm.f{fill:var(--brand)}
 .cot-desg tr.t td{font-weight:700;border-bottom:0}
 .err-in{color:var(--bad);font-size:12.5px;margin-top:6px;min-height:18px}
 @media (max-width:760px){.cot-form,.cot-res{grid-template-columns:1fr}.cot-tot .v{font-size:28px}}
+/* 15. ÁREA DE LA EMPRESA: entrada a pantalla completa y menú agrupado (mejora v2, 14-11-2026) */
+body.entrada .side,body.entrada .topbar{display:none}
+body.entrada .main{margin-left:0;padding:0}
+body.entrada .inner{max-width:none}
+.acc{display:grid;grid-template-columns:1fr 1fr;min-height:100vh}
+.acc-izq{background:var(--side);color:#fff;padding:56px 64px;display:flex;flex-direction:column;gap:14px}
+.acc-izq img{width:200px;height:auto}
+.acc-izq h1{font-size:36px;line-height:1.15;margin:18px 0 0}.acc-izq p{color:var(--side-ink);max-width:460px;margin:0}
+.acc-rol{background:#ffffff14;border:1px solid #ffffff33;border-radius:12px;padding:16px 18px;max-width:460px}
+.acc-rol b{display:block}.acc-rol span{font-size:13px;color:var(--side-ink)}
+.acc-der{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;background:var(--bg)}
+.acc-f{background:#fff;border:1px solid var(--line);border-radius:16px;padding:32px;width:100%;max-width:420px}
+.acc-f h2{margin:0 0 4px}.acc-f .s{color:var(--ink-3);font-size:13px;margin-bottom:6px}
+.acc-cli{font-size:13px;color:var(--ink-3);margin-top:16px;text-align:center}.acc-cli a{color:var(--brand);font-weight:600}
+.acc-volver{align-self:flex-start;color:#fff;font-size:13px;text-decoration:underline;margin-bottom:6px}
+.side .navg{font-size:9.5px;letter-spacing:1.5px;color:var(--side-mute);text-transform:uppercase;margin:14px 12px 4px}
+.sesion a{color:var(--brand-dark);font-weight:600;text-decoration:underline}
+@media (max-width:760px){.acc{grid-template-columns:1fr}.acc-izq{padding:28px 16px}.acc-izq h1{font-size:26px}.acc-izq img{width:150px}.acc-der{padding:24px 16px}.acc-f{padding:22px}.side .navg{display:none}}
 /* 14. PORTAL (SCRUM-73, 77 y 78) */
 .sesion{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--ink-2)}
 .sesion button{min-height:36px;padding:0 12px;border:1px solid var(--line-2);border-radius:8px;background:#fff;font-size:12.5px}
@@ -633,18 +651,25 @@ svg.chart .bm.f{fill:var(--brand)}
 
   <!-- ============ ENTRAR (SCRUM-78) ============ -->
   <section class="vista" id="v-entrar" hidden aria-labelledby="h1-ent">
-    <div class="hero"><div><div class="eyebrow">Portal de MULTIPARTES</div><h1 id="h1-ent">Entrar</h1>
-      <p>El importador y los proveedores entran con su usuario. Los clientes no necesitan cuenta: pueden ver el catálogo y cotizar.</p></div></div>
-    <section class="card">
-      <p class="nota-sit" id="ent-aviso" hidden></p>
-      <form class="entrar" id="f-entrar" autocomplete="on">
-        <div><label for="ent-u">Usuario<span class="ayuda">El que le dio MULTIPARTES.</span></label><input id="ent-u" autocomplete="username" required></div>
-        <div><label for="ent-c">Clave<span class="ayuda">Distingue mayúsculas de minúsculas.</span></label><input id="ent-c" type="password" autocomplete="current-password" required></div>
-        <button class="btn1" type="submit" id="ent-b">Entrar</button>
-        <p class="msg" id="ent-msg" aria-live="polite"></p>
-        <div class="demo"><b>Usuarios de DEMOSTRACIÓN</b> para la revisión: <code>importador</code> / <code>demo-importador</code> y <code>proveedor</code> / <code>demo-proveedor</code>.</div>
-      </form>
-    </section>
+    <div class="acc">
+      <div class="acc-izq"><a class="acc-volver" href="/">← Volver a la tienda</a><img id="acc-logo" alt="MULTIPARTES Santa Cruz" width="300" height="111">
+        <h1 id="h1-ent">Área de la empresa</h1>
+        <p>Para el equipo de MULTIPARTES y sus proveedores. Los clientes no necesitan cuenta: cotizan desde la tienda.</p>
+        <div class="acc-rol"><b>Importador</b><span>Alertas, simulador de compra, plan con presupuesto, temporadas, clientes, cotizaciones guardadas y carga de datos.</span></div>
+        <div class="acc-rol"><b>Proveedor</b><span>Sus repuestos en MULTIPARTES: qué está por pedirse, cuánto y sus entregas a tiempo.</span></div></div>
+      <div class="acc-der"><div class="acc-f">
+        <h2>Entrar</h2><div class="s">Con el usuario que le dio MULTIPARTES.</div>
+        <p class="nota-sit" id="ent-aviso" hidden></p>
+        <form class="entrar" id="f-entrar" autocomplete="on">
+          <div><label for="ent-u">Usuario<span class="ayuda">El que le dio MULTIPARTES.</span></label><input id="ent-u" autocomplete="username" required></div>
+          <div><label for="ent-c">Clave<span class="ayuda">Distingue mayúsculas de minúsculas.</span></label><input id="ent-c" type="password" autocomplete="current-password" required></div>
+          <button class="btn1" type="submit" id="ent-b">Entrar</button>
+          <p class="msg" id="ent-msg" aria-live="polite"></p>
+          <div class="demo"><b>Usuarios de DEMOSTRACIÓN</b> para la revisión: <code>importador</code> / <code>demo-importador</code> y <code>proveedor</code> / <code>demo-proveedor</code>.</div>
+        </form>
+        <p class="acc-cli">¿Es cliente? <a href="/">Cotice en la tienda →</a></p>
+      </div></div>
+    </div>
   </section>
 
   <!-- ============ COTIZACIONES GUARDADAS (SCRUM-73) ============ -->
@@ -790,14 +815,15 @@ const IC = {al:'<path d="M8 2l6 11H2z"/><path d="M8 6.5v3M8 11.5h.01"/>', sim:'<
   cat:'<rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/>',
   tm:'<rect x="2" y="3" width="12" height="11" rx="1"/><path d="M2 6.5h12M5 2v2.5M11 2v2.5"/>', cot:'<path d="M2 8.5V2.5h6L14 8.5 8 14.5z"/><circle cx="5.2" cy="5.7" r="1"/>', plan:'<path d="M3 3h10v10H3z"/><path d="M5.5 6.5h5M5.5 9.5h3"/>'};
 /* Roles (SCRUM-78). Fuera del portal (archivo abierto con doble clic) se ven las vistas del importador, menos las
-   que necesitan el servidor. En el portal, cada rol ve lo suyo; un cliente sin cuenta ve catálogo y cotizador. */
+   que necesitan el servidor. En el portal (/empresa) cada rol ve lo suyo y sin sesión solo se ve «Entrar»: el
+   cliente cotiza en la tienda pública (/). */
 const PORTAL = !!window.PORTAL;
 const SES = {rol:null, nombre:"", token:null, prov:null};
 const QUIEN = {alertas:"imp", simulador:"imp", proveedores:"imp", plan:"imp", backtest:"imp", clasificacion:"imp", temporadas:"imp", clientes:"imp",
   catalogo:"todos", cotizar:"todos", cotizaciones:"imp-portal", cargar:"imp-portal", miprov:"prov", entrar:"anon"};
 function rol(){ return PORTAL ? (SES.rol || "cliente") : "importador"; }
 function puede(v){ const q = QUIEN[v], r = rol();
-  if(q === "todos") return true;
+  if(q === "todos") return !PORTAL || !!SES.rol;
   if(q === "anon") return PORTAL && !SES.rol;
   if(q === "imp-portal") return PORTAL && r === "importador";
   if(q === "prov") return PORTAL && r === "proveedor";
@@ -806,15 +832,23 @@ const VISTAS = [["alertas","Alertas de reposición","al","nuevo"],["simulador","
   ["plan","Plan con presupuesto","plan","nuevo"],["backtest","¿Qué hubiera pasado?","bt","nuevo"],["clasificacion","Clasificación de repuestos","cl","nuevo"],
   ["temporadas","Temporadas de venta","tm","nuevo"],["clientes","Clientes que más compran","cli","nuevo"],["catalogo","Catálogo","cat","nuevo"],["cotizar","Cotizar por cantidad","cot","nuevo"],
   ["cotizaciones","Cotizaciones guardadas","cz","nuevo"],["cargar","Cargar repuestos y clientes","cg","nuevo"],["miprov","Mis repuestos","prov","nuevo"],["entrar","Entrar","ent","portal"]];
-function pintarMenu(){ $("menu").innerHTML = VISTAS.filter(x => puede(x[0])).map(([k,t,i,h]) => `<a href="#${k}" data-v="${k}" aria-label="${t}" title="${t}"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">${IC[i]}</svg><span>${t}</span>${h.startsWith("SCRUM") ? `<i class="hu">${h}</i>` : `<i class="nuevo">${h}</i>`}</a>`).join(""); }
+const GRUPOS = [["Decidir",["alertas","simulador","proveedores","plan"]],["Entender la demanda",["temporadas","clientes","clasificacion","backtest"]],
+  ["Gestionar",["cotizaciones","cargar","catalogo","cotizar"]],["Proveedor",["miprov"]],["",["entrar"]]];
+const enlaceMenu = ([k,t,i,h]) => `<a href="#${k}" data-v="${k}" aria-label="${t}" title="${t}"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">${IC[i]}</svg><span>${t}</span>${h.startsWith("SCRUM") ? `<i class="hu">${h}</i>` : `<i class="nuevo">${h}</i>`}</a>`;
+function pintarMenu(){
+  $("menu").innerHTML = GRUPOS.map(([g, vs]) => { const items = VISTAS.filter(x => vs.includes(x[0]) && puede(x[0]));
+    return items.length ? (g ? `<div class="navg">${g}</div>` : "") + items.map(enlaceMenu).join("") : ""; }).join("");
+  document.body.classList.toggle("entrada", PORTAL && !SES.rol);
+}
 pintarMenu();
 
 const pintado = {};
 function ir(v){
-  if(!VISTAS.some(x => x[0] === v)) v = puede("alertas") ? "alertas" : "catalogo";
+  const inicio = () => puede("alertas") ? "alertas" : SES.rol === "proveedor" ? "miprov" : PORTAL && !SES.rol ? "entrar" : "catalogo";
+  if(!VISTAS.some(x => x[0] === v)) v = inicio();
   if(!puede(v)){ // la dirección escrita no corresponde a este rol: no se muestra
-    const pedida = v; v = PORTAL && !SES.rol ? "entrar" : (puede("alertas") ? "alertas" : SES.rol === "proveedor" ? "miprov" : "catalogo");
-    if(v === "entrar"){ $("ent-aviso").hidden = false; $("ent-aviso").textContent = `La pantalla «${(VISTAS.find(x => x[0] === pedida) || [0,pedida])[1]}» es para usuarios con cuenta. Entre con su usuario.`; }
+    const pedida = v; v = inicio();
+    if(v === "entrar" && pedida !== "entrar"){ $("ent-aviso").hidden = false; $("ent-aviso").textContent = `La pantalla «${(VISTAS.find(x => x[0] === pedida) || [0,pedida])[1]}» es para usuarios con cuenta. Entre con su usuario.`; }
     if(location.hash.slice(1) !== v) history.replaceState(null, "", "#" + v);
   }
   S.vista = v;
@@ -1373,11 +1407,10 @@ async function api(ruta, opc){
 function pintarSesion(){
   const el = $("sesion"); if(!PORTAL){ el.hidden = true; return; }
   el.hidden = false;
-  el.innerHTML = SES.rol ? `<span>${esc(SES.nombre)}</span><button type="button" id="b-salir">Salir</button>` : `<span>Cliente sin cuenta</span><button type="button" id="b-ir-entrar">Entrar</button>`;
+  el.innerHTML = SES.rol ? `<span>${esc(SES.nombre)}</span><a href="/">Tienda</a><button type="button" id="b-salir">Salir</button>` : "";
 }
 $("sesion").addEventListener("click", e => {
-  if(e.target.id === "b-salir"){ SES.rol = SES.token = SES.prov = null; SES.nombre = ""; guardado.set(null); quitarPrivado(); pintarSesion(); pintarMenu(); location.hash = "#catalogo"; ir("catalogo"); }
-  if(e.target.id === "b-ir-entrar"){ location.hash = "#entrar"; }
+  if(e.target.id === "b-salir"){ SES.rol = SES.token = SES.prov = null; SES.nombre = ""; guardado.set(null); quitarPrivado(); pintarSesion(); pintarMenu(); location.hash = "#entrar"; ir("entrar"); }
 });
 
 // Lo cargado en el servidor se suma a los datos de la app. Es idempotente: se puede llamar después de cada alta.
@@ -1420,6 +1453,7 @@ async function iniciarPortal(){
 }
 
 /* ---- Entrar ---- */
+$("acc-logo").src = document.querySelector(".side .logo").src;
 function pintarEntrar(){ $("ent-msg").textContent = ""; }
 $("f-entrar").addEventListener("submit", async e => {
   e.preventDefault(); $("ent-b").disabled = true; $("ent-msg").className = "msg"; $("ent-msg").textContent = "Entrando…";
@@ -1531,7 +1565,7 @@ window.addEventListener("resize", () => { clearTimeout(tRz); tRz = setTimeout(()
   if(S.vista === "temporadas") pintarTemporadas(); }, 150); });
 
 /* ---- Arranque ---- */
-if(PORTAL){ pintarSesion(); iniciarPortal().finally(() => ir(location.hash.slice(1) || (puede("alertas") ? "alertas" : "catalogo"))); }
+if(PORTAL){ pintarSesion(); iniciarPortal().finally(() => ir(location.hash.slice(1) || (puede("alertas") ? "alertas" : SES.rol === "proveedor" ? "miprov" : "entrar"))); }
 else ir(location.hash.slice(1) || "alertas");
 })();
 </script>

@@ -2,7 +2,7 @@
 
 Junta, en este orden:
   1. el motor del simulador (src/simulador/motor.js), el mismo que usa la app;
-  2. const DATOS_INCLUIDOS = datos_app.json y const APP_INCLUIDA = la app ya generada (reports/simulador/...html);
+  2. DATOS_INCLUIDOS (datos_app.json), APP_INCLUIDA (la app de la empresa) y TIENDA_INCLUIDA (la tienda pública);
   3. src/portal/worker_api.js, con las rutas de la API.
 Así el servidor recalcula cada cotización con el mismo motor y los mismos datos que ve el cliente.
 
@@ -24,23 +24,26 @@ MOTOR = BASE / "src/simulador/motor.js"
 API = BASE / "src/portal/worker_api.js"
 DATOS = BASE / "data/processed/simulador/datos_app.json"
 APP = BASE / "reports/simulador/MULTIPARTES_Simulador_Compras.html"
+TIENDA = BASE / "reports/tienda/MULTIPARTES_Tienda.html"
 SALIDA = BASE / "build/portal"
 
 
 def armar(liviano=False):
-    for f in (MOTOR, API, DATOS, APP):
+    for f in (MOTOR, API, DATOS, APP, TIENDA):
         if not f.is_file():
             raise SystemExit(f"Falta {f.relative_to(BASE)}")
     motor = MOTOR.read_text(encoding="utf-8")
     api = API.read_text(encoding="utf-8")
     html = APP.read_text(encoding="utf-8")
+    tienda = TIENDA.read_text(encoding="utf-8")
     if "module.exports = Motor" not in motor or "export default" not in api or "</head>" not in html:
         raise SystemExit("Alguna de las piezas no tiene la forma esperada (motor, API o app).")
     datos = json.loads(DATOS.read_text(encoding="utf-8"))
     partes = ["// Generado por src/portal/armar_portal.py. No editar a mano.", motor]
     if not liviano:
         partes += ["const DATOS_INCLUIDOS = " + json.dumps(datos, ensure_ascii=False, separators=(",", ":")) + ";",
-                   "const APP_INCLUIDA = " + json.dumps(html, ensure_ascii=False) + ";"]
+                   "const APP_INCLUIDA = " + json.dumps(html, ensure_ascii=False) + ";",
+                   "const TIENDA_INCLUIDA = " + json.dumps(tienda, ensure_ascii=False) + ";"]
     return "\n".join(partes + [api])
 
 
