@@ -79,13 +79,28 @@ Necesita Node 22 o superior (usa `node:sqlite`).
 
 ## Publicarlo
 
-El portal está en Cloudflare Pages, plan gratuito, con una base D1. La clave de sesión `SECRETO` es un valor al azar
-de 64 caracteres, guardado como secreto del proyecto en Cloudflare; no está en el repositorio. Para publicar una
-versión nueva con Wrangler:
+Dónde vive: Cloudflare Pages, plan gratuito, proyecto `multipartes-univalle` (https://multipartes-univalle.pages.dev),
+con la base D1 `multipartes-portal-db` enlazada como `DB`. El proyecto tiene dos variables:
+- `SECRETO`: la clave de sesión, 64 caracteres al azar generados dentro de Cloudflare. Es secreta y no está en el
+  repositorio;
+- `FUENTE_REF`: la rama o el commit de donde el servidor lee los datos y la app. Mientras el PR no esté unido vale
+  `feature/temporadas-cotizador`; después de unirlo hay que cambiarla a `main`.
+
+Lo que se publica es la versión liviana del servidor (`armar_portal.py --liviano`, unos 52 KB): motor y API. Los datos
+y la app los lee del repositorio y los guarda 10 minutos en memoria. Por eso el dólar diario de SCRUM-71 entra al
+portal sin volver a publicar, y hace falta publicar de nuevo solo cuando cambia el código del servidor o del motor.
+
+La publicación la hace `.github/workflows/portal-deploy.yml` en cada push que toque ese código, o a mano desde la
+pestaña Actions. Corre las pruebas, arma el servidor, lo sube con Wrangler y comprueba que responde. Necesita:
+- la variable del repositorio `CLOUDFLARE_ACCOUNT_ID` (ya cargada);
+- el secreto del repositorio `CLOUDFLARE_API_TOKEN`: un token de Cloudflare con el permiso «Account · Cloudflare
+  Pages · Edit» sobre la cuenta. Lo crea el dueño de la cuenta en el panel de Cloudflare (My Profile › API Tokens) y
+  lo guarda con `gh secret set CLOUDFLARE_API_TOKEN --repo UM-Proyecto/MINERIA_DATOS`. Sin ese secreto la tarea avisa
+  y no publica.
+
+Para publicar a mano desde una computadora con Wrangler:
 
 ```bash
-python3 src/portal/armar_portal.py
-npx wrangler pages deploy build/portal --project-name <proyecto>
+python3 src/portal/armar_portal.py --liviano
+npx wrangler pages deploy build/portal --project-name multipartes-univalle --branch main
 ```
-
-El enlace, el proyecto y la base están anotados en el informe de la entrega.

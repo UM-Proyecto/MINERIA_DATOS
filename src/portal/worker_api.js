@@ -2,8 +2,10 @@
  * Servidor del portal de MULTIPARTES (SCRUM-73, SCRUM-77 y SCRUM-78), para Cloudflare Pages en modo avanzado
  * (_worker.js) con una base D1.
  *
- * armar_portal.py antepone a este archivo el motor del simulador (motor.js) y dos constantes, DATOS (datos_app.json)
- * y APP_HTML (la app generada). El servidor:
+ * armar_portal.py antepone a este archivo el motor del simulador (motor.js). En la versión completa también antepone
+ * DATOS_INCLUIDOS (datos_app.json) y APP_INCLUIDA (la app generada); en la liviana (--liviano), el servidor lee esos
+ * dos archivos del repositorio público en GitHub, en la rama o commit de la variable FUENTE_REF (por defecto main), y
+ * los guarda 10 minutos en memoria. Así el portal toma solo el dólar diario que actualiza SCRUM-71. El servidor:
  *  - sirve la app en «/» marcada como portal;
  *  - guarda cada cotización con su número correlativo, recalculada aquí con el motor (no se confía en el precio
  *    que manda el navegador);
@@ -20,7 +22,8 @@ const USUARIOS = {
 };
 const HORAS_SESION = 8;
 const MAX_CUERPO = 8192;
-const TC_URL = "https://raw.githubusercontent.com/UM-Proyecto/MINERIA_DATOS/main/data/processed/scrum-54/tco_bcb_diario.csv";
+const REPO = "https://raw.githubusercontent.com/UM-Proyecto/MINERIA_DATOS/";
+const TC_URL = REPO + "main/data/processed/scrum-54/tco_bcb_diario.csv";
 const TIPOS_CLIENTE = ["Taller mecánico", "Flota de empresa", "Repuestera", "Particular"];
 
 const ESQUEMA = [
@@ -110,6 +113,26 @@ async function exigir(env, req, rol) {
   if (!s) throw new ErrorPedido(401, "Hay que entrar con un usuario.");
   if (s.rol !== rol) throw new ErrorPedido(403, "Este usuario no tiene acceso a esta parte.");
   return s;
+}
+
+// ------------------------------------------------------------------ datos y app
+
+let DATOS = null, APP_HTML = null, recursosT = 0;
+async function cargarRecursos(env) {
+  if (typeof DATOS_INCLUIDOS !== "undefined") { DATOS = DATOS_INCLUIDOS; APP_HTML = APP_INCLUIDA; return; }
+  if (DATOS && Date.now() - recursosT < 600e3) return;
+  const ref = env.FUENTE_REF || "main";
+  try {
+    const [d, h] = await Promise.all([fetch(REPO + ref + "/data/processed/simulador/datos_app.json"),
+                                      fetch(REPO + ref + "/reports/simulador/MULTIPARTES_Simulador_Compras.html")]);
+    if (!d.ok || !h.ok) throw new Error("GitHub respondió " + d.status + " y " + h.status);
+    const datos = await d.json(), html = await h.text();
+    if (!datos.repuestos || !html.includes("</head>")) throw new Error("archivos inesperados");
+    DATOS = datos; APP_HTML = html; recursosT = Date.now();
+  } catch (e) {
+    // Si ya había una copia, se sigue con ella; si no, se avisa en vez de responder con datos vacíos.
+    if (!DATOS) throw new ErrorPedido(503, "No se pudieron leer los datos del portal. Intente de nuevo en un momento.");
+  }
 }
 
 let esquemaListo = false;
@@ -326,6 +349,7 @@ export default {
   async fetch(req, env) {
     const url = new URL(req.url);
     try {
+      await cargarRecursos(env);
       if (url.pathname.startsWith("/api/")) return await api(req, env, url);
       if (req.method !== "GET" && req.method !== "HEAD") return error(405, "Método no permitido.");
       // La app es la misma para todos; qué pantallas ve cada rol lo decide la sesión, y cada dato guardado lo

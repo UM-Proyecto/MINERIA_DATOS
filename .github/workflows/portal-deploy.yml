@@ -1,0 +1,68 @@
+# SCRUM-73, 77 y 78: publica el servidor del portal en Cloudflare Pages (proyecto multipartes-univalle, con D1).
+#
+# Arma la versión liviana del servidor (motor + API) y la sube con Wrangler. Los datos y la app no se suben: el
+# servidor los lee del repositorio en la rama de la variable FUENTE_REF del proyecto, así que el dólar diario de
+# SCRUM-71 entra solo, sin volver a publicar. Hace falta volver a publicar únicamente cuando cambia el código.
+#
+# Necesita el secreto CLOUDFLARE_API_TOKEN (permiso «Cloudflare Pages: Edit») y la variable CLOUDFLARE_ACCOUNT_ID.
+# Si falta el secreto, la tarea lo avisa y termina sin publicar.
+name: Portal en Cloudflare (SCRUM-73, 77 y 78)
+
+on:
+  push:
+    branches: [main, feature/temporadas-cotizador]
+    paths:
+      - "src/portal/**"
+      - "src/simulador/motor.js"
+      - ".github/workflows/portal-deploy.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: portal-deploy
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Pruebas del portal
+        run: python3 -m unittest tests.test_portal tests.test_temporadas_cotizar
+
+      - name: Armar el servidor liviano
+        run: python3 src/portal/armar_portal.py --liviano --salida build/portal
+
+      - name: ¿Está el token?
+        id: token
+        env:
+          TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -z "$TOKEN" ]; then
+            echo "::warning::Falta el secreto CLOUDFLARE_API_TOKEN: no se publica. Ver docs/portal/LEEME.md."
+            echo "hay=no" >> "$GITHUB_OUTPUT"
+          else
+            echo "hay=si" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publicar en Cloudflare Pages
+        if: steps.token.outputs.hay == 'si'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@3 pages deploy build/portal --project-name multipartes-univalle --branch main --commit-dirty=true
+
+      - name: Comprobar que responde
+        if: steps.token.outputs.hay == 'si'
+        run: |
+          sleep 20
+          curl -fsS https://multipartes-univalle.pages.dev/api/salud
+          curl -fsS https://multipartes-univalle.pages.dev/api/tc
+          curl -fsS -o /dev/null -w "%{http_code}\n" https://multipartes-univalle.pages.dev/

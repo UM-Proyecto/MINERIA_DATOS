@@ -35,7 +35,10 @@ class Portal(unittest.TestCase):
     def setUpClass(cls):
         cls.tmp = tempfile.TemporaryDirectory()
         ap.main(["--salida", cls.tmp.name])
-        out = subprocess.run(["node", "--no-warnings", str(RAIZ / "tests/_portal_runner.mjs"), str(Path(cls.tmp.name) / "_worker.js")],
+        liv = Path(cls.tmp.name) / "liviano"
+        ap.main(["--salida", str(liv), "--liviano"])
+        out = subprocess.run(["node", "--no-warnings", str(RAIZ / "tests/_portal_runner.mjs"), str(Path(cls.tmp.name) / "_worker.js"),
+                              str(liv / "_worker.js"), str(ap.DATOS), str(ap.APP)],
                              capture_output=True, text=True, check=True).stdout
         cls.r = json.loads(out)
         with open(ap.DATOS, encoding="utf-8") as f:
@@ -132,6 +135,22 @@ class Portal(unittest.TestCase):
         lineas = c["cuerpo"].strip().split("\n")
         self.assertTrue(lineas[0].startswith("numero,fecha,cliente_id"))
         self.assertEqual(len(lineas), 1 + 3)
+
+    def test_liviano_lee_datos_y_app_de_la_rama(self):
+        self.assertEqual(self.st("liv_caido"), 503)
+        self.assertEqual(self.st("liv_html"), 200)
+        self.assertTrue(self.r["liv_html"]["cuerpo"]["portal"])
+        self.assertEqual(self.st("liv_cot"), 201)
+        esperado = ref.cotizar(self.d, "REP-0022", 10, 11.65)
+        self.assertAlmostEqual(self.r["liv_cot"]["cuerpo"]["total_bs"], esperado["total_bs"], places=6)
+
+
+class PortalLiviano(unittest.TestCase):
+    def test_liviano_no_incluye_datos(self):
+        t = ap.armar(liviano=True)
+        self.assertNotIn("DATOS_INCLUIDOS =", t)
+        self.assertLess(len(t), 80_000)
+        self.assertIn("DATOS_INCLUIDOS =", ap.armar())
 
 
 if __name__ == "__main__":

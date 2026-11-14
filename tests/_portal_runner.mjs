@@ -18,9 +18,15 @@ function d1() {
   return { prepare: sql => new Stmt(sql), batch: async ss => { for (const s of ss) db.prepare(s.sql).run(...s.args.map(n)); return []; } };
 }
 
+import { readFileSync } from "node:fs";
+const [LIVIANO, DATOS_LOCAL, HTML_LOCAL] = process.argv.slice(3);
 let modo = "csv";
 globalThis.fetch = async url => {
   if (modo === "falla") throw new Error("sin red");
+  url = String(url);
+  if (url.endsWith("/datos_app.json")) return modo === "github_404" ? new Response("no", { status: 404 }) : new Response(readFileSync(DATOS_LOCAL));
+  if (url.endsWith(".html")) return modo === "github_404" ? new Response("no", { status: 404 }) : new Response(readFileSync(HTML_LOCAL));
+  salida.urls = (salida.urls || []).concat(url.replace(/^https:\/\/raw\.githubusercontent\.com\/UM-Proyecto\/MINERIA_DATOS\//, ""));
   return new Response("fecha,tco_bs_por_usd,fuente,fecha_lectura\n2026-11-13,11.67,x,2026-11-13\n2026-11-14,11.65,x,2026-11-14\n");
 };
 
@@ -98,4 +104,16 @@ modo = "falla";
 const w3 = await cargar();
 await pedir(w3, { DB: d1(), SECRETO: SEC }, "tc_sin_red", "GET", "/api/tc");
 
+// Versión liviana: lee datos y app de GitHub (simulado). Primero con GitHub caído, después funcionando.
+if (LIVIANO) {
+  modo = "github_404";
+  const l1 = (await import(pathToFileURL(LIVIANO).href + "?v=l1")).default;
+  await pedir(l1, { DB: d1(), SECRETO: SEC, FUENTE_REF: "rama-x" }, "liv_caido", "GET", "/");
+  modo = "csv";
+  const l2 = (await import(pathToFileURL(LIVIANO).href + "?v=l2")).default;
+  const env2 = { DB: d1(), SECRETO: SEC, FUENTE_REF: "rama-x" };
+  await pedir(l2, env2, "liv_html", "GET", "/");
+  salida.liv_html.cuerpo = { portal: String(salida.liv_html.cuerpo).includes("window.PORTAL=1") };
+  await pedir(l2, env2, "liv_cot", "POST", "/api/cotizaciones", { repuesto_id: "REP-0022", cantidad: 10 });
+}
 process.stdout.write(JSON.stringify(salida));
