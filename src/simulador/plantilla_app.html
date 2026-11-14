@@ -602,6 +602,9 @@ const MES = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","
 const DIA = ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
 const fecha = f => { const [y,m,d] = f.split("-"); return +d + "-" + MES[+m-1] + "-" + y; };
 const fechaDia = f => DIA[new Date(f + "T12:00:00").getDay()] + " " + fecha(f);
+// SCRUM-71: el BCB publica un valor por día. Si el último tiene más de un día, se avisa desde qué fecha se usa.
+const diasTc = () => { const h = new Date(), hoy = Date.UTC(h.getFullYear(), h.getMonth(), h.getDate()), [y,m,d] = OF.fecha.split("-"); return Math.round((hoy - Date.UTC(+y, +m - 1, +d)) / 864e5); };
+const avisoTc = () => diasTc() > 1 ? ` <span class="marca-tc">El BCB no tiene un valor más nuevo en estos datos: se usa el del ${fecha(OF.fecha)}.</span>` : "";
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const nombreProv = p => p.nombre.replace(" (ficticio)", "");
 const capital = s => s.charAt(0).toUpperCase() + s.slice(1);
@@ -717,7 +720,7 @@ function etiquetas(){
 function pintarCabecera(){
   $("sim-intro").textContent = `Elija un repuesto y mueva los supuestos: el dólar, la venta y el atraso del proveedor. El simulador prueba cada alternativa en ${nf(PAR.simulaciones)} futuros posibles y le muestra cuál conviene. La decisión la toma usted.`;
   $("of-v").innerHTML = `${nf(OF.valor,2)}<small>Bs por dólar</small>`;
-  $("of-src").innerHTML = `Vigente el <b>${fechaDia(OF.fecha)}</b>. Fuente: Banco Central de Bolivia, tabla «Tipo de cambio oficial, diario».`;
+  $("of-src").innerHTML = `Vigente el <b>${fechaDia(OF.fecha)}</b>. Fuente: Banco Central de Bolivia, tabla «Tipo de cambio oficial, diario». Se actualiza solo una vez al día.${avisoTc()}`;
   $("pa-v").innerHTML = `${nf(PA.valor,2)} <small style="font-size:12px;color:var(--ink-3);font-weight:500">Bs</small>`;
   $("pa-ayuda").textContent = `Promedio de plataformas P2P al ${fecha(PA.fecha)}. Se puede elegir arriba para comparar; el resultado queda marcado.`;
   const se = D.tc.serie, W = 520, H = 96, vs = se.map(x => x[1]);
@@ -1097,7 +1100,7 @@ function cotizarAhora(){
       <tr><td>Descuento</td><td>${c.descuento_bs ? "− " + bs2(c.descuento_bs) : bs2(0)}</td></tr>
       <tr class="t"><td>Total</td><td>${bs2(c.total_bs)}</td></tr></tbody></table></div>
     <div class="cot-tot"><div class="lab">Total a pagar${marcaTc()}</div><div class="v">${bs2(c.total_bs)}</div>
-      <p class="d">${bs2(c.precio_unitario_bs)} por unidad, con el ${dolar}.</p>${sig}<p class="d">${stock}</p>
+      <p class="d">${bs2(c.precio_unitario_bs)} por unidad, con el ${dolar}.${S.tcModo === "oficial" ? avisoTc() : ""}</p>${sig}<p class="d">${stock}</p>
       ${c.tope ? `<p class="d"><strong>El descuento se limitó a ${nf(c.pct_aplicado,2)} %</strong> para no vender por debajo del costo puesto.</p>` : ""}</div>`;
   $("cot-pie").textContent = "Precio de venta SINTÉTICO: costo puesto en Santa Cruz más el margen de SCRUM-55, convertido con el dólar del día. Los tramos de descuento son de EJEMPLO. El descuento nunca baja el precio del costo puesto. Esta cotización todavía no se guarda (SCRUM-73).";
 }

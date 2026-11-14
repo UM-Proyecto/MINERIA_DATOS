@@ -1,0 +1,77 @@
+# SCRUM-71: el dólar oficial del BCB se actualiza solo, una vez al día.
+#
+# La tarea corre el script de SCRUM-54, regenera los datos y la app del simulador, corre las pruebas y guarda
+# el resultado en main si hay un valor nuevo. Si el BCB no responde, no se toca nada: la app sigue con el último
+# valor publicado y dice desde qué fecha. En un pull request solo comprueba que todo corre, sin guardar.
+name: Dólar oficial del BCB (SCRUM-71)
+
+on:
+  schedule:
+    - cron: "30 13 * * *"   # 09:30 en Bolivia
+    - cron: "0 22 * * *"    # 18:00 en Bolivia, por si el BCB publicó tarde
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "src/scrum-54/**"
+      - "src/simulador/**"
+      - ".github/workflows/tco-diario.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tco-diario
+  cancel-in-progress: false
+
+jobs:
+  actualizar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Leer el dólar oficial del BCB
+        id: bcb
+        continue-on-error: true
+        run: python3 src/scrum-54/obtener_tco_bcb.py
+
+      - name: Si el BCB no respondió, se conserva el último valor
+        if: steps.bcb.outcome == 'failure'
+        run: echo "::warning::El BCB no respondió. La app sigue con el último valor publicado ($(tail -n 1 data/processed/scrum-54/tco_bcb_diario.csv | cut -d, -f1,2))."
+
+      - name: ¿Hay un valor nuevo?
+        id: cambio
+        run: |
+          if git diff --quiet -- data/processed/scrum-54/tco_bcb_diario.csv; then
+            echo "nuevo=no" >> "$GITHUB_OUTPUT"; echo "El CSV no cambió."
+          else
+            echo "nuevo=si" >> "$GITHUB_OUTPUT"; tail -n 1 data/processed/scrum-54/tco_bcb_diario.csv
+          fi
+
+      - name: Regenerar los datos y la app
+        if: steps.cambio.outputs.nuevo == 'si' || github.event_name == 'pull_request'
+        run: |
+          python3 src/simulador/preparar_datos.py
+          python3 src/simulador/generar_app.py
+          python3 src/hu-09/generar_alertas.py
+
+      - name: Pruebas
+        if: steps.cambio.outputs.nuevo == 'si' || github.event_name == 'pull_request'
+        run: python3 -m unittest discover -s tests
+
+      - name: Guardar el valor nuevo en main
+        if: steps.cambio.outputs.nuevo == 'si' && github.event_name != 'pull_request'
+        run: |
+          ULTIMO=$(tail -n 1 data/processed/scrum-54/tco_bcb_diario.csv | cut -d, -f1,2 | tr ',' ' ')
+          git add data/processed/scrum-54 data/raw/scrum-54 data/processed/simulador/datos_app.json \
+                  reports/simulador/MULTIPARTES_Simulador_Compras.html data/processed/hu-09 reports/hu-09
+          git -c user.name="github-actions[bot]" \
+              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              commit -m "Dólar oficial del BCB: ${ULTIMO} (actualización automática, SCRUM-71)"
+          git push
