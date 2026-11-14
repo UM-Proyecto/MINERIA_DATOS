@@ -24,6 +24,7 @@ BASE = Path(__file__).resolve().parents[2]
 DATOS = BASE / "data/processed/simulador/datos_app.json"
 PLANTILLA = BASE / "src/simulador/plantilla_app.html"
 MOTOR = BASE / "src/simulador/motor.js"
+IMAGENES = BASE / "data/raw/scrum-74/imagenes"  # fotos del catálogo (SCRUM-74), con licencia libre
 LOGO = BASE / "src/hu-12/logo_multipartes.jpg"  # logotipo publicado en multipartes.com.bo
 SALIDA = BASE / "reports/simulador/MULTIPARTES_Simulador_Compras.html"
 
@@ -52,6 +53,14 @@ def generar(motor, salida):
     if "module.exports = Motor" not in codigo:
         raise SystemExit(f"{motor} no parece el motor del contrato (falta «module.exports = Motor»)")
     datos = json.loads(DATOS.read_text(encoding="utf-8"))
+    # Las fotos del catálogo van dentro del HTML para que abra sin conexión. Si falta una, se corta aquí.
+    fotos = {f["imagen"] for f in datos["catalogo"]["repuestos"]}
+    datos["imagenes"] = {}
+    for nombre in sorted(fotos):
+        ruta = IMAGENES / nombre
+        if not ruta.is_file():
+            raise SystemExit(f"Falta la foto del catálogo {ruta.relative_to(BASE)}")
+        datos["imagenes"][nombre] = "data:image/jpeg;base64," + base64.b64encode(ruta.read_bytes()).decode()
     texto = seguro_en_script(json.dumps(datos, ensure_ascii=False, separators=(",", ":")))
     logo = "data:image/jpeg;base64," + base64.b64encode(LOGO.read_bytes()).decode()
     # El motor va al final: si se reemplazara antes, un '__DATA__' dentro de su código se tocaría.

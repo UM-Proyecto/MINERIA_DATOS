@@ -2,11 +2,11 @@
 
 La app es un solo archivo HTML: `reports/simulador/MULTIPARTES_Simulador_Compras.html`. Lleva adentro los datos, el motor de cálculo y el logotipo, así que se abre con doble clic en cualquier navegador moderno, sin servidor y sin conexión. Con conexión usa la letra Poppins del sitio de MULTIPARTES; sin conexión usa la del sistema y todo lo demás funciona igual.
 
-Historias de Jira: SCRUM-64 (datos y plantilla), SCRUM-66 a SCRUM-70 (vistas) y SCRUM-68 (clasificación). El motor de cálculo es de SCRUM-53 y SCRUM-56 a SCRUM-63.
+Historias de Jira: SCRUM-64 (datos y plantilla), SCRUM-66 a SCRUM-70 (vistas) y SCRUM-68 (clasificación). El motor de cálculo es de SCRUM-53 y SCRUM-56 a SCRUM-63. Las vistas del 13-11-2026 son de SCRUM-72 y SCRUM-74 a SCRUM-76. Cuando la app se sirve desde el portal (SCRUM-73, 77 y 78, ver `docs/portal/LEEME.md`), suma cotizaciones guardadas, carga de datos y una vista para el proveedor.
 
 ## Qué tiene
 
-Seis funciones en el menú de la izquierda. Se pasa de una a otra sin recargar la página, y el botón «atrás» del navegador vuelve a la anterior.
+Diez funciones en el menú de la izquierda. Se pasa de una a otra sin recargar la página, y el botón «atrás» del navegador vuelve a la anterior.
 
 | Función | Para qué sirve |
 |---|---|
@@ -16,6 +16,10 @@ Seis funciones en el menú de la izquierda. Se pasa de una a otra sin recargar l
 | Plan con presupuesto | Se escribe cuánto se puede gastar y la app marca hasta qué pedido alcanza. |
 | ¿Qué hubiera pasado? | Tres formas de comprar aplicadas a los últimos 12 meses reales. |
 | Clasificación de repuestos | Las 2.674 series de carparts según ADI y CV², con los cortes 1,32 y 0,49. |
+| Temporadas de venta (SCRUM-75) | Venta promedio por mes del año, de los 30 juntos o de uno, con los meses que superan el promedio y un mapa de los 30 repuestos mes a mes. Para un repuesto dice en qué mes tiene que salir el pedido para llegar al mes fuerte. Los meses están re-fechados desde carparts: el patrón es el de carparts corrido siete meses, no el de Santa Cruz. |
+| Clientes que más compran (SCRUM-76) | Ranking de los 20 clientes SINTÉTICOS por compras en todo el año, en temporada o fuera de ella, con qué repuestos lleva cada uno y el resumen por tipo de cliente. |
+| Catálogo (SCRUM-74) | Ficha de cada repuesto con foto, categoría, descripción, precio con el dólar del día y disponibilidad. Nombres ILUSTRATIVOS; fotos con licencia libre y sus créditos. |
+| Cotizar por cantidad (SCRUM-72) | Precio en bolivianos para una cantidad, con descuento de 5 % desde 10 unidades y de 10 % desde 50 (tramos de EJEMPLO). El descuento nunca deja el precio por debajo del costo puesto. |
 
 ### El dólar
 
@@ -55,4 +59,4 @@ Opciones de `generar_app.py`:
 python3 -m unittest discover -s tests
 ```
 
-`tests/test_simulador_app.py` comprueba que el JSON tenga las claves del contrato y los 30 repuestos, que el HTML armado traiga los datos, el motor y las seis vistas, que no aparezcan textos prohibidos y que `generar_app.py` se detenga si falta el motor.
+`tests/test_simulador_app.py` comprueba que el JSON tenga las claves del contrato y los 30 repuestos, que el HTML armado traiga los datos, el motor y las diez vistas, que no aparezcan textos prohibidos, que no se repitan identificadores y que `generar_app.py` se detenga si falta el motor. Las vistas nuevas tienen sus propias pruebas: `test_temporadas_cotizar.py`, `test_catalogo.py`, `test_clientes.py`, `test_tco_automatico.py` y `test_portal.py`.
