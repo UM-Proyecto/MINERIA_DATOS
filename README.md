@@ -90,6 +90,21 @@ python3 -m unittest discover -s tests
 El motor está escrito en JavaScript para que corra dentro de la página, y tiene una copia en Python que solo sirve para
 probarlo: las dos versiones deben dar el mismo resultado en 20 casos fijos.
 
+## Portal y funciones para el cliente (SCRUM-71 a SCRUM-78)
+
+Salen de los requisitos que Fiorella trajo el 13-11-2026, y las historias están a su nombre. El portal funciona como
+fuente de datos de demanda para la decisión de compra: cada cotización guardada registra lo que pidió un cliente,
+aunque no haya comprado.
+
+| Jira | Qué hace | Código | Documento |
+|---|---|---|---|
+| [SCRUM-71](https://fsandoval09.atlassian.net/browse/SCRUM-71) | El dólar oficial del BCB se actualiza solo cada día (GitHub Actions) | [`.github/workflows/tco-diario.yml`](.github/workflows/tco-diario.yml) | [`docs/scrum-54`](docs/scrum-54/LEEME.md) |
+| [SCRUM-72](https://fsandoval09.atlassian.net/browse/SCRUM-72) | Cotizar por cantidad con descuento por volumen (tramos de EJEMPLO) | [`src/simulador`](src/simulador) | [`docs/simulador/LEEME.md`](docs/simulador/LEEME.md) |
+| [SCRUM-75](https://fsandoval09.atlassian.net/browse/SCRUM-75) | Temporadas: venta promedio por mes del año, con las ventas reales | [`src/simulador`](src/simulador) | [`docs/simulador/LEEME.md`](docs/simulador/LEEME.md) |
+| [SCRUM-74](https://fsandoval09.atlassian.net/browse/SCRUM-74) | Catálogo con foto, nombres ILUSTRATIVOS y fotos con licencia libre | [`src/scrum-74`](src/scrum-74) | [`data/raw/scrum-74/fuentes_imagenes.csv`](data/raw/scrum-74/fuentes_imagenes.csv) |
+| [SCRUM-76](https://fsandoval09.atlassian.net/browse/SCRUM-76) | Clientes que más compran, en temporada y fuera de ella (clientes SINTÉTICOS) | [`src/scrum-76`](src/scrum-76) | [`docs/simulador/LEEME.md`](docs/simulador/LEEME.md) |
+| [SCRUM-73](https://fsandoval09.atlassian.net/browse/SCRUM-73), [SCRUM-77](https://fsandoval09.atlassian.net/browse/SCRUM-77) y [SCRUM-78](https://fsandoval09.atlassian.net/browse/SCRUM-78) | Portal con roles: cotizaciones guardadas, carga de repuestos y clientes, vista del proveedor | [`src/portal`](src/portal) | [`docs/portal/LEEME.md`](docs/portal/LEEME.md) |
+
 ## Estructura
 
 ```text
