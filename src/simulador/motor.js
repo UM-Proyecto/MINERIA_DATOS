@@ -681,10 +681,57 @@ var Motor = (function () {
     };
   }
 
+  // ---------------------------------------------------------------- clientes (SCRUM-76)
+
+  // Tablero de clientes SINTÉTICOS. Temporada = meses fuertes de los 30 repuestos juntos (temporadas().total).
+  // Monto = unidades × precio de lista con el dólar elegido, igual que el cotizador.
+  function tableroClientes(datos, tc) {
+    tc = num(tc);
+    var temporada = temporadas(datos).total.meses_fuertes, enTemp = {};
+    temporada.forEach(function (m) { enTemp[m] = true; });
+    var precio = {};
+    datos.repuestos.forEach(function (r) { precio[r.repuesto_id] = redondear(num(r.precio_venta_usd) * tc, 2); });
+    var C = {}, orden = [];
+    datos.clientes.lista.forEach(function (c) {
+      C[c.cliente_id] = { id: c.cliente_id, nombre: c.nombre, tipo: c.tipo, zona: c.zona, unidades: 0, monto_bs: 0,
+        unid_temp: 0, unid_fuera: 0, monto_temp_bs: 0, monto_fuera_bs: 0, _rep: {} };
+      orden.push(c.cliente_id);
+    });
+    var total = { unidades: 0, monto_bs: 0, monto_temp_bs: 0, monto_fuera_bs: 0 };
+    datos.clientes.ventas.forEach(function (v) {
+      var c = C[v[2]], u = datoValido(v[3]);
+      if (!c || u === null || !(v[1] in precio)) return;
+      var monto = u * precio[v[1]], t = enTemp[Number(String(v[0]).slice(5, 7))] === true;
+      c.unidades += u; c.monto_bs += monto;
+      if (t) { c.unid_temp += u; c.monto_temp_bs += monto; total.monto_temp_bs += monto; }
+      else { c.unid_fuera += u; c.monto_fuera_bs += monto; total.monto_fuera_bs += monto; }
+      c._rep[v[1]] = (c._rep[v[1]] || 0) + u;
+      total.unidades += u; total.monto_bs += monto;
+    });
+    var lista = orden.map(function (id) {
+      var c = C[id];
+      c.pct_temp = c.monto_bs > 0 ? c.monto_temp_bs / c.monto_bs * 100 : null;
+      c.pct_total = total.monto_bs > 0 ? c.monto_bs / total.monto_bs * 100 : null;
+      c.top = Object.keys(c._rep).map(function (r) { return { id: r, unidades: c._rep[r] }; })
+        .sort(function (a, b) { return b.unidades - a.unidades || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0); }).slice(0, 3);
+      delete c._rep;
+      return c;
+    });
+    lista.sort(function (a, b) { return b.monto_bs - a.monto_bs || (a.id < b.id ? -1 : 1); });
+    var tipos = {}, ordenTipos = [];
+    lista.forEach(function (c) {
+      if (!(c.tipo in tipos)) { tipos[c.tipo] = { tipo: c.tipo, clientes: 0, monto_bs: 0, monto_temp_bs: 0 }; ordenTipos.push(c.tipo); }
+      tipos[c.tipo].clientes += 1; tipos[c.tipo].monto_bs += c.monto_bs; tipos[c.tipo].monto_temp_bs += c.monto_temp_bs;
+    });
+    var porTipo = ordenTipos.map(function (t) { return tipos[t]; })
+      .sort(function (a, b) { return b.monto_bs - a.monto_bs || (a.tipo < b.tipo ? -1 : 1); });
+    return { temporada: temporada, clientes: lista, por_tipo: porTipo, total: total };
+  }
+
   return {
     costoPuesto: costoPuesto, pronostico: pronostico, simular: simular, quiebreDolar: quiebreDolar,
     sensibilidad: sensibilidad, alertas: alertas, planPresupuesto: planPresupuesto,
-    compararProveedores: compararProveedores, pasado: pasado, temporadas: temporadas, cotizar: cotizar,
+    compararProveedores: compararProveedores, pasado: pasado, temporadas: temporadas, cotizar: cotizar, tableroClientes: tableroClientes,
     TRAMOS_EJEMPLO: TRAMOS_EJEMPLO,
     _interno: { mulberry32: mulberry32, normalIH: normalIH, expSerie: expSerie, redondear: redondear, volatilidadDiaria: volatilidadDiaria }
   };

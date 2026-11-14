@@ -9,7 +9,7 @@
 <title>MULTIPARTES · Simulador de compras</title>
 <!--
   Simulador de compras de MULTIPARTES (Minería de Datos, SCRUM-64 y siguientes).
-  Nueve funciones en un menú lateral; se cambia de una a otra sin recargar (#alertas, #simulador, ...).
+  Diez funciones en un menú lateral; se cambia de una a otra sin recargar (#alertas, #simulador, ...).
   El CSS de las secciones 1 a 9 es el de la pantalla de decisión de compra (src/hu-12/plantilla_panel.html), sin
   cambios, para que las dos pantallas se vean iguales. Lo propio del simulador va en la sección 10.
   Archivo autónomo: generar_app.py pone los datos, el motor de cálculo y el logotipo en sus marcas.
@@ -354,6 +354,10 @@ svg.chart .bm.f{fill:var(--brand)}
 .cot-desg tr.t td{font-weight:700;border-bottom:0}
 .err-in{color:var(--bad);font-size:12.5px;margin-top:6px;min-height:18px}
 @media (max-width:760px){.cot-form,.cot-res{grid-template-columns:1fr}.cot-tot .v{font-size:28px}}
+/* 13. CLIENTES (SCRUM-76) */
+.cli-t td:nth-child(2),.cli-t th:nth-child(2),.cli-t td:last-child,.cli-t th:last-child{text-align:left}
+.cli-t td .barra{display:block;height:6px;border-radius:3px;background:var(--brand);margin-top:4px;margin-left:auto}
+.cli-t .lleva{font-size:12px;color:var(--ink-2);max-width:340px}
 /* 12. CATÁLOGO (SCRUM-74) */
 .cat-fil{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:16px}
 .cat-fil input[type=search]{width:100%;height:44px;border:1px solid var(--line-2);border-radius:8px;background:#fff;padding:0 12px}
@@ -572,6 +576,26 @@ svg.chart .bm.f{fill:var(--brand)}
     </section>
   </section>
 
+  <!-- ============ CLIENTES (SCRUM-76) ============ -->
+  <section class="vista" id="v-clientes" hidden aria-labelledby="h1-cli">
+    <div class="hero"><div><div class="eyebrow">Minería de datos: quién compra y cuándo</div><h1 id="h1-cli">¿Qué clientes compran más?</h1>
+      <p>Los clientes ordenados por lo que compran, en los meses de temporada y fuera de ellos, y qué repuestos llevan.</p></div>
+      <span class="pill neutra">Clientes SINTÉTICOS</span></div>
+    <section class="card">
+      <span class="lab" id="cli-per-lab">Período<span class="ayuda">Temporada: los meses que venden más que el promedio, según las ventas reales.</span></span>
+      <div class="seg" role="group" aria-labelledby="cli-per-lab" id="cli-per"><button class="chip" type="button" data-v="todo">Todo el año</button><button class="chip" type="button" data-v="temp">En temporada</button><button class="chip" type="button" data-v="fuera">Fuera de temporada</button></div>
+      <div class="grid-k" id="cli-kpis" aria-live="polite"></div>
+      <div class="card-h" style="margin-top:18px"><div><h2 id="cli-tit"></h2><p id="cli-sub"></p></div></div>
+      <div class="scroll"><table id="t-cli" class="cli-t"></table></div>
+      <p class="nota-sit" style="margin-top:14px" id="cli-nota"></p>
+    </section>
+    <section class="card">
+      <div class="card-h"><div><h2>Por tipo de cliente</h2><p>Cuánto compra cada tipo y qué parte de eso cae en temporada.</p></div></div>
+      <div class="scroll"><table id="t-cli-tipo" class="cli-t"></table></div>
+      <p class="pie" id="cli-pie"></p>
+    </section>
+  </section>
+
   <!-- ============ CATÁLOGO (SCRUM-74) ============ -->
   <section class="vista" id="v-catalogo" hidden aria-labelledby="h1-catv">
     <div class="hero"><div><div class="eyebrow">Para el cliente: qué vende MULTIPARTES</div><h1 id="h1-catv">Catálogo de repuestos</h1>
@@ -659,11 +683,12 @@ const ventaDia = id => Math.max(pronostico(id).unidades_mes / 30, 1e-6);
 const IC = {al:'<path d="M8 2l6 11H2z"/><path d="M8 6.5v3M8 11.5h.01"/>', sim:'<path d="M2 13h12M4 10l3-3 2 2 4-5"/>',
   prov:'<rect x="2" y="4" width="12" height="9" rx="1"/><path d="M5 4V2.5h6V4"/>', cl:'<circle cx="5" cy="10" r="1.5"/><circle cx="10" cy="5" r="1.5"/><circle cx="11" cy="11" r="1.5"/><path d="M2 2v12h12"/>',
   bt:'<path d="M3 8a5 5 0 1 0 1.5-3.5"/><path d="M3 2.5V5h2.5"/>',
+  cli:'<circle cx="6" cy="5.5" r="2.5"/><path d="M1.5 14c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5"/><path d="M11 3.5a2.3 2.3 0 0 1 0 4.4M12.5 9.8c1.3.6 2 2 2 4.2"/>',
   cat:'<rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/>',
   tm:'<rect x="2" y="3" width="12" height="11" rx="1"/><path d="M2 6.5h12M5 2v2.5M11 2v2.5"/>', cot:'<path d="M2 8.5V2.5h6L14 8.5 8 14.5z"/><circle cx="5.2" cy="5.7" r="1"/>', plan:'<path d="M3 3h10v10H3z"/><path d="M5.5 6.5h5M5.5 9.5h3"/>'};
 const VISTAS = [["alertas","Alertas de reposición","al","nuevo"],["simulador","Simulador de compra","sim","SCRUM-61"],["proveedores","Comparar proveedores","prov","nuevo"],
   ["plan","Plan con presupuesto","plan","nuevo"],["backtest","¿Qué hubiera pasado?","bt","nuevo"],["clasificacion","Clasificación de repuestos","cl","nuevo"],
-  ["temporadas","Temporadas de venta","tm","nuevo"],["catalogo","Catálogo","cat","nuevo"],["cotizar","Cotizar por cantidad","cot","nuevo"]];
+  ["temporadas","Temporadas de venta","tm","nuevo"],["clientes","Clientes que más compran","cli","nuevo"],["catalogo","Catálogo","cat","nuevo"],["cotizar","Cotizar por cantidad","cot","nuevo"]];
 $("menu").innerHTML = VISTAS.map(([k,t,i,h]) => `<a href="#${k}" data-v="${k}" aria-label="${t}" title="${t}"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">${IC[i]}</svg><span>${t}</span>${h.startsWith("SCRUM") ? `<i class="hu">${h}</i>` : `<i class="nuevo">${h}</i>`}</a>`).join("");
 
 const pintado = {};
@@ -673,7 +698,7 @@ function ir(v){
   document.querySelectorAll(".vista").forEach(s => s.hidden = s.id !== "v-" + v);
   document.querySelectorAll("#menu a").forEach(a => { if(a.dataset.v === v) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current"); });
   $("miga").innerHTML = "Funciones &nbsp;/&nbsp; " + VISTAS.find(x => x[0] === v)[1];
-  ({alertas:pintarAlertas, simulador:pintarSimulador, proveedores:pintarProveedoresVista, plan:pintarPlan, backtest:pintarPasado, clasificacion:pintarClasificacion, temporadas:pintarTemporadas, catalogo:pintarCatalogo, cotizar:pintarCotizar})[v]();
+  ({alertas:pintarAlertas, simulador:pintarSimulador, proveedores:pintarProveedoresVista, plan:pintarPlan, backtest:pintarPasado, clasificacion:pintarClasificacion, temporadas:pintarTemporadas, clientes:pintarClientes, catalogo:pintarCatalogo, cotizar:pintarCotizar})[v]();
   pintado[v] = true;
 }
 window.addEventListener("hashchange", () => { const v = location.hash.slice(1); if(VISTAS.some(x => x[0] === v)) { ir(v); window.scrollTo(0,0); } });
@@ -1099,6 +1124,33 @@ function elegirTemporada(id){ S.tmRep = id; pintarTemporadas(); $("tm-rep").scro
 $("tm-rep").addEventListener("change", e => { S.tmRep = e.target.value; pintarTemporadas(); });
 $("t-tm-mapa").addEventListener("click", e => { const tr = e.target.closest("tr[data-rep]"); if(tr) elegirTemporada(tr.dataset.rep); });
 $("t-tm-mapa").addEventListener("keydown", e => { const tr = e.target.closest("tr[data-rep]"); if(tr && (e.key === "Enter" || e.key === " ")){ e.preventDefault(); elegirTemporada(tr.dataset.rep); } });
+
+/* ==================== CLIENTES (SCRUM-76) ==================== */
+if(S.cliPer === undefined) S.cliPer = "todo";
+const PER = {todo:["monto_bs","todo el año"], temp:["monto_temp_bs","los meses de temporada"], fuera:["monto_fuera_bs","los meses fuera de temporada"]};
+function pintarClientes(){
+  const T = seguro(() => Motor.tableroClientes(D, tcHoy()), $("t-cli")); if(!T) return;
+  document.querySelectorAll("#cli-per .chip").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === S.cliPer)));
+  const [campo, txt] = PER[S.cliPer], tot = S.cliPer === "todo" ? T.total.monto_bs : S.cliPer === "temp" ? T.total.monto_temp_bs : T.total.monto_fuera_bs;
+  const lista = T.clientes.slice().sort((a,b) => b[campo] - a[campo] || (a.id < b.id ? -1 : 1));
+  const top5 = lista.slice(0,5).reduce((s,c) => s + c[campo], 0), mx = Math.max(...lista.map(c => c[campo]), 1);
+  const mesesT = T.temporada.map(m => MES[m-1]).join(", "), pTemp = T.total.monto_bs > 0 ? T.total.monto_temp_bs / T.total.monto_bs * 100 : 0;
+  $("cli-kpis").innerHTML = `
+    <div class="kpi"><div class="t">Clientes</div><div class="v">${T.clientes.length}</div><div class="d">con compras registradas</div><span class="ayuda">Todos SINTÉTICOS, repartidos sobre ventas reales.</span></div>
+    <div class="kpi"><div class="t">Los 5 que más compran</div><div class="v">${nf(tot ? top5 / tot * 100 : 0)}<small>%</small></div><div class="d">de lo comprado en ${txt}</div><span class="ayuda">Si es alto, perder uno de ellos se nota mucho.</span></div>
+    <div class="kpi"><div class="t">Compras en temporada</div><div class="v">${nf(pTemp)}<small>%</small></div><div class="d">meses: ${mesesT}</div><span class="ayuda">${T.temporada.length} meses de 12 concentran esta parte.</span></div>
+    <div class="kpi"><div class="t">Tipo que más compra</div><div class="v" style="font-size:22px">${esc(T.por_tipo[0].tipo)}</div><div class="d">${nf(T.por_tipo[0].monto_bs / T.total.monto_bs * 100)} % del total</div><span class="ayuda">Sumando todos los clientes de ese tipo.</span></div>`;
+  $("cli-tit").innerHTML = `Clientes ordenados por compras en ${txt}${marcaTc()}`;
+  $("cli-sub").textContent = `En bolivianos, a precio de lista con el dólar ${S.tcModo === "oficial" ? "oficial de hoy" : "elegido"}. 51 meses de ventas (ago-2022 a oct-2026).`;
+  $("t-cli").innerHTML = `<thead><tr><th>#</th><th>Cliente</th><th>Compras<span class="ayuda">en el período elegido</span></th><th>Del total</th><th>En temporada<span class="ayuda">parte de sus compras</span></th><th>Qué lleva más<span class="ayuda">unidades en 51 meses</span></th></tr></thead><tbody>` +
+    lista.map((c,i) => `<tr><td>${i + 1}</td><td><b>${esc(c.nombre.replace(" (ficticio)", ""))}</b><span class="ayuda">${esc(c.tipo)} · ${esc(c.zona)}</span></td><td>${bs(c[campo])}<span class="barra" style="width:${Math.round(c[campo] / mx * 100)}%"></span></td><td>${tot ? nf(c[campo] / tot * 100, 1) + " %" : "—"}</td><td>${c.pct_temp === null ? "—" : nf(c.pct_temp) + " %"}</td><td class="lleva">${c.top.map(t => `${esc(nombreRep(t.id))} (${t.unidades})`).join("; ")}</td></tr>`).join("") + "</tbody>";
+  $("t-cli-tipo").innerHTML = `<thead><tr><th>#</th><th>Tipo</th><th>Compras</th><th>Del total</th><th>En temporada</th><th>Clientes</th></tr></thead><tbody>` +
+    T.por_tipo.map((t,i) => `<tr><td>${i + 1}</td><td><b>${esc(t.tipo)}</b></td><td>${bs(t.monto_bs)}</td><td>${nf(t.monto_bs / T.total.monto_bs * 100, 1)} %</td><td>${nf(t.monto_temp_bs / t.monto_bs * 100)} %</td><td style="text-align:left">${t.clientes}</td></tr>`).join("") + "</tbody>";
+  const p = lista[0], masTemp = T.clientes.filter(c => c.monto_bs > 0).sort((a,b) => b.pct_temp - a.pct_temp)[0];
+  $("cli-nota").innerHTML = `<strong>Lo que descubre:</strong> en ${txt}, ${esc(p.nombre.replace(" (ficticio)", ""))} compra el ${nf(p[campo] / tot * 100, 1)} % y los cinco primeros, el ${nf(top5 / tot * 100)} %. ${esc(masTemp.nombre.replace(" (ficticio)", ""))} es el que más depende de la temporada: el ${nf(masTemp.pct_temp)} % de lo que compra cae en esos meses.`;
+  $("cli-pie").textContent = "Clientes SINTÉTICOS: carparts no dice a quién se vendió. Cada unidad vendida (dato REAL) se asignó a un cliente con una regla escrita y una semilla fija (SCRUM-76), así que el patrón por cliente lo pone la regla, no los datos. Temporada: meses que superan el promedio de los 30 repuestos (vista Temporadas). Cuando se carguen ventas y cotizaciones (SCRUM-73 y SCRUM-77), el tablero se recalcula con ellas.";
+}
+$("cli-per").addEventListener("click", e => { const b = e.target.closest("button[data-v]"); if(b){ S.cliPer = b.dataset.v; pintarClientes(); } });
 
 /* ==================== CATÁLOGO (SCRUM-74) ==================== */
 const CAT = {}; D.catalogo.repuestos.forEach(c => CAT[c.repuesto_id] = c);

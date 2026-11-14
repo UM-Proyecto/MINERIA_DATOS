@@ -1,0 +1,21 @@
+cliente_id,nombre,tipo,zona,tamano_relativo,origen_dato,marca
+CLI-01,Taller El Cruce (ficticio),Taller mecánico,Norte,9,SINTÉTICO: cliente asignado por regla sobre ventas REALES de carparts,SINTÉTICO
+CLI-02,Repuestera Los Pozos (ficticio),Repuestera,Centro,8,SINTÉTICO: cliente asignado por regla sobre ventas REALES de carparts,SINTÉTICO
+CLI-03,Transportes Oriente (ficticio),Flota de empresa,Parque Industrial,7,SINTÉTICO: cliente asignado por regla sobre ventas REALES de carparts,SINTÉTICO
+CLI-04,Taller Doble Vía (ficticio),Taller mecánico,Este,6,SINTÉTICO: cliente asignado por regla sobre ventas REALES de carparts,SINTÉTICO
+CLI-05,Repuestera Mutualista (ficticio),Repuestera,Este,6,SINTÉTICO: cliente asignado por regla sobre ventas REALES de carparts,SINTÉTICO
+CLI-06,Distribuidora Agro Norte (ficticio),Flota de empresa,Norte,5,SINTÉTICO: cliente asignado por regla sobre ventas REALES de carparts,SINTÉTICO
+CLI-07,Taller Plan 3000 (ficticio),Taller mecánico,Sur,5,SINTÉTICO: cliente asignado por regla sobre ventas REALES de carparts,SINTÉTICO
+CLI-08,Repuestera Ramada (ficticio),Repuestera,Centro,4,SINTÉTICO: cliente asignado por regla sobre ventas REALES de carparts,SINTÉTICO
+CLI-09,Taller Equipetrol (ficticio),Taller mecánico,Oeste,4,SINTÉTICO: cliente asignado por regla sobre ventas REALES de carparts,SINTÉTICO
+CLI-10,Radiomóviles Unidos (ficticio),Flota de empresa,Centro,4,SINTÉTICO: cliente asignado por regla sobre ventas REALES de carparts,SINTÉTICO
+CLI-11,Taller Villa 1° de Mayo (ficticio),Taller mecánico,Este,3,SINTÉTICO: cliente asignado por regla sobre ventas REALES de carparts,SINTÉTICO
+CLI-12,Repuestera Warnes (ficticio),Repuestera,Norte,3,SINTÉTICO: cliente asignado por regla sobre ventas REALES de carparts,SINTÉTICO
+CLI-13,Constructora Piraí (ficticio),Flota de empresa,Oeste,3,SINTÉTICO: cliente asignado por regla sobre ventas REALES de carparts,SINTÉTICO
+CLI-14,Taller Banzer km 9 (ficticio),Taller mecánico,Norte,2,SINTÉTICO: cliente asignado por regla sobre ventas REALES de carparts,SINTÉTICO
+CLI-15,Taller Pampa de la Isla (ficticio),Taller mecánico,Este,2,SINTÉTICO: cliente asignado por regla sobre ventas REALES de carparts,SINTÉTICO
+CLI-16,Cliente particular 1 (ficticio),Particular,Centro,1.5,SINTÉTICO: cliente asignado por regla sobre ventas REALES de carparts,SINTÉTICO
+CLI-17,Cliente particular 2 (ficticio),Particular,Norte,1.2,SINTÉTICO: cliente asignado por regla sobre ventas REALES de carparts,SINTÉTICO
+CLI-18,Cliente particular 3 (ficticio),Particular,Sur,1,SINTÉTICO: cliente asignado por regla sobre ventas REALES de carparts,SINTÉTICO
+CLI-19,Cliente particular 4 (ficticio),Particular,Oeste,1,SINTÉTICO: cliente asignado por regla sobre ventas REALES de carparts,SINTÉTICO
+CLI-20,Cliente particular 5 (ficticio),Particular,Este,0.8,SINTÉTICO: cliente asignado por regla sobre ventas REALES de carparts,SINTÉTICO

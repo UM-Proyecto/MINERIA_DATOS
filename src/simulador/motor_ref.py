@@ -687,3 +687,61 @@ def cotizar(datos, rep_id, cantidad, tc, tramos=None):
         "precio_unitario_bs": unitario, "subtotal_bs": subtotal, "descuento_bs": redondear(subtotal - total, 2),
         "total_bs": total, "siguiente_tramo": siguiente, "stock": stock, "en_stock": en_stock,
         "por_pedir": None if en_stock is None else q - en_stock, "plazo_dias": num(prov["plazo_normal_dias"])}
+
+
+# ------------------------------------------------------------------ clientes (SCRUM-76)
+
+def tablero_clientes(datos, tc):
+    """Tablero de clientes SINTÉTICOS (ver motor.js: tableroClientes)."""
+    tc = num(tc)
+    temporada = temporadas(datos)["total"]["meses_fuertes"]
+    en_temp = set(temporada)
+    precio = {r["repuesto_id"]: redondear(num(r["precio_venta_usd"]) * tc, 2) for r in datos["repuestos"]}
+    C, orden = {}, []
+    for c in datos["clientes"]["lista"]:
+        C[c["cliente_id"]] = {"id": c["cliente_id"], "nombre": c["nombre"], "tipo": c["tipo"], "zona": c["zona"],
+                              "unidades": 0, "monto_bs": 0, "unid_temp": 0, "unid_fuera": 0,
+                              "monto_temp_bs": 0, "monto_fuera_bs": 0, "_rep": {}}
+        orden.append(c["cliente_id"])
+    total = {"unidades": 0, "monto_bs": 0, "monto_temp_bs": 0, "monto_fuera_bs": 0}
+    for mes, rep, cli, u in datos["clientes"]["ventas"]:
+        c, u = C.get(cli), dato_valido(u)
+        if c is None or u is None or rep not in precio:
+            continue
+        monto = u * precio[rep]
+        try:
+            t = int(str(mes)[5:7]) in en_temp
+        except ValueError:
+            t = False
+        c["unidades"] += u
+        c["monto_bs"] += monto
+        if t:
+            c["unid_temp"] += u
+            c["monto_temp_bs"] += monto
+            total["monto_temp_bs"] += monto
+        else:
+            c["unid_fuera"] += u
+            c["monto_fuera_bs"] += monto
+            total["monto_fuera_bs"] += monto
+        c["_rep"][rep] = c["_rep"].get(rep, 0) + u
+        total["unidades"] += u
+        total["monto_bs"] += monto
+    lista = []
+    for cid in orden:
+        c = C[cid]
+        c["pct_temp"] = c["monto_temp_bs"] / c["monto_bs"] * 100 if c["monto_bs"] > 0 else None
+        c["pct_total"] = c["monto_bs"] / total["monto_bs"] * 100 if total["monto_bs"] > 0 else None
+        c["top"] = [{"id": r, "unidades": n} for r, n in sorted(c["_rep"].items(), key=lambda x: (-x[1], x[0]))][:3]
+        del c["_rep"]
+        lista.append(c)
+    lista.sort(key=lambda c: (-c["monto_bs"], c["id"]))
+    tipos, orden_tipos = {}, []
+    for c in lista:
+        if c["tipo"] not in tipos:
+            tipos[c["tipo"]] = {"tipo": c["tipo"], "clientes": 0, "monto_bs": 0, "monto_temp_bs": 0}
+            orden_tipos.append(c["tipo"])
+        tipos[c["tipo"]]["clientes"] += 1
+        tipos[c["tipo"]]["monto_bs"] += c["monto_bs"]
+        tipos[c["tipo"]]["monto_temp_bs"] += c["monto_temp_bs"]
+    por_tipo = sorted((tipos[t] for t in orden_tipos), key=lambda x: (-x["monto_bs"], x["tipo"]))
+    return {"temporada": temporada, "clientes": lista, "por_tipo": por_tipo, "total": total}
