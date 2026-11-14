@@ -591,10 +591,101 @@ var Motor = (function () {
     return total;
   }
 
+  // ---------------------------------------------------------------- temporadas (SCRUM-75)
+
+  // Venta promedio por mes del año. Los meses son los de la serie re-fechada de SCRUM-55 (enero de 1998 de carparts
+  // es agosto de 2022), así que muestran el patrón de carparts corrido siete meses, no las temporadas de Santa Cruz.
+  // Un mes vacío o no válido no cuenta como cero: no entra al promedio de su mes.
+  function perfilMensual(serie) {
+    var suma = [], obs = [], i;
+    for (i = 0; i < 12; i++) { suma.push(0); obs.push(0); }
+    for (i = 0; i < serie.length; i++) {
+      var u = datoValido(serie[i][1]);
+      if (u === null) continue;
+      var m = Number(String(serie[i][0]).slice(5, 7)) - 1;
+      if (!(m >= 0 && m < 12)) continue;
+      suma[m] += u;
+      obs[m] += 1;
+    }
+    var prom = [], acum = 0, conDato = 0;
+    for (i = 0; i < 12; i++) {
+      prom.push(obs[i] ? suma[i] / obs[i] : null);
+      if (obs[i]) { acum += prom[i]; conDato++; }
+    }
+    var media = conDato ? acum / conDato : null;
+    var indice = [], fuertes = [], pico = null, flojo = null;
+    for (i = 0; i < 12; i++) {
+      indice.push(prom[i] === null || !media ? null : prom[i] / media);
+      if (prom[i] === null) continue;
+      if (media !== null && prom[i] > media + EPS) fuertes.push(i + 1);
+      if (pico === null || prom[i] > prom[pico - 1] + EPS) pico = i + 1;
+      if (flojo === null || prom[i] < prom[flojo - 1] - EPS) flojo = i + 1;
+    }
+    return { promedio_mes: prom, observaciones: obs, media: media, indice: indice, meses_fuertes: fuertes,
+             mes_pico: pico, mes_flojo: flojo };
+  }
+
+  function temporadas(datos) {
+    var ids = datos.repuestos.map(function (r) { return r.repuesto_id; });
+    var porMes = {}, claves = [];
+    var repuestos = ids.map(function (id) {
+      var serie = datos.ventas[id] || [];
+      for (var i = 0; i < serie.length; i++) {
+        var u = datoValido(serie[i][1]);
+        if (u === null) continue;
+        if (!(serie[i][0] in porMes)) { porMes[serie[i][0]] = 0; claves.push(serie[i][0]); }
+        porMes[serie[i][0]] += u;
+      }
+      var p = perfilMensual(serie);
+      p.id = id;
+      return p;
+    });
+    claves.sort();
+    var total = perfilMensual(claves.map(function (k) { return [k, porMes[k]]; }));
+    return { repuestos: repuestos, total: total };
+  }
+
+  // ---------------------------------------------------------------- cotización (SCRUM-72)
+
+  // Tramos de EJEMPLO decididos por Sam el 13-11-2026: 5 % desde 10 unidades y 10 % desde 50.
+  var TRAMOS_EJEMPLO = [{ desde: 10, pct: 5 }, { desde: 50, pct: 10 }];
+
+  function cotizar(datos, repId, cantidad, tc, tramos) {
+    var rep = buscarRepuesto(datos, repId);
+    var q = Number(cantidad);
+    if (!isFinite(q) || q < 1 || Math.floor(q) !== q) throw new Error("La cantidad debe ser un número entero de 1 o más");
+    tc = num(tc);
+    if (!isFinite(tc) || tc <= 0) throw new Error("El dólar debe ser un número mayor que cero");
+    var t = (tramos || TRAMOS_EJEMPLO).slice().sort(function (a, b) { return a.desde - b.desde; });
+    var prov = buscarProveedor(datos, rep.proveedor_id);
+    var costo = costoPuesto(rep, prov, tc).total_bs;
+    var lista = redondear(num(rep.precio_venta_usd) * tc, 2);
+    var pct = 0, siguiente = null;
+    for (var i = 0; i < t.length; i++) {
+      if (q >= t[i].desde) pct = t[i].pct;
+      else if (siguiente === null) siguiente = { desde: t[i].desde, pct: t[i].pct, faltan: t[i].desde - q };
+    }
+    // El descuento nunca deja el precio por debajo del costo puesto.
+    var maxPct = lista > 0 ? Math.max(0, (1 - costo / lista) * 100) : 0;
+    var tope = pct > maxPct + EPS;
+    var unitario = tope ? costo : redondear(lista * (1 - pct / 100), 2);
+    var subtotal = redondear(lista * q, 2), total = redondear(unitario * q, 2);
+    var stock = datoValido(rep.stock_al_2026_11_10);
+    var enStock = stock === null ? null : Math.min(stock, q);
+    return {
+      id: rep.repuesto_id, cantidad: q, tc: tc, precio_lista_bs: lista, costo_puesto_bs: costo,
+      pct_tramo: pct, pct_aplicado: tope ? redondear(maxPct, 2) : pct, tope: tope,
+      precio_unitario_bs: unitario, subtotal_bs: subtotal, descuento_bs: redondear(subtotal - total, 2), total_bs: total,
+      siguiente_tramo: siguiente, stock: stock, en_stock: enStock,
+      por_pedir: enStock === null ? null : q - enStock, plazo_dias: num(prov.plazo_normal_dias)
+    };
+  }
+
   return {
     costoPuesto: costoPuesto, pronostico: pronostico, simular: simular, quiebreDolar: quiebreDolar,
     sensibilidad: sensibilidad, alertas: alertas, planPresupuesto: planPresupuesto,
-    compararProveedores: compararProveedores, pasado: pasado,
+    compararProveedores: compararProveedores, pasado: pasado, temporadas: temporadas, cotizar: cotizar,
+    TRAMOS_EJEMPLO: TRAMOS_EJEMPLO,
     _interno: { mulberry32: mulberry32, normalIH: normalIH, expSerie: expSerie, redondear: redondear, volatilidadDiaria: volatilidadDiaria }
   };
 })();

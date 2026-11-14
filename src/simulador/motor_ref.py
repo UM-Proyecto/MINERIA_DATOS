@@ -586,3 +586,104 @@ def pasado(datos, politica):
         total["ganancia_bs"] += (ingreso - st["compras"] - cped * st["pedidos"] - cap_sum * tasa_cap / 30
                                  + valor_final - valor_inicial)
     return total
+
+
+# ------------------------------------------------------------------ temporadas (SCRUM-75)
+
+def perfil_mensual(serie):
+    """Venta promedio por mes del año (ver motor.js: perfilMensual). Un mes no válido no entra a su promedio."""
+    suma, obs = [0] * 12, [0] * 12
+    for mes, u in serie:
+        u = dato_valido(u)
+        if u is None:
+            continue
+        try:
+            m = int(str(mes)[5:7]) - 1
+        except ValueError:
+            continue
+        if not 0 <= m < 12:
+            continue
+        suma[m] += u
+        obs[m] += 1
+    prom, acum, con_dato = [], 0, 0
+    for i in range(12):
+        prom.append(suma[i] / obs[i] if obs[i] else None)
+        if obs[i]:
+            acum += prom[i]
+            con_dato += 1
+    media = acum / con_dato if con_dato else None
+    indice, fuertes, pico, flojo = [], [], None, None
+    for i in range(12):
+        indice.append(None if prom[i] is None or not media else prom[i] / media)
+        if prom[i] is None:
+            continue
+        if media is not None and prom[i] > media + EPS:
+            fuertes.append(i + 1)
+        if pico is None or prom[i] > prom[pico - 1] + EPS:
+            pico = i + 1
+        if flojo is None or prom[i] < prom[flojo - 1] - EPS:
+            flojo = i + 1
+    return {"promedio_mes": prom, "observaciones": obs, "media": media, "indice": indice,
+            "meses_fuertes": fuertes, "mes_pico": pico, "mes_flojo": flojo}
+
+
+def temporadas(datos):
+    por_mes, claves, repuestos = {}, [], []
+    for r in datos["repuestos"]:
+        rid = r["repuesto_id"]
+        serie = datos["ventas"].get(rid, [])
+        for mes, u in serie:
+            u = dato_valido(u)
+            if u is None:
+                continue
+            if mes not in por_mes:
+                por_mes[mes] = 0
+                claves.append(mes)
+            por_mes[mes] += u
+        p = perfil_mensual(serie)
+        p["id"] = rid
+        repuestos.append(p)
+    claves.sort()
+    return {"repuestos": repuestos, "total": perfil_mensual([[k, por_mes[k]] for k in claves])}
+
+
+# ------------------------------------------------------------------ cotización (SCRUM-72)
+
+TRAMOS_EJEMPLO = [{"desde": 10, "pct": 5}, {"desde": 50, "pct": 10}]
+
+
+def cotizar(datos, rep_id, cantidad, tc, tramos=None):
+    """Precio de una cantidad con descuento por volumen (ver motor.js: cotizar)."""
+    rep = buscar_repuesto(datos, rep_id)
+    try:
+        q = float(cantidad)
+    except (TypeError, ValueError):
+        q = float("nan")
+    if q != q or q in (float("inf"), float("-inf")) or q < 1 or math.floor(q) != q:
+        raise ValueError("La cantidad debe ser un número entero de 1 o más")
+    q = int(q)
+    tc = num(tc)
+    if tc != tc or tc in (float("inf"), float("-inf")) or tc <= 0:
+        raise ValueError("El dólar debe ser un número mayor que cero")
+    t = sorted(tramos or TRAMOS_EJEMPLO, key=lambda x: x["desde"])
+    prov = buscar_proveedor(datos, rep["proveedor_id"])
+    costo = costo_puesto(rep, prov, tc)["total_bs"]
+    lista = redondear(num(rep["precio_venta_usd"]) * tc, 2)
+    pct, siguiente = 0, None
+    for x in t:
+        if q >= x["desde"]:
+            pct = x["pct"]
+        elif siguiente is None:
+            siguiente = {"desde": x["desde"], "pct": x["pct"], "faltan": x["desde"] - q}
+    max_pct = max(0, (1 - costo / lista) * 100) if lista > 0 else 0
+    tope = pct > max_pct + EPS
+    unitario = costo if tope else redondear(lista * (1 - pct / 100), 2)
+    subtotal, total = redondear(lista * q, 2), redondear(unitario * q, 2)
+    stock = dato_valido(rep.get("stock_al_2026_11_10"))
+    en_stock = None if stock is None else min(stock, q)
+    return {
+        "id": rep["repuesto_id"], "cantidad": q, "tc": tc, "precio_lista_bs": lista, "costo_puesto_bs": costo,
+        "pct_tramo": pct, "pct_aplicado": redondear(max_pct, 2) if tope else pct, "tope": tope,
+        "precio_unitario_bs": unitario, "subtotal_bs": subtotal, "descuento_bs": redondear(subtotal - total, 2),
+        "total_bs": total, "siguiente_tramo": siguiente, "stock": stock, "en_stock": en_stock,
+        "por_pedir": None if en_stock is None else q - en_stock, "plazo_dias": num(prov["plazo_normal_dias"])}

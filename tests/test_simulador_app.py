@@ -99,8 +99,8 @@ class ArmadoApp(unittest.TestCase):
         self.assertIn("data:image/jpeg;base64,", h)
         self.assertEqual(h.lower().count("</script>"), 3)  # datos, motor y código de la app
 
-    def test_seis_vistas_sin_mis_decisiones(self):
-        for v in ["alertas", "simulador", "proveedores", "plan", "backtest", "clasificacion"]:
+    def test_ocho_vistas_sin_mis_decisiones(self):
+        for v in ["alertas", "simulador", "proveedores", "plan", "backtest", "clasificacion", "temporadas", "cotizar"]:
             self.assertIn(f'id="v-{v}"', self.html)
         self.assertNotIn("Mis decisiones", self.html)
 

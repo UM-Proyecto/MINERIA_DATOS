@@ -9,7 +9,7 @@
 <title>MULTIPARTES · Simulador de compras</title>
 <!--
   Simulador de compras de MULTIPARTES (Minería de Datos, SCRUM-64 y siguientes).
-  Seis funciones en un menú lateral; se cambia de una a otra sin recargar (#alertas, #simulador, ...).
+  Ocho funciones en un menú lateral; se cambia de una a otra sin recargar (#alertas, #simulador, ...).
   El CSS de las secciones 1 a 9 es el de la pantalla de decisión de compra (src/hu-12/plantilla_panel.html), sin
   cambios, para que las dos pantallas se vean iguales. Lo propio del simulador va en la sección 10.
   Archivo autónomo: generar_app.py pone los datos, el motor de cálculo y el logotipo en sus marcas.
@@ -331,6 +331,29 @@ svg.chart .pt30{fill:none;stroke:var(--graphite);stroke-width:1.4}
   .topbar{flex-wrap:wrap;justify-content:flex-start;padding:10px 0;gap:6px}
   .topbar #miga{flex:1 1 100%}
 }
+
+/* 11. TEMPORADAS (SCRUM-75) Y COTIZAR (SCRUM-72) */
+svg.chart .bm{fill:#c9cec8}
+svg.chart .bm.f{fill:var(--brand)}
+.tm-mapa th,.tm-mapa td{text-align:center;padding:7px 4px;min-width:38px}
+.tm-mapa th:first-child,.tm-mapa td:first-child{text-align:left;min-width:92px;position:sticky;left:0;background:#fff;z-index:1}
+.tm-mapa th:first-child{background:#fafbf9}
+.tm-mapa tbody tr{cursor:pointer}
+.tm-mapa tbody tr:hover td:first-child,.tm-mapa tr[data-sel=true] td:first-child{background:var(--brand-soft)}
+.tm-mapa td.c{font-size:12px;color:var(--ink-2)}
+.tm-mapa td.c.f{color:#fff;font-weight:600}
+.cot-form{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:16px;align-items:start}
+.tramos{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.tramos span{font-size:12px;border:1px solid var(--line-2);border-radius:99px;padding:4px 10px;color:var(--ink-2)}
+.tramos span.on{background:var(--brand-soft);border-color:var(--brand);color:var(--brand-dark);font-weight:600}
+.cot-res{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:18px;margin-top:18px}
+.cot-tot{background:var(--brand-soft);border-radius:var(--r);padding:18px 20px}
+.cot-tot .v{font-size:34px;font-weight:700;letter-spacing:-.02em;color:var(--brand-dark);line-height:1.15}
+.cot-tot .d{font-size:12.5px;color:var(--ink-2);margin-top:6px}
+.cot-desg td:first-child,.cot-desg th:first-child{text-align:left}
+.cot-desg tr.t td{font-weight:700;border-bottom:0}
+.err-in{color:var(--bad);font-size:12.5px;margin-top:6px;min-height:18px}
+@media (max-width:760px){.cot-form,.cot-res{grid-template-columns:1fr}.cot-tot .v{font-size:28px}}
 </style>
 </head>
 <body>
@@ -510,6 +533,44 @@ svg.chart .pt30{fill:none;stroke:var(--graphite);stroke-width:1.4}
       <div><div class="cuad" id="cuad"></div><p class="nota-sit" style="margin-top:12px" id="cl-nota"></p></div>
     </div><p class="pie" id="cl-pie"></p></section>
   </section>
+
+  <!-- ============ TEMPORADAS (SCRUM-75) ============ -->
+  <section class="vista" id="v-temporadas" hidden aria-labelledby="h1-tm">
+    <div class="hero"><div><div class="eyebrow">Minería de datos: cuándo se vende más</div><h1 id="h1-tm">¿En qué meses se vende más?</h1>
+      <p>La venta promedio de cada mes del año, con las ventas reales de carparts. Sirve para pedir antes de los meses fuertes.</p></div>
+      <span class="pill neutra">historia nueva</span></div>
+    <section class="card">
+      <div class="selrep"><label for="tm-rep">Repuesto<span class="ayuda">Puede ver los 30 juntos o uno solo.</span></label><select id="tm-rep"></select></div>
+      <div class="grid-k" id="tm-kpis" aria-live="polite" style="margin-top:0"></div>
+      <div class="card-h" style="margin-top:18px"><div><h2 id="tm-tit"></h2><p>En verde, los meses que venden más que el promedio del año.</p></div></div>
+      <div class="chartbox" id="chart-tm"></div>
+      <div class="legend"><span><i class="sw" style="background:var(--brand)"></i>Mes fuerte: vende más que el promedio</span><span><i class="sw" style="background:#c9cec8"></i>Mes flojo</span><span><i class="sw" style="background:var(--graphite);height:2px;vertical-align:3px"></i>Promedio del año</span></div>
+      <details><summary>Ver los datos del gráfico como tabla</summary><div class="scroll"><table id="t-tm"></table></div></details>
+      <p class="nota-sit" style="margin-top:14px" id="tm-nota"></p>
+    </section>
+    <section class="card">
+      <div class="card-h"><div><h2>Los 30 repuestos, mes a mes</h2>
+        <p>Cada casilla compara el mes con el promedio del repuesto: 1,0 es un mes normal; 2,0, el doble. Toque una fila para verla arriba.</p></div></div>
+      <div class="scroll"><table id="t-tm-mapa" class="tm-mapa"></table></div>
+      <p class="pie" id="tm-pie"></p>
+    </section>
+  </section>
+
+  <!-- ============ COTIZAR (SCRUM-72) ============ -->
+  <section class="vista" id="v-cotizar" hidden aria-labelledby="h1-cot">
+    <div class="hero"><div><div class="eyebrow">Para el cliente: precio al instante</div><h1 id="h1-cot">¿Cuánto cuesta lo que necesito?</h1>
+      <p>Elija el repuesto y la cantidad. El precio sale en bolivianos con el dólar oficial del día y baja si lleva más unidades.</p></div>
+      <span class="pill neutra">historia nueva</span></div>
+    <section class="card">
+      <div class="cot-form">
+        <div><label for="cot-rep">Repuesto<span class="ayuda">Entre paréntesis, cuántas unidades hay en el almacén.</span></label><select id="cot-rep"></select></div>
+        <div><label for="cot-q">Cantidad<span class="ayuda">Unidades enteras, de 1 en adelante.</span></label><input id="cot-q" type="number" min="1" step="1" inputmode="numeric" aria-describedby="cot-err"><div class="err-in" id="cot-err" aria-live="polite"></div></div>
+      </div>
+      <div><span class="lab">Descuento por cantidad<span class="ayuda">Tramos de EJEMPLO, todavía no son la política de MULTIPARTES.</span></span><div class="tramos" id="cot-tramos"></div></div>
+      <div class="cot-res" id="cot-res" aria-live="polite"></div>
+      <p class="pie" id="cot-pie"></p>
+    </section>
+  </section>
 </div></div>
 
 <script type="application/json" id="datos">__DATA__</script>
@@ -561,9 +622,11 @@ const ventaDia = id => Math.max(pronostico(id).unidades_mes / 30, 1e-6);
 /* ---- Menú ---- */
 const IC = {al:'<path d="M8 2l6 11H2z"/><path d="M8 6.5v3M8 11.5h.01"/>', sim:'<path d="M2 13h12M4 10l3-3 2 2 4-5"/>',
   prov:'<rect x="2" y="4" width="12" height="9" rx="1"/><path d="M5 4V2.5h6V4"/>', cl:'<circle cx="5" cy="10" r="1.5"/><circle cx="10" cy="5" r="1.5"/><circle cx="11" cy="11" r="1.5"/><path d="M2 2v12h12"/>',
-  bt:'<path d="M3 8a5 5 0 1 0 1.5-3.5"/><path d="M3 2.5V5h2.5"/>', plan:'<path d="M3 3h10v10H3z"/><path d="M5.5 6.5h5M5.5 9.5h3"/>'};
+  bt:'<path d="M3 8a5 5 0 1 0 1.5-3.5"/><path d="M3 2.5V5h2.5"/>',
+  tm:'<rect x="2" y="3" width="12" height="11" rx="1"/><path d="M2 6.5h12M5 2v2.5M11 2v2.5"/>', cot:'<path d="M2 8.5V2.5h6L14 8.5 8 14.5z"/><circle cx="5.2" cy="5.7" r="1"/>', plan:'<path d="M3 3h10v10H3z"/><path d="M5.5 6.5h5M5.5 9.5h3"/>'};
 const VISTAS = [["alertas","Alertas de reposición","al","nuevo"],["simulador","Simulador de compra","sim","SCRUM-61"],["proveedores","Comparar proveedores","prov","nuevo"],
-  ["plan","Plan con presupuesto","plan","nuevo"],["backtest","¿Qué hubiera pasado?","bt","nuevo"],["clasificacion","Clasificación de repuestos","cl","nuevo"]];
+  ["plan","Plan con presupuesto","plan","nuevo"],["backtest","¿Qué hubiera pasado?","bt","nuevo"],["clasificacion","Clasificación de repuestos","cl","nuevo"],
+  ["temporadas","Temporadas de venta","tm","nuevo"],["cotizar","Cotizar por cantidad","cot","nuevo"]];
 $("menu").innerHTML = VISTAS.map(([k,t,i,h]) => `<a href="#${k}" data-v="${k}" aria-label="${t}" title="${t}"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">${IC[i]}</svg><span>${t}</span>${h.startsWith("SCRUM") ? `<i class="hu">${h}</i>` : `<i class="nuevo">${h}</i>`}</a>`).join("");
 
 const pintado = {};
@@ -573,7 +636,7 @@ function ir(v){
   document.querySelectorAll(".vista").forEach(s => s.hidden = s.id !== "v-" + v);
   document.querySelectorAll("#menu a").forEach(a => { if(a.dataset.v === v) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current"); });
   $("miga").innerHTML = "Funciones &nbsp;/&nbsp; " + VISTAS.find(x => x[0] === v)[1];
-  ({alertas:pintarAlertas, simulador:pintarSimulador, proveedores:pintarProveedoresVista, plan:pintarPlan, backtest:pintarPasado, clasificacion:pintarClasificacion})[v]();
+  ({alertas:pintarAlertas, simulador:pintarSimulador, proveedores:pintarProveedoresVista, plan:pintarPlan, backtest:pintarPasado, clasificacion:pintarClasificacion, temporadas:pintarTemporadas, cotizar:pintarCotizar})[v]();
   pintado[v] = true;
 }
 window.addEventListener("hashchange", () => { const v = location.hash.slice(1); if(VISTAS.some(x => x[0] === v)) { ir(v); window.scrollTo(0,0); } });
@@ -942,9 +1005,110 @@ function pintarClasificacion(){
     + `<tr><td>Sin clasificar</td><td>${nf(sinc)}</td><td>—</td><td>—</td><td>—</td><td>menos de dos meses con venta</td></tr></tbody>`;
 }
 
+/* ==================== TEMPORADAS (SCRUM-75) ==================== */
+const MES_L = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+let TM = null;
+const tmDatos = () => TM || (TM = Motor.temporadas(D));
+function pintarTemporadas(){
+  const T = seguro(tmDatos, $("chart-tm")); if(!T) return;
+  if(S.tmRep === undefined) S.tmRep = "";
+  $("tm-rep").innerHTML = '<option value="">Los 30 repuestos juntos</option>' + D.repuestos.map(r => `<option value="${r.repuesto_id}">${r.repuesto_id} · carparts ${r.codigo_carparts} · ${r.tipo_demanda} ${r.clase_abc}</option>`).join("");
+  $("tm-rep").value = S.tmRep;
+  const p = S.tmRep ? T.repuestos.find(x => x.id === S.tmRep) : T.total, quien = S.tmRep || "los 30 repuestos juntos";
+  $("tm-tit").textContent = `Venta promedio por mes del año: ${quien}`;
+  if(!p || !p.media){
+    $("tm-kpis").innerHTML = ""; $("chart-tm").innerHTML = '<p class="err">Este repuesto no tiene ventas registradas: no se puede ver su temporada.</p>';
+    $("t-tm").innerHTML = ""; $("tm-nota").textContent = ""; pintarMapa(T); return;
+  }
+  const ip = p.indice[p.mes_pico - 1], iflo = p.indice[p.mes_flojo - 1];
+  $("tm-kpis").innerHTML = `
+    <div class="kpi"><div class="t">Mes más fuerte</div><div class="v">${capital(MES_L[p.mes_pico - 1])}</div><div class="d">vende ${nf(ip,1)} veces el promedio</div><span class="ayuda">Conviene tener stock antes de que empiece.</span></div>
+    <div class="kpi"><div class="t">Mes más flojo</div><div class="v">${capital(MES_L[p.mes_flojo - 1])}</div><div class="d">vende ${nf(iflo,1)} veces el promedio</div><span class="ayuda">Buen momento para no llenar el almacén.</span></div>
+    <div class="kpi"><div class="t">Meses fuertes</div><div class="v">${p.meses_fuertes.length}<small>de 12</small></div><div class="d">venden más que el promedio</div><span class="ayuda">Son las barras verdes del gráfico.</span></div>
+    <div class="kpi"><div class="t">Venta promedio</div><div class="v">${nf(p.media,1)}<small>u/mes</small></div><div class="d">promedio de los 12 meses</div><span class="ayuda">La línea oscura del gráfico.</span></div>`;
+  const W = Math.max(320, Math.round($("chart-tm").clientWidth || 900)), H = 240, pl = 36, pb = 28, pr = 12;
+  const mx = Math.max(...p.promedio_mes.map(v => v || 0), p.media) * 1.15, bw = (W - pl - pr) / 12;
+  const X = i => pl + i * bw, Y = v => 10 + (1 - v / mx) * (H - pb - 10);
+  const ticks = [0, mx / 2, mx / 1.15].map(t => Math.round(t * 10) / 10);
+  const barras = p.promedio_mes.map((v,i) => v === null ? "" : `<rect class="bm${p.meses_fuertes.includes(i + 1) ? " f" : ""}" x="${(X(i) + bw*.18).toFixed(1)}" y="${Y(v).toFixed(1)}" width="${(bw*.64).toFixed(1)}" height="${Math.max(0, H - pb - Y(v)).toFixed(1)}" rx="3"><title>${capital(MES_L[i])}: ${nf(v,2)} u en promedio (${p.observaciones[i]} años con dato)</title></rect>`).join("");
+  $("chart-tm").innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Venta promedio por mes de ${esc(quien)}. Mes más fuerte: ${MES_L[p.mes_pico - 1]}; más flojo: ${MES_L[p.mes_flojo - 1]}">
+    ${ticks.map(t => `<line class="grid" x1="${pl}" x2="${W-pr}" y1="${Y(t)}" y2="${Y(t)}"/><text x="${pl-6}" y="${Y(t)+4}" text-anchor="end">${nf(t, mx < 11.5 ? 1 : 0)}</text>`).join("")}
+    ${barras}
+    <line x1="${pl}" x2="${W-pr}" y1="${Y(p.media)}" y2="${Y(p.media)}" stroke="var(--graphite)" stroke-width="2"/>
+    <text x="${X(p.mes_pico - 1) + bw/2}" y="${Y(p.promedio_mes[p.mes_pico - 1]) - 6}" text-anchor="middle" style="fill:var(--brand-dark);font-weight:600">${nf(p.promedio_mes[p.mes_pico - 1],1)}</text>
+    ${MES.map((m,i) => `<text x="${X(i) + bw/2}" y="${H-8}" text-anchor="middle">${m}</text>`).join("")}</svg>`;
+  $("t-tm").innerHTML = "<thead><tr><th style=\"text-align:left\">Mes</th><th>Venta promedio</th><th>Frente al promedio</th><th>Años con dato</th></tr></thead><tbody>" +
+    p.promedio_mes.map((v,i) => `<tr><td style="text-align:left">${capital(MES_L[i])}${p.meses_fuertes.includes(i + 1) ? ' <span class="tag">fuerte</span>' : ""}</td><td>${v === null ? "—" : nf(v,2) + " u"}</td><td>${p.indice[i] === null ? "—" : nf(p.indice[i],2)}</td><td>${p.observaciones[i]}</td></tr>`).join("") + "</tbody>";
+  let nota = `<strong>Lo que descubre:</strong> ${capital(MES_L[p.mes_pico - 1])} vende ${nf(ip,1)} veces el promedio y ${MES_L[p.mes_flojo - 1]}, ${nf(iflo,1)}. Los meses fuertes son ${p.meses_fuertes.map(m => MES_L[m - 1]).join(", ")}.`;
+  if(S.tmRep){
+    const r = REP[S.tmRep], plazo = PRV[r.proveedor_id] ? PRV[r.proveedor_id].plazo_normal_dias : null;
+    if(plazo !== null){ const mp = ((p.mes_pico - 1) - Math.ceil(plazo / 30) + 24) % 12;
+      nota += ` Su proveedor tarda ${plazo} días: para llegar a ${MES_L[p.mes_pico - 1]} con stock, el pedido tiene que salir a más tardar en ${MES_L[mp]}.`; }
+  } else {
+    const cuenta = new Array(12).fill(0); T.repuestos.forEach(x => { if(x.mes_pico) cuenta[x.mes_pico - 1]++; });
+    const m = cuenta.indexOf(Math.max(...cuenta));
+    nota += ` Cada repuesto tiene su propio calendario: el mes más repetido como el más fuerte es ${MES_L[m]}, y solo en ${cuenta[m]} de los 30.`;
+  }
+  $("tm-nota").innerHTML = nota;
+  pintarMapa(T);
+}
+function pintarMapa(T){
+  const color = i => i === null || i <= 1 ? "" : `background:rgba(1,134,62,${Math.min(1, .12 + (i - 1) / 2 * .88).toFixed(2)})`;
+  $("t-tm-mapa").innerHTML = `<thead><tr><th>Repuesto</th>${MES.map(m => `<th>${m}</th>`).join("")}</tr></thead><tbody>` +
+    T.repuestos.map(x => `<tr tabindex="0" data-rep="${x.id}" data-sel="${x.id === S.tmRep}" aria-label="${x.id}: mes más fuerte ${x.mes_pico ? MES_L[x.mes_pico - 1] : "sin datos"}. Ver en el gráfico"><td><b>${x.id}</b></td>${x.indice.map((i,k) => `<td class="c${i !== null && i >= 1.6 ? " f" : ""}" style="${color(i)}" title="${capital(MES_L[k])}: ${i === null ? "sin dato" : nf(i,2) + " veces el promedio"}">${i === null ? "—" : nf(i,1)}</td>`).join("")}</tr>`).join("") + "</tbody>";
+  $("tm-pie").textContent = "Ventas REALES de carparts (Hyndman, Koehler, Ord y Snyder, 2008), 51 meses por repuesto. Los meses están re-fechados (SCRUM-55): enero de 1998 de carparts es agosto de 2022 aquí, así que el patrón es el de carparts corrido siete meses, no el de Santa Cruz. Un mes sin dato no se cuenta como cero.";
+}
+function elegirTemporada(id){ S.tmRep = id; pintarTemporadas(); $("tm-rep").scrollIntoView({block:"center"}); }
+$("tm-rep").addEventListener("change", e => { S.tmRep = e.target.value; pintarTemporadas(); });
+$("t-tm-mapa").addEventListener("click", e => { const tr = e.target.closest("tr[data-rep]"); if(tr) elegirTemporada(tr.dataset.rep); });
+$("t-tm-mapa").addEventListener("keydown", e => { const tr = e.target.closest("tr[data-rep]"); if(tr && (e.key === "Enter" || e.key === " ")){ e.preventDefault(); elegirTemporada(tr.dataset.rep); } });
+
+/* ==================== COTIZAR (SCRUM-72) ==================== */
+const bs2 = n => "Bs " + nf(n, 2);
+function pintarCotizar(){
+  if(!S.cotRep) S.cotRep = S.rep || D.repuestos[0].repuesto_id;
+  if(S.cotQ === undefined) S.cotQ = "10";
+  $("cot-rep").innerHTML = D.repuestos.map(r => `<option value="${r.repuesto_id}">${r.repuesto_id} · carparts ${r.codigo_carparts} (${nf(r.stock_al_2026_11_10)} en almacén)</option>`).join("");
+  $("cot-rep").value = S.cotRep;
+  if(document.activeElement !== $("cot-q")) $("cot-q").value = S.cotQ;
+  cotizarAhora();
+}
+function tramosTxt(activo){
+  const t = Motor.TRAMOS_EJEMPLO.slice().sort((a,b) => a.desde - b.desde), filas = [{desde:1, hasta:t[0].desde - 1, pct:0}];
+  t.forEach((x,i) => filas.push({desde:x.desde, hasta:i + 1 < t.length ? t[i + 1].desde - 1 : null, pct:x.pct}));
+  $("cot-tramos").innerHTML = filas.map(f => `<span class="${activo !== null && f.pct === activo ? "on" : ""}">${f.hasta === null ? `${f.desde} o más` : `${f.desde} a ${f.hasta}`} unidades: ${f.pct ? f.pct + " % menos" : "precio de lista"}</span>`).join("");
+}
+function cotizarAhora(){
+  const raw = $("cot-q").value.trim();
+  let c;
+  try { c = Motor.cotizar(D, S.cotRep, raw === "" ? NaN : Number(raw), tcHoy()); }
+  catch(e){ $("cot-err").textContent = "Escriba una cantidad entera de 1 o más."; $("cot-q").setAttribute("aria-invalid","true"); $("cot-res").innerHTML = ""; tramosTxt(null); return; }
+  $("cot-err").textContent = ""; $("cot-q").removeAttribute("aria-invalid");
+  tramosTxt(c.pct_tramo);
+  const dolar = S.tcModo === "oficial" ? `dólar oficial ${nf(OF.valor,2)} del ${fecha(OF.fecha)} (BCB)` : `dólar elegido ${nf(tcHoy(),2)}`;
+  const sig = c.siguiente_tramo ? `<p class="d">Si lleva ${nf(c.siguiente_tramo.faltan)} más (${nf(c.siguiente_tramo.desde)} en total), cada unidad sale ${c.siguiente_tramo.pct} % más barata que el precio de lista.</p>` : "";
+  const stock = c.en_stock === null ? "No hay dato de stock: hay que confirmarlo." : c.por_pedir === 0 ? `Hay stock para entregar las ${nf(c.cantidad)} unidades.` : `Hay ${nf(c.en_stock)} en el almacén; las otras ${nf(c.por_pedir)} llegan en unos ${nf(c.plazo_dias)} días, el plazo del proveedor.`;
+  $("cot-res").innerHTML = `<div class="scroll"><table class="cot-desg"><thead><tr><th>Concepto</th><th>Monto</th></tr></thead><tbody>
+      <tr><td>Precio de lista por unidad</td><td>${bs2(c.precio_lista_bs)}</td></tr>
+      <tr><td>Descuento por cantidad</td><td>${c.pct_aplicado ? nf(c.pct_aplicado, Number.isInteger(c.pct_aplicado) ? 0 : 2) + " %" : "sin descuento"}</td></tr>
+      <tr><td>Precio por unidad</td><td>${bs2(c.precio_unitario_bs)}</td></tr>
+      <tr><td>Cantidad</td><td>${nf(c.cantidad)} u</td></tr>
+      <tr><td>Subtotal a precio de lista</td><td>${bs2(c.subtotal_bs)}</td></tr>
+      <tr><td>Descuento</td><td>${c.descuento_bs ? "− " + bs2(c.descuento_bs) : bs2(0)}</td></tr>
+      <tr class="t"><td>Total</td><td>${bs2(c.total_bs)}</td></tr></tbody></table></div>
+    <div class="cot-tot"><div class="lab">Total a pagar${marcaTc()}</div><div class="v">${bs2(c.total_bs)}</div>
+      <p class="d">${bs2(c.precio_unitario_bs)} por unidad, con el ${dolar}.</p>${sig}<p class="d">${stock}</p>
+      ${c.tope ? `<p class="d"><strong>El descuento se limitó a ${nf(c.pct_aplicado,2)} %</strong> para no vender por debajo del costo puesto.</p>` : ""}</div>`;
+  $("cot-pie").textContent = "Precio de venta SINTÉTICO: costo puesto en Santa Cruz más el margen de SCRUM-55, convertido con el dólar del día. Los tramos de descuento son de EJEMPLO. El descuento nunca baja el precio del costo puesto. Esta cotización todavía no se guarda (SCRUM-73).";
+}
+let tCot = null;
+$("cot-rep").addEventListener("change", e => { S.cotRep = e.target.value; cotizarAhora(); });
+$("cot-q").addEventListener("input", e => { S.cotQ = e.target.value; clearTimeout(tCot); tCot = setTimeout(cotizarAhora, 120); });
+
 let tRz = null;
 window.addEventListener("resize", () => { clearTimeout(tRz); tRz = setTimeout(() => { if(S.vista === "simulador") pintarVentas(pronostico(S.rep));
-  if(S.vista === "clasificacion"){ pintado.clasificacion = false; pintarClasificacion(); pintado.clasificacion = true; } }, 150); });
+  if(S.vista === "clasificacion"){ pintado.clasificacion = false; pintarClasificacion(); pintado.clasificacion = true; }
+  if(S.vista === "temporadas") pintarTemporadas(); }, 150); });
 
 /* ---- Arranque ---- */
 ir(location.hash.slice(1) || "alertas");
