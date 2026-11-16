@@ -17,7 +17,7 @@ sys.path.insert(0, str(SRC))
 import preparar_datos as pd  # noqa: E402
 import generar_app as ga  # noqa: E402
 
-CLAVES = {"generado", "corte", "tc", "repuestos", "proveedores", "ventas", "clasificacion", "catalogo", "clientes", "parametros"}
+CLAVES = {"generado", "corte", "tc", "repuestos", "proveedores", "ventas", "clasificacion", "catalogo", "clientes", "prediccion", "parametros"}
 
 # Textos que no pueden aparecer en la app (ver contrato y pedido de claudia-mineria del 12-nov-2026).
 PROHIBIDOS = [

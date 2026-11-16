@@ -7,6 +7,8 @@ Junta en un solo JSON lo que la app necesita y que ya existe en el repositorio:
 - el catálogo ILUSTRATIVO de SCRUM-74 (nombre, categoría, descripción e imagen de cada repuesto) y la fuente de
   cada foto; las fotos las incrusta generar_app.py;
 - los clientes SINTÉTICOS de SCRUM-76 y sus compras (repartidas sobre las ventas reales);
+- el resultado del clasificador de SCRUM-80 (probabilidad de venta del mes siguiente, con su validación), que calcula
+  src/scrum-80/predecir_venta.py; sin ese archivo la app muestra que falta correr el script;
 - los parámetros del motor. `costo_pedido_bs` y `costo_capital_mensual` son SINTÉTICOS (supuestos del equipo).
 
 No calcula nada del motor: solo lee, convierte números y ordena.
@@ -30,6 +32,7 @@ CATALOGO = BASE / "data/processed/scrum-74/catalogo.csv"
 FUENTES_IMG = BASE / "data/raw/scrum-74/fuentes_imagenes.csv"
 CLIENTES = BASE / "data/processed/scrum-76/clientes.csv"
 VENTAS_CLI = BASE / "data/processed/scrum-76/ventas_por_cliente.csv"
+PREDICCION = BASE / "data/processed/scrum-80/prediccion.json"
 SALIDA = BASE / "data/processed/simulador/datos_app.json"
 
 
@@ -116,6 +119,7 @@ def preparar():
                      "fuentes": leer(FUENTES_IMG)},
         "clientes": {"lista": [{k: c[k] for k in ("cliente_id", "nombre", "tipo", "zona")} for c in leer(CLIENTES)],
                      "ventas": [[v["mes"], v["repuesto_id"], v["cliente_id"], int(v["unidades"])] for v in leer(VENTAS_CLI)]},
+        "prediccion": json.loads(PREDICCION.read_text(encoding="utf-8")) if PREDICCION.exists() else None,
         "parametros": PARAMETROS,
     }
 
