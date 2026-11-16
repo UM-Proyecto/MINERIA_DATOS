@@ -684,7 +684,7 @@ var Motor = (function () {
   // ---------------------------------------------------------------- clientes (SCRUM-76)
 
   // Tablero de clientes SINTÉTICOS. Temporada = meses fuertes de los 30 repuestos juntos (temporadas().total).
-  // Monto = unidades × precio de lista con el dólar elegido, igual que el cotizador.
+  // Monto = unidades × precio de lista con el dólar que se le pasa (en la app, el oficial del día), igual que el cotizador.
   function tableroClientes(datos, tc) {
     tc = num(tc);
     var temporada = temporadas(datos).total.meses_fuertes, enTemp = {};
@@ -740,7 +740,7 @@ var Motor = (function () {
 
   // Todo sale de las compras por cliente (datos.clientes.ventas): suman lo mismo que las ventas reales por repuesto y,
   // en el portal, incluyen las cotizaciones marcadas como venta. Dinero = unidades × precio de lista con el dólar
-  // elegido, igual que el cotizador y el tablero de clientes (carparts no trae precios históricos).
+  // oficial del día, igual que el cotizador y el tablero de clientes (carparts no trae precios históricos).
   function dashboard(datos, tc) {
     tc = num(tc);
     var precio = {};

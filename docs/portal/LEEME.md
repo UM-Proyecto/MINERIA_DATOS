@@ -70,8 +70,7 @@ Tres tablas, que se crean solas en el primer pedido:
 - `repuestos`: los cargados en el portal (`REP-N001`, …).
 
 Un repuesto cargado no tiene historial de venta. Aparece en el catálogo, el cotizador, las alertas (como «Sin datos»,
-con el motivo) y el plan, pero no en las vistas que necesitan historial: simulador, temporadas, clasificación y «¿Qué
-hubiera pasado?».
+con el motivo) y el plan, pero no en las vistas que necesitan historial: simulador, temporadas y predicciones. En rotación aparece como «Sin datos».
 
 ### API
 

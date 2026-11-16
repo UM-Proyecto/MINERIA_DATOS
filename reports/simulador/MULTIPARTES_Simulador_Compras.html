@@ -233,8 +233,8 @@ summary{cursor:pointer;color:var(--ink-2);font-weight:600;min-height:32px;displa
 @keyframes entra{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 .vista[hidden]{display:none}
 .pill.neutra{border-color:var(--line-2);background:#fff;color:var(--ink-2)}
-/* Marca que acompaña a cada resultado cuando el dólar elegido no es el oficial */
-.marca-tc{display:inline-block;font-size:10.5px;font-weight:600;border-radius:99px;padding:2px 8px;background:var(--warn-soft);color:var(--warn);vertical-align:2px;margin-left:6px;letter-spacing:0;white-space:nowrap}
+/* Aviso cuando el último dólar oficial disponible tiene más de un día */
+.marca-tc{display:inline-block;font-size:10.5px;font-weight:600;border-radius:99px;padding:2px 8px;background:var(--warn-soft);color:var(--warn);vertical-align:2px;margin-left:6px;letter-spacing:0;white-space:normal;max-width:100%}
 .tchoy{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,2fr) minmax(0,1fr);gap:22px;align-items:stretch}
 .tchoy .oficial .v{font-size:40px;font-weight:700;letter-spacing:-.02em;line-height:1.05}
 .tchoy .oficial .v small{font-size:15px;color:var(--ink-3);font-weight:600;margin-left:4px}
@@ -244,14 +244,9 @@ summary{cursor:pointer;color:var(--ink-2);font-weight:600;min-height:32px;displa
 .badge-priv{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.6px;border-radius:99px;padding:2px 8px;background:#eceae5;color:var(--ink-3);margin-left:6px;vertical-align:2px}
 .paralelo{border:1px dashed var(--line-2);border-radius:9px;padding:12px 14px;background:#fafbf9}
 .paralelo .v{font-size:22px;font-weight:600;color:var(--ink-2)}
-.spark svg{width:100%;height:96px;display:block}
+.spark svg{width:100%;height:auto;display:block}
 .spark .l{fill:none;stroke:var(--brand);stroke-width:2}
 .spark text{font:11px Poppins,system-ui;fill:var(--ink-3)}
-.tcsel{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
-.tcsel .chip{flex:1 1 0;min-width:0}
-.tcotro{display:flex;gap:8px;align-items:center;margin-top:8px}
-.tcotro input{width:120px;flex:none}
-.tcotro[hidden]{display:none}
 .sims{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) minmax(0,1.1fr);gap:16px 22px;align-items:start}
 .sim .val{font-size:22px;font-weight:700;letter-spacing:-.01em;margin:2px 0 4px}
 .sim .val small{font-size:12.5px;font-weight:600;color:var(--ink-3);margin-left:4px}
@@ -266,12 +261,13 @@ summary{cursor:pointer;color:var(--ink-2);font-weight:600;min-height:32px;displa
 .calc[aria-busy=true]{opacity:.45}
 .quiebre .linea{position:relative;height:44px;margin:44px 8px 34px}
 .quiebre .zona{position:absolute;top:12px;height:20px;border-radius:5px}
-.quiebre .za{background:#dfe9f3}.quiebre .zc{background:var(--brand-soft)}
+.quiebre .za{background:#e3e6e2}.quiebre .zc{background:var(--brand-soft)}
 .quiebre .marca{position:absolute;top:0;bottom:0;width:2px;background:var(--graphite)}
 .quiebre .marca span{position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-size:12px;font-weight:600;white-space:nowrap}
 .quiebre .marca.alto span{top:-40px}
 .quiebre .marca.q{background:var(--bad)} .quiebre .marca.q span{color:var(--bad);top:auto;bottom:-22px}
 .quiebre .marca.su{background:var(--brand)} .quiebre .marca.su span{color:var(--brand-dark)}
+.quiebre .eje-t{text-align:center;font-size:11.5px;font-weight:600;color:var(--ink-2);margin:-8px 0 10px}
 .quiebre .eje{position:absolute;bottom:-22px;white-space:nowrap;font-size:11px;color:var(--ink-3);transform:translateX(-50%)}
 .quiebre .zl{position:absolute;top:14px;font-size:11.5px;font-weight:600;color:var(--ink-2);padding:0 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:48%}
 .tornado .fila{display:grid;grid-template-columns:200px minmax(0,1fr) 120px;gap:12px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
@@ -286,7 +282,6 @@ summary{cursor:pointer;color:var(--ink-2);font-weight:600;min-height:32px;displa
 .alerta-fila td:first-child b{display:block}
 .vac{color:var(--ink-3)}
 .mas{margin-top:12px}
-.seg-cl{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:24px}
 .cuad{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .cuad div{border:1px solid var(--line);border-radius:9px;padding:10px 12px}
 .cuad b{display:block;font-size:20px}
@@ -310,7 +305,7 @@ svg.chart .pt30{fill:none;stroke:var(--graphite);stroke-width:1.4}
   .filtros .rep4{grid-template-columns:1fr 1fr}
   .tchoy{grid-template-columns:1fr 1fr}.tchoy .spark{grid-column:1/-1;grid-row:2}
   .sims{grid-template-columns:1fr 1fr}
-  .dos-desc,.seg-cl{grid-template-columns:1fr}
+  .dos-desc{grid-template-columns:1fr}
 }
 @media (max-width:760px){
   .side{flex-wrap:wrap}
@@ -320,7 +315,6 @@ svg.chart .pt30{fill:none;stroke:var(--graphite);stroke-width:1.4}
   .tchoy,.sims,.filtros .rep4{grid-template-columns:1fr}
   .tchoy .spark{grid-row:auto}
   .tchoy .oficial .v{font-size:34px}
-  .tcsel .chip{min-width:0;flex:1 1 100%}
   .tornado .fila{grid-template-columns:110px minmax(0,1fr) 78px}
   .bt,.cuad{grid-template-columns:1fr}
   .seg{flex-wrap:wrap}.seg .chip{flex:1 1 100%}
@@ -418,9 +412,10 @@ body.entrada .inner{max-width:none}
 .db-dos{margin-top:18px;gap:18px;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr)}
 .db-dos .card+.card{margin-top:0}
 .db-cli td.trend{text-align:left;white-space:nowrap}
-.spark{display:block;width:150px;height:30px;margin-left:auto}
-.spark rect{fill:var(--brand)}
-.spark rect.z{fill:#e3e6e2}
+/* Regla de Fio (16-11-2026): solo barras, histograma, líneas o torta, y cada gráfico con título y ejes con nombre. */
+svg.chart .axt,.spark svg .axt{font-size:11.5px;font-weight:600;fill:var(--ink-2)}
+.selrep-db{max-width:420px;margin-bottom:6px}
+.chart-t{font-size:14px;font-weight:600;margin:12px 0 4px}
 .ten{font-size:11px;font-weight:600;border-radius:99px;padding:2px 8px;white-space:nowrap}
 .ten.sube{background:var(--ok-soft);color:var(--ok)} .ten.baja{background:var(--bad-soft);color:var(--bad)} .ten.estable,.ten.nuevo,.ten.sin{background:#eceae5;color:var(--ink-2)}
 .kpi .v.txt{font-size:20px;line-height:1.3}
@@ -441,11 +436,6 @@ svg.chart .pm{fill:none;stroke:var(--graphite);stroke-width:2}
 .pr-conf td.c small{display:block;font-size:11px;font-weight:500;color:var(--ink-3)}
 .pr-conf td.ok{background:var(--ok-soft);color:#1d5a3e} .pr-conf td.mal{background:var(--bad-soft);color:#8a2a1c}
 #t-pr-met td.mejor{font-weight:700;color:var(--brand-dark)}
-.coef{display:grid;grid-template-columns:minmax(0,1fr) 220px 54px;gap:6px 12px;align-items:center;font-size:13px;padding:6px 0;border-bottom:1px solid var(--line)}
-.coef .eje{position:relative;height:14px;background:linear-gradient(var(--line-2),var(--line-2)) center/1.5px 100% no-repeat}
-.coef .eje span{position:absolute;top:2px;bottom:2px;border-radius:3px}
-.coef .eje span.pos{left:50%;background:var(--brand)} .coef .eje span.neg{right:50%;background:var(--bad)}
-.coef b{text-align:right;font-weight:600}
 .rt-mat th,.rt-mat td{text-align:center}
 .rt-mat th:first-child,.rt-mat td:first-child{text-align:left;width:150px}
 .rt-mat td.cel{vertical-align:top;padding:12px 10px;border-left:1px solid var(--line)}
@@ -458,7 +448,7 @@ svg.chart .pm{fill:none;stroke:var(--graphite);stroke-width:2}
 .al-chip.pedir a{color:#fff}
 @media (max-width:1400px){.db-dos{grid-template-columns:1fr}.db-dos .card+.card{margin-top:0}}
 @media (max-width:1100px){.pr-val{grid-template-columns:1fr}}
-@media (max-width:760px){.kpi .v.txt{font-size:16px}.coef{grid-template-columns:minmax(0,1fr) 110px 46px}.spark{width:100px}.tecnica{font-size:12px}}
+@media (max-width:760px){.kpi .v.txt{font-size:16px}.tecnica{font-size:12px}}
 </style>
 </head>
 <body>
@@ -480,7 +470,7 @@ svg.chart .pm{fill:none;stroke:var(--graphite);stroke-width:2}
       <span class="pill neutra">historia nueva</span></div>
     <div class="grid-k" id="al-kpis" aria-live="polite"></div>
     <section class="card" style="margin-top:18px">
-      <div class="card-h"><div><h2>Los 30 repuestos, del más urgente al menos urgente<span id="al-marca"></span></h2>
+      <div class="card-h"><div><h2>Los 30 repuestos, del más urgente al menos urgente</h2>
         <p>Primero los que ya llegaron al punto de pedido; después, los que llegarán antes de que el proveedor pueda entregar.</p></div></div>
       <div class="scroll"><table id="t-alertas"></table></div>
       <button class="btn2 mas" id="b-mas" type="button" aria-expanded="false">Mostrar los 30</button>
@@ -502,9 +492,6 @@ svg.chart .pm{fill:none;stroke:var(--graphite);stroke-width:2}
           <div class="lab">Oficial del BCB <span class="badge-real">REAL</span></div>
           <div class="v" id="of-v"></div>
           <p class="src" id="of-src"></p>
-          <div class="lab" style="margin-top:12px" id="tc-lab">Dólar para calcular<span class="ayuda">El oficial es la base. Puede probar otro para comparar.</span></div>
-          <div class="tcsel" role="group" aria-labelledby="tc-lab" id="tcsel"></div>
-          <div class="tcotro" id="tcotro" hidden><input id="f-otro" type="number" min="5" max="20" step="0.01" inputmode="decimal" aria-label="Otro valor del dólar, en bolivianos"><span class="ayuda" style="margin:0">Bs por dólar, entre 5 y 20.</span></div>
         </div>
         <div class="spark"><div class="lab">Cómo se movió desde que el BCB lo publica <span class="ayuda" style="display:inline" id="spark-dias"></span></div><div id="spark"></div></div>
         <div class="paralelo">
@@ -547,7 +534,7 @@ svg.chart .pm{fill:none;stroke:var(--graphite);stroke-width:2}
     <div class="nota-sit" id="situ"></div>
 
     <section class="card calc" style="margin-top:18px" aria-labelledby="h-alt" id="c-alts">
-      <div class="card-h"><div><h2 id="h-alt">Cuatro alternativas para <span id="h-rep2"></span><span id="alt-marca"></span></h2><p id="h-sub"></p></div></div>
+      <div class="card-h"><div><h2 id="h-alt">Cuatro alternativas para <span id="h-rep2"></span></h2><p id="h-sub"></p></div></div>
       <div class="como">
         <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="var(--brand)" stroke-width="1.6" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><path d="M8 7v4M8 5h.01"/></svg>
         <p id="como-txt"></p>
@@ -559,11 +546,11 @@ svg.chart .pm{fill:none;stroke:var(--graphite);stroke-width:2}
 
     <div class="dos-desc">
       <section class="card quiebre calc" aria-labelledby="h-q" id="c-quiebre">
-        <div class="card-h"><div><h2 id="h-q"><span class="num">4</span>Lo que descubre: el dólar de quiebre<span id="q-marca"></span></h2><p id="q-txt"></p></div></div>
+        <div class="card-h"><div><h2 id="h-q"><span class="num">4</span>Lo que descubre: el dólar de quiebre</h2><p id="q-txt"></p></div></div>
         <div id="q-cuerpo"></div>
       </section>
       <section class="card tornado calc" aria-labelledby="h-t" id="c-sens">
-        <div class="card-h"><div><h2 id="h-t"><span class="num">5</span>¿Qué supuesto pesa más?<span id="t-marca"></span></h2>
+        <div class="card-h"><div><h2 id="h-t"><span class="num">5</span>¿Qué supuesto pesa más?</h2>
           <p>Cuánto cambia la ganancia esperada al mover cada supuesto de un extremo al otro. Vigile primero el de arriba.</p></div></div>
         <div id="t-cuerpo"></div>
       </section>
@@ -579,8 +566,8 @@ svg.chart .pm{fill:none;stroke:var(--graphite);stroke-width:2}
         <details><summary>Ver los datos del gráfico como tabla</summary><div class="scroll"><table id="t-ven"></table></div></details>
       </section>
       <section class="card" id="h-prv" aria-labelledby="t-prv">
-        <div class="card-h"><div><h2 id="t-prv"><span class="num">b</span>Proveedores de este repuesto (SINTÉTICO, sobre carparts)<span id="prv-marca"></span></h2>
-          <p>Costo puesto en Santa Cruz por unidad con el dólar elegido. Elegir otro proveedor recalcula las alternativas.</p></div></div>
+        <div class="card-h"><div><h2 id="t-prv"><span class="num">b</span>Proveedores de este repuesto (SINTÉTICO, sobre carparts)</h2>
+          <p>Costo puesto en Santa Cruz por unidad con el dólar oficial de hoy. Elegir otro proveedor recalcula las alternativas.</p></div></div>
         <div class="scroll"><table id="t-prov" class="prov"></table></div>
       </section>
     </div>
@@ -610,33 +597,8 @@ svg.chart .pm{fill:none;stroke:var(--graphite);stroke-width:2}
       <div class="presu"><div><label for="f-presu">Presupuesto para importar<span class="ayuda" id="presu-ayuda"></span></label><input id="f-presu" type="number" min="0" step="500" inputmode="numeric"></div>
         <div style="flex:1;min-width:220px"><span class="lab">Usado<span class="ayuda" id="usado-txt"></span></span><div class="acum" aria-hidden="true"><span id="acum"></span></div></div></div>
       <div class="scroll" style="margin-top:14px"><table id="t-plan"></table></div>
-      <p class="pie">Ordena por urgencia; a igual urgencia, primero el de clase A. Costos SINTÉTICOS (SCRUM-55) con el dólar elegido en el simulador.</p>
+      <p class="pie">Ordena por urgencia; a igual urgencia, primero el de clase A. Costos SINTÉTICOS (SCRUM-55) con el dólar oficial de hoy.</p>
     </section>
-  </section>
-
-  <!-- ============ QUÉ HUBIERA PASADO ============ -->
-  <section class="vista" id="v-backtest" hidden aria-labelledby="h1-bt">
-    <div class="hero"><div><div class="eyebrow">Probar las reglas con las ventas que de verdad ocurrieron</div><h1 id="h1-bt">¿Qué hubiera pasado si…?</h1>
-      <p>Se repiten los últimos 12 meses con las ventas reales de carparts y el dólar oficial real, aplicando cada forma de comprar. Así se ve cuál habría funcionado mejor, no solo cuál promete.</p></div>
-      <span class="pill neutra">historia nueva</span></div>
-    <section class="card">
-      <div class="card-h"><div><h2>Los 30 repuestos, de noviembre de 2025 a octubre de 2026</h2><p>Mismo punto de partida para las tres; solo cambia la forma de comprar.</p></div></div>
-      <div class="bt" id="bt"></div>
-      <p class="nota-sit" style="margin-top:14px" id="bt-nota"></p>
-      <p class="pie">Ventas reales (carparts re-fechado) y dólar oficial real del día de cada orden (6,96 Bs antes del 27-06-2026); proveedores y costos SINTÉTICOS. Plazo normal de cada proveedor, sin atrasos.</p>
-    </section>
-  </section>
-
-  <!-- ============ CLASIFICACIÓN ============ -->
-  <section class="vista" id="v-clasificacion" hidden aria-labelledby="h1-cl">
-    <div class="hero"><div><div class="eyebrow">Minería de datos: descubrir cómo se vende cada repuesto</div><h1 id="h1-cl">¿Qué clase de repuesto es?</h1>
-      <p id="cl-intro"></p></div>
-      <span class="pill neutra">historia nueva</span></div>
-    <section class="card"><div class="seg-cl">
-      <div><div class="chartbox" id="chart-cl"></div><div class="legend" id="leg-cl"></div>
-        <details><summary>Ver los datos del gráfico como tabla</summary><div class="scroll"><table id="t-cl"></table></div></details></div>
-      <div><div class="cuad" id="cuad"></div><p class="nota-sit" style="margin-top:12px" id="cl-nota"></p></div>
-    </div><p class="pie" id="cl-pie"></p></section>
   </section>
 
   <!-- ============ TEMPORADAS (SCRUM-75) ============ -->
@@ -707,7 +669,10 @@ svg.chart .pm{fill:none;stroke:var(--graphite);stroke-width:2}
     </div>
     <section class="card">
       <div class="card-h"><div><h2>Movimiento de compra de los clientes</h2><p id="db-cli-sub"></p></div></div>
-      <div class="scroll"><table id="t-db-cli" class="cli-t db-cli"></table></div>
+      <div class="selrep selrep-db"><label for="db-cli-sel">Cliente del gráfico<span class="ayuda">Elija uno para ver sus compras trimestre a trimestre.</span></label><select id="db-cli-sel"></select></div>
+      <h3 class="chart-t" id="db-cli-tit"></h3>
+      <div class="chartbox" id="chart-db-cli"></div>
+      <div class="scroll" style="margin-top:16px"><table id="t-db-cli" class="cli-t db-cli"></table></div>
       <button class="btn2 mas" id="b-db-cli" type="button" aria-expanded="false">Mostrar los 20</button>
       <p class="pie" id="db-pie"></p>
     </section>
@@ -737,13 +702,13 @@ svg.chart .pm{fill:none;stroke:var(--graphite);stroke-width:2}
     </section>
     <div class="dos db-dos">
       <section class="card">
-        <div class="card-h"><div><h2>¿Cuando dice 30 %, se vende 3 de cada 10?</h2><p>Calibración: los 360 casos de prueba agrupados por la probabilidad que les dio el modelo.</p></div></div>
+        <div class="card-h"><div><h2>¿Cuando dice 30 %, se vende 3 de cada 10?</h2><p>Calibración: los 360 casos de prueba agrupados por la probabilidad que les dio el modelo. Si las dos barras de cada tramo miden parecido, el modelo es confiable.</p></div></div>
         <div class="chartbox" id="chart-pr-cal"></div>
         <div class="legend"><span><i class="sw" style="background:#c9cec8"></i>Probabilidad que dio el modelo (promedio del tramo)</span><span><i class="sw" style="background:var(--brand)"></i>Parte que se vendió de verdad</span></div>
         <details><summary>Ver la tabla de calibración</summary><div class="scroll"><table id="t-pr-cal"></table></div></details>
       </section>
       <section class="card">
-        <div class="card-h"><div><h2>Qué mira el modelo</h2><p>Peso de cada variable, en desvíos estándar: hacia la derecha sube la probabilidad de venta; hacia la izquierda, la baja.</p></div></div>
+        <div class="card-h"><div><h2>Qué mira el modelo</h2><p>Barras a la derecha (verde): la variable sube la probabilidad de venta. A la izquierda (rojo): la baja. Cuanto más larga, más pesa.</p></div></div>
         <div id="pr-coef"></div>
         <p class="pie" id="pr-pie"></p>
       </section>
@@ -1580,7 +1545,7 @@ var Motor = (function () {
   // ---------------------------------------------------------------- clientes (SCRUM-76)
 
   // Tablero de clientes SINTÉTICOS. Temporada = meses fuertes de los 30 repuestos juntos (temporadas().total).
-  // Monto = unidades × precio de lista con el dólar elegido, igual que el cotizador.
+  // Monto = unidades × precio de lista con el dólar que se le pasa (en la app, el oficial del día), igual que el cotizador.
   function tableroClientes(datos, tc) {
     tc = num(tc);
     var temporada = temporadas(datos).total.meses_fuertes, enTemp = {};
@@ -1636,7 +1601,7 @@ var Motor = (function () {
 
   // Todo sale de las compras por cliente (datos.clientes.ventas): suman lo mismo que las ventas reales por repuesto y,
   // en el portal, incluyen las cotizaciones marcadas como venta. Dinero = unidades × precio de lista con el dólar
-  // elegido, igual que el cotizador y el tablero de clientes (carparts no trae precios históricos).
+  // oficial del día, igual que el cotizador y el tablero de clientes (carparts no trae precios históricos).
   function dashboard(datos, tc) {
     tc = num(tc);
     var precio = {};
@@ -1804,12 +1769,11 @@ const nombreProv = p => p.nombre.replace(" (ficticio)", "");
 const capital = s => s.charAt(0).toUpperCase() + s.slice(1);
 
 /* ---- Estado ---- */
-const INI = {tcModo:"oficial", tcOtro:OF.valor, tc90:OF.valor, venta:0, atraso:0, sigue:true};
+const INI = {tc90:OF.valor, venta:0, atraso:0, sigue:true};
 const S = Object.assign({vista:"dashboard", cat:"", rep:"", prov:"", elegida:null, verTodas:false, presu:null, pvRep:""}, INI);
-const tcHoy = () => S.tcModo === "oficial" ? OF.valor : S.tcModo === "paralelo" ? PA.valor : S.tcOtro;
+// El cálculo usa siempre el dólar oficial del BCB (pedido de Fio y Sam, 16-11-2026: sin selector de dólar).
+const tcHoy = () => OF.valor;
 // Cada resultado calculado con un dólar que no es el oficial lo dice (pedido de Sam: no confundir con el dato real).
-const marcaTc = () => S.tcModo === "oficial" ? "" : S.tcModo === "paralelo"
-  ? `<span class="marca-tc">con paralelo ${nf(PA.valor,2)} (PRIVADO)</span>` : `<span class="marca-tc">con dólar supuesto ${nf(S.tcOtro,2)}</span>`;
 const sup = () => ({tc_base:tcHoy(), tc_90:S.tc90, venta_pct:S.venta, atraso_dias:S.atraso, precio_sigue_dolar:S.sigue});
 function seguro(fn, donde){ try { return fn(); } catch(e){ console.warn("Motor:", e); if(donde) donde.innerHTML = `<p class="err">El motor no pudo calcular esto: ${esc(e.message)}</p>`; return undefined; } }
 
@@ -1833,7 +1797,7 @@ const IC = {al:'<path d="M8 2l6 11H2z"/><path d="M8 6.5v3M8 11.5h.01"/>', sim:'<
    cliente cotiza en la tienda pública (/). */
 const PORTAL = !!window.PORTAL;
 const SES = {rol:null, nombre:"", token:null, prov:null};
-const QUIEN = {dashboard:"imp", predicciones:"imp", rotacion:"imp", alertas:"imp", simulador:"imp", proveedores:"imp", plan:"imp", backtest:"imp", clasificacion:"imp", temporadas:"imp", clientes:"imp",
+const QUIEN = {dashboard:"imp", predicciones:"imp", rotacion:"imp", alertas:"imp", simulador:"imp", proveedores:"imp", plan:"imp", temporadas:"imp", clientes:"imp",
   catalogo:"todos", cotizar:"todos", cotizaciones:"imp-portal", cargar:"imp-portal", miprov:"prov", entrar:"anon"};
 function rol(){ return PORTAL ? (SES.rol || "cliente") : "importador"; }
 function puede(v){ const q = QUIEN[v], r = rol();
@@ -1844,10 +1808,10 @@ function puede(v){ const q = QUIEN[v], r = rol();
   return r === "importador"; }
 const VISTAS = [["dashboard","Dashboard","db","SCRUM-79"],["predicciones","Predicciones","pr","SCRUM-80"],["rotacion","Rotación e importancia (ABC)","rt","SCRUM-81"],
   ["alertas","Alertas de reposición","al","nuevo"],["simulador","Simulador de compra","sim","SCRUM-61"],["proveedores","Comparar proveedores","prov","nuevo"],
-  ["plan","Plan con presupuesto","plan","nuevo"],["backtest","¿Qué hubiera pasado?","bt","nuevo"],["clasificacion","Clasificación de repuestos","cl","nuevo"],
+  ["plan","Plan con presupuesto","plan","nuevo"],
   ["temporadas","Temporadas de venta","tm","nuevo"],["clientes","Clientes que más compran","cli","nuevo"],["catalogo","Catálogo","cat","nuevo"],["cotizar","Cotizar por cantidad","cot","nuevo"],
   ["cotizaciones","Cotizaciones guardadas","cz","nuevo"],["cargar","Cargar repuestos y clientes","cg","nuevo"],["miprov","Mis repuestos","prov","nuevo"],["entrar","Entrar","ent","portal"]];
-const GRUPOS = [["Resumen",["dashboard","predicciones"]],["Decidir",["alertas","simulador","proveedores","plan"]],["Entender la demanda",["rotacion","temporadas","clientes","clasificacion","backtest"]],
+const GRUPOS = [["Resumen",["dashboard","predicciones"]],["Decidir",["alertas","simulador","proveedores","plan"]],["Entender la demanda",["rotacion","temporadas","clientes"]],
   ["Gestionar",["cotizaciones","cargar","catalogo","cotizar"]],["Proveedor",["miprov"]],["",["entrar"]]];
 const enlaceMenu = ([k,t,i,h]) => `<a href="#${k}" data-v="${k}" aria-label="${t}" title="${t}"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">${IC[i]}</svg><span>${t}</span>${h.startsWith("SCRUM") ? `<i class="hu">${h}</i>` : `<i class="nuevo">${h}</i>`}</a>`;
 function pintarMenu(){
@@ -1860,7 +1824,7 @@ pintarMenu();
 const pintado = {};
 function ir(v){
   const inicio = () => puede("dashboard") ? "dashboard" : SES.rol === "proveedor" ? "miprov" : PORTAL && !SES.rol ? "entrar" : "catalogo";
-  if(!VISTAS.some(x => x[0] === v)) v = inicio();
+  if(!VISTAS.some(x => x[0] === v)){ v = inicio(); if(location.hash && location.hash.slice(1) !== v) history.replaceState(null, "", "#" + v); }
   if(!puede(v)){ // la dirección escrita no corresponde a este rol: no se muestra
     const pedida = v; v = inicio();
     if(v === "entrar" && pedida !== "entrar"){ $("ent-aviso").hidden = false; $("ent-aviso").textContent = `La pantalla «${(VISTAS.find(x => x[0] === pedida) || [0,pedida])[1]}» es para usuarios con cuenta. Entre con su usuario.`; }
@@ -1870,12 +1834,12 @@ function ir(v){
   document.querySelectorAll(".vista").forEach(s => s.hidden = s.id !== "v-" + v);
   document.querySelectorAll("#menu a").forEach(a => { if(a.dataset.v === v) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current"); });
   $("miga").innerHTML = "Funciones &nbsp;/&nbsp; " + VISTAS.find(x => x[0] === v)[1];
-  ({dashboard:pintarDashboard, predicciones:pintarPredicciones, rotacion:pintarRotacion, alertas:pintarAlertas, simulador:pintarSimulador, proveedores:pintarProveedoresVista, plan:pintarPlan, backtest:pintarPasado, clasificacion:pintarClasificacion, temporadas:pintarTemporadas, clientes:pintarClientes, catalogo:pintarCatalogo, cotizar:pintarCotizar, cotizaciones:pintarCotizaciones, cargar:pintarCargar, miprov:pintarMiProv, entrar:pintarEntrar})[v]();
+  ({dashboard:pintarDashboard, predicciones:pintarPredicciones, rotacion:pintarRotacion, alertas:pintarAlertas, simulador:pintarSimulador, proveedores:pintarProveedoresVista, plan:pintarPlan, temporadas:pintarTemporadas, clientes:pintarClientes, catalogo:pintarCatalogo, cotizar:pintarCotizar, cotizaciones:pintarCotizaciones, cargar:pintarCargar, miprov:pintarMiProv, entrar:pintarEntrar})[v]();
   pintado[v] = true;
 }
-window.addEventListener("hashchange", () => { const v = location.hash.slice(1); if(VISTAS.some(x => x[0] === v)) { ir(v); window.scrollTo(0,0); } });
+window.addEventListener("hashchange", () => { ir(location.hash.slice(1)); window.scrollTo(0,0); });
 // Repuestos cargados en el portal (SCRUM-77): entran al catálogo, el cotizador, las alertas y el plan, pero no a las
-// vistas que necesitan historial de venta (simulador, temporadas, clasificación, qué hubiera pasado).
+// vistas que necesitan historial de venta (simulador, temporadas y predicciones; en rotación aparecen como «Sin datos»).
 D.nuevos = [];
 const todos = () => D.nuevos.length ? D.repuestos.concat(D.nuevos) : D.repuestos;
 const DM = () => D.nuevos.length ? Object.assign({}, D, {repuestos: todos()}) : D;
@@ -1893,8 +1857,7 @@ function pintarAlertas(){
     <div class="kpi"><div class="t">Pedir esta semana</div><div class="v c-bad">${pedir}<small>repuestos</small></div><div class="d">llegaron al punto de pedido</div><span class="ayuda">El stock más lo que viene en camino ya no alcanza para esperar.</span></div>
     <div class="kpi"><div class="t">En vigilancia</div><div class="v c-warn">${vig}<small>repuestos</small></div><div class="d">llegan al punto de pedido antes de que llegue un pedido</div><span class="ayuda">Conviene pedirlos pronto aunque todavía no estén en cero.</span></div>
     <div class="kpi"><div class="t">En camino</div><div class="v">${nf(camino)}<small>unidades</small></div><div class="d">pedidos que todavía no llegan</div><span class="ayuda">Se cuentan como stock futuro al decidir.</span></div>
-    <div class="kpi"><div class="t">Dólar de hoy</div><div class="v">${nf(tcHoy(),2)}<small>Bs</small></div><div class="d">${S.tcModo === "oficial" ? "oficial BCB · " + fecha(OF.fecha) : marcaTc()}</div><span class="ayuda">Con este valor se calcula el costo de lo que hay que pedir.</span></div>`;
-  $("al-marca").innerHTML = marcaTc();
+    <div class="kpi"><div class="t">Dólar de hoy</div><div class="v">${nf(tcHoy(),2)}<small>Bs</small></div><div class="d">oficial BCB · ${fecha(OF.fecha)}</div><span class="ayuda">Con este valor se calcula el costo de lo que hay que pedir.</span></div>`;
   const filas = S.verTodas ? al : al.slice(0, 12);
   $("t-alertas").innerHTML = `<thead><tr><th>Repuesto</th><th>Estado</th><th>Stock<span class="ayuda">en almacén</span></th><th>En camino</th><th>Punto de pedido<span class="ayuda">con esto o menos, se pide</span></th><th>Plazo</th><th>Venta en el plazo<span class="ayuda">promedio pronosticado; si supera stock y camino, falta</span></th><th>Cantidad sugerida</th><th>Costo puesto</th><th style="text-align:left">Proveedor</th></tr></thead><tbody>` +
     filas.map(a => { const r = REP[a.id], p = PRV[r.proveedor_id];
@@ -1938,10 +1901,6 @@ function controles(){
   $("f-prov").innerHTML = provs.map(p => `<option value="${p.proveedor_id}">${esc(nombreProv(p))} · ${esc(p.origen)} · ${p.incoterm}${p.proveedor_id === REP[S.rep].proveedor_id ? " (el de hoy)" : ""}</option>`).join("");
   $("f-prov").value = S.prov;
   document.querySelectorAll("#seg-sigue .chip").forEach(c => c.setAttribute("aria-pressed", String((c.dataset.v === "1") === S.sigue)));
-  $("tcsel").innerHTML = [["oficial",`Oficial BCB · ${nf(OF.valor,2)}`,"base, con fuente"],["paralelo",`Paralelo · ${nf(PA.valor,2)}`,"privado"],["otro","Otro valor","escríbalo usted"]]
-    .map(([k,t,s]) => `<button class="chip" type="button" data-tc="${k}" aria-pressed="${S.tcModo === k}">${t}<small>${s}</small></button>`).join("");
-  $("tcotro").hidden = S.tcModo !== "otro";
-  $("f-otro").value = S.tcOtro;
   $("s-tc").value = S.tc90; $("s-ven").value = S.venta; $("s-atr").value = S.atraso;
   etiquetas();
 }
@@ -1958,17 +1917,22 @@ function pintarCabecera(){
   $("of-v").innerHTML = `${nf(OF.valor,2)}<small>Bs por dólar</small>`;
   $("of-src").innerHTML = `Vigente el <b>${fechaDia(OF.fecha)}</b>. Fuente: Banco Central de Bolivia, tabla «Tipo de cambio oficial, diario». Se actualiza solo una vez al día.${avisoTc()}`;
   $("pa-v").innerHTML = `${nf(PA.valor,2)} <small style="font-size:12px;color:var(--ink-3);font-weight:500">Bs</small>`;
-  $("pa-ayuda").textContent = `Promedio de plataformas P2P al ${fecha(PA.fecha)}. Se puede elegir arriba para comparar; el resultado queda marcado.`;
-  const se = D.tc.serie, W = 520, H = 96, vs = se.map(x => x[1]);
+  $("pa-ayuda").textContent = `Promedio de plataformas P2P al ${fecha(PA.fecha)}. Solo como referencia: los cálculos usan el oficial.`;
+  const se = D.tc.serie, W = Math.max(300, Math.round($("spark").clientWidth || 520)), H = 170, pl = 44, pb = 38, pr = 10, vs = se.map(x => x[1]);
   const lo = Math.floor(Math.min(...vs) * 2) / 2 - .25, hi = Math.ceil(Math.max(...vs) * 2) / 2 + .25, n = se.length - 1;
-  const X = i => 4 + i * (W - 8) / n, Y = v => 6 + (hi - v) * (H - 26) / (hi - lo);
-  const im = vs.indexOf(Math.max(...vs));
-  $("spark").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Tipo de cambio oficial del BCB desde el ${fecha(se[0][0])}: de ${nf(vs[0],2)} a ${nf(vs[n],2)} Bs"><polyline class="l" points="${se.map((x,i) => X(i).toFixed(1) + "," + Y(x[1]).toFixed(1)).join(" ")}"/>
+  const X = i => pl + i * (W - pl - pr) / n, Y = v => 8 + (hi - v) * (H - pb - 8) / (hi - lo);
+  const tk = [lo + .25, (lo + hi) / 2, hi - .25].map(v => Math.round(v * 4) / 4);
+  const fx = [0, Math.round(n / 2), n];
+  $("spark").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Tipo de cambio oficial del BCB desde el ${fecha(se[0][0])}: de ${nf(vs[0],2)} a ${nf(vs[n],2)} Bs">
+    ${tk.map(v => `<line x1="${pl}" x2="${W-pr}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}" stroke="var(--line)"/><text x="${pl-6}" y="${(Y(v)+4).toFixed(1)}" text-anchor="end">${nf(v,2)}</text>`).join("")}
+    <polyline class="l" points="${se.map((x,i) => X(i).toFixed(1) + "," + Y(x[1]).toFixed(1)).join(" ")}"/>
     <circle cx="${X(n)}" cy="${Y(vs[n])}" r="4" fill="var(--brand)"/>
-    <text x="4" y="${H-2}">${se[0][0].slice(8)}-${MES[+se[0][0].slice(5,7)-1]} · ${nf(vs[0],2)}</text><text x="${W/2}" y="${H-2}" text-anchor="middle">máx. ${nf(vs[im],2)} (${+se[im][0].slice(8)}-${MES[+se[im][0].slice(5,7)-1]})</text><text x="${W-4}" y="${H-2}" text-anchor="end">hoy · ${nf(vs[n],2)}</text></svg>`;
+    ${fx.map((i,k) => `<text x="${X(i).toFixed(1)}" y="${H-20}" text-anchor="${k === 0 ? "start" : k === 2 ? "end" : "middle"}">${fecha(se[i][0])}</text>`).join("")}
+    <text class="axt" x="${(pl + W - pr) / 2}" y="${H-3}" text-anchor="middle">Fecha</text>
+    <text class="axt" transform="translate(11 ${(H - pb) / 2}) rotate(-90)" text-anchor="middle">Bs por dólar</text></svg>`;
   $("spark-dias").textContent = `· ${se.length} días`;
   $("metodo-ul").innerHTML = `<li>Ventas: carparts (Hyndman, Koehler, Ord y Snyder, 2008), ventas mensuales reales de repuestos de auto, re-fechadas a 2022-2026. Proveedores, plazos, costos y stock: SINTÉTICOS.</li>
-    <li>Tipo de cambio: oficial del BCB del día, con fuente y fecha. El paralelo (PRIVADO) solo entra si usted lo elige, y entonces cada resultado lo dice.</li>
+    <li>Tipo de cambio: oficial del BCB del día, con fuente y fecha. El paralelo (PRIVADO) se muestra solo como referencia: no entra en ningún cálculo.</li>
     <li>Puntaje: en cuántos de cada 100 futuros simulados de 90 días cada alternativa deja la mayor ganancia (${nf(PAR.simulaciones)} futuros, semilla ${PAR.semilla}).</li>
     <li>Costo de cada pedido (trámites y despacho): ${bs(PAR.costo_pedido_bs)}; costo del dinero inmovilizado: ${nf(PAR.costo_capital_mensual*100,1)} % al mes. Los dos son supuestos SINTÉTICOS del equipo.</li>`;
 }
@@ -1999,25 +1963,26 @@ function pintarFijos(){
   $("como-txt").innerHTML = `<b>Cómo leer el puntaje.</b> Cada alternativa se probó en ${nf(PAR.simulaciones)} futuros de 90 días, cada uno con un dólar, una venta y una demora distintos, alrededor de los supuestos que usted eligió. El puntaje dice en cuántos de cada 100 futuros esa alternativa dejó más ganancia que las otras tres.`;
   pintarVentas(f);
   const provs = seguro(listaProveedores, $("t-prov")); if(!provs) return;
-  $("prv-marca").innerHTML = marcaTc();
   $("t-prov").innerHTML = `<thead><tr><th>Proveedor</th><th>Origen</th><th>Incoterm<span class="ayuda">Qué gastos de envío ya incluye el precio.</span></th><th>Costo puesto por unidad<span class="ayuda">Precio + flete + aduana, en Bs.</span></th><th>Plazo normal</th><th>Entregas a tiempo<span class="ayuda">De cada 100 pedidos pasados.</span></th></tr></thead><tbody>` +
     provs.map((q,i) => `<tr data-sel="${q.proveedor_id === S.prov}"><td><label style="display:inline;font-weight:${q.proveedor_id === S.prov ? 600 : 400};font-size:13.5px;color:var(--ink)"><input type="radio" name="prov" value="${q.proveedor_id}"${q.proveedor_id === S.prov ? " checked" : ""}>${esc(nombreProv(q))}</label>${i === 0 ? ' <span class="tag">Menor costo</span>' : ""}${q.proveedor_id === r.proveedor_id ? ' <span class="tag" style="background:#eceae5;color:var(--ink-2)">El de hoy</span>' : ""}</td><td>${esc(q.origen)}</td><td>${q.incoterm}</td><td>${bs(q.total_bs)}</td><td>${q.plazo_normal_dias} días</td><td class="${q.pct_entregas_a_tiempo < 80 ? "c-warn" : ""}">${q.pct_entregas_a_tiempo}</td></tr>`).join("") + "</tbody>";
 }
 
 function pintarVentas(f){
   // El viewBox toma el ancho real de la tarjeta: así la letra mide lo mismo en 1920 que en un celular.
-  const se = D.ventas[S.rep], n = se.length, W = Math.max(320, Math.round($("chart-ven").clientWidth || 900)), H = 230, pl = 36, pb = 28, pr = 16;
+  const se = D.ventas[S.rep], n = se.length, W = Math.max(320, Math.round($("chart-ven").clientWidth || 900)), H = 250, pl = 48, pb = 44, pr = 16;
   const mx = Math.max(1, ...se.map(x => x[1]), f.unidades_mes) * 1.1;
   const bw = (W - pl - pr) / (n + 3), X = i => pl + i * bw, Y = v => 8 + (1 - v / mx) * (H - pb - 8);
   const ticks = [0, Math.round(mx / 2), Math.floor(mx)];
   const barras = se.map((x,i) => `<rect x="${(X(i) + bw*.15).toFixed(1)}" y="${Y(x[1]).toFixed(1)}" width="${(bw*.7).toFixed(1)}" height="${(H - pb - Y(x[1])).toFixed(1)}"><title>${x[0]}: ${x[1]} u</title></rect>`).join("");
-  const xs = se.map((x,i) => i % 6 === 0 ? `<text x="${X(i) + bw/2}" y="${H-8}" text-anchor="middle">${MES[+x[0].slice(5)-1]} ${x[0].slice(2,4)}</text>` : "").join("");
+  const xs = se.map((x,i) => i % 6 === 0 ? `<text x="${X(i) + bw/2}" y="${H-24}" text-anchor="middle">${MES[+x[0].slice(5)-1]} ${x[0].slice(2,4)}</text>` : "").join("");
   $("chart-ven").innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Ventas mensuales de ${S.rep} y pronóstico de ${nf(f.unidades_mes,1)} unidades por mes">
     ${ticks.map(t => `<line class="grid" x1="${pl}" x2="${W-pr}" y1="${Y(t)}" y2="${Y(t)}"/><text x="${pl-6}" y="${Y(t)+4}" text-anchor="end">${t}</text>`).join("")}
     <g class="barras">${barras}</g>
     <line x1="${X(n - 12)}" x2="${X(n + 3)}" y1="${Y(f.unidades_mes)}" y2="${Y(f.unidades_mes)}" stroke="var(--brand)" stroke-width="2.5"/>
     <text x="${X(n + 3)}" y="${Y(f.unidades_mes) - 6}" text-anchor="end" fill="var(--brand-dark)" style="fill:var(--brand-dark);font-weight:600">${nf(f.unidades_mes,1)} u/mes</text>
-    ${xs}<text x="${X(n) + bw}" y="${H-8}" text-anchor="middle">sig.</text></svg>`;
+    ${xs}<text x="${X(n) + bw}" y="${H-24}" text-anchor="middle">sig.</text>
+    <text class="axt" x="${(pl + W - pr) / 2}" y="${H-4}" text-anchor="middle">Mes</text>
+    <text class="axt" transform="translate(12 ${(H - pb) / 2}) rotate(-90)" text-anchor="middle">Unidades vendidas</text></svg>`;
   $("pro-txt").textContent = f.metodo === "SBA"
     ? `Este repuesto se vende de vez en cuando (${REP[S.rep].tipo_demanda}). Para ese patrón se usa SBA, la versión corregida de Croston, que no sobreestima como un promedio simple.`
     : "Este repuesto se vende casi todos los meses, así que alcanza con la media de los últimos 12 meses.";
@@ -2056,7 +2021,6 @@ const recalcularLuego = () => { clearTimeout(tRec); tRec = setTimeout(recalcular
 
 function pintarAlternativas(R){
   const L = ["A","B","C","D"], todasCero = L.every(k => R[k].cantidad === 0);
-  $("alt-marca").innerHTML = marcaTc();
   $("alts").innerHTML = L.map(k => {
     const o = R[k], a = ALT[k], mejor = k === R.mejor && !todasCero, sel = S.elegida === k, c = o.costo;
     const r = o.riesgo_quiebre, rc = r > 30 ? "c-bad" : r > 10 ? "c-warn" : "c-ok";
@@ -2067,7 +2031,7 @@ function pintarAlternativas(R){
       <h3><i>${k}</i>${a.t}${mejor ? '<span class="tag">Gana más veces</span>' : ""}</h3>
       <p class="que">${a.que}</p>
       <div class="score"><div class="big">${o.puntaje}<small>de 100</small></div>
-        <div class="lbl">futuros simulados en que deja más ganancia${marcaTc()}<span class="ayuda">Compara alternativas entre sí; no es la probabilidad de acertar.</span></div>
+        <div class="lbl">futuros simulados en que deja más ganancia<span class="ayuda">Compara alternativas entre sí; no es la probabilidad de acertar.</span></div>
         <div class="meter" aria-hidden="true"><span style="width:${Math.max(2, o.puntaje)}%"></span></div></div>
       <dl class="dato"><dt>Cantidad a pedir<span class="ayuda">Unidades que entran en este pedido.${k === "A" ? " Pide al menos una, aunque el stock alcance." : ""}</span></dt><dd>${o.cantidad === 0 ? "Nada por ahora" : nf(o.cantidad) + (o.cantidad === 1 ? " unidad" : " unidades")}${o.cantidad_30_dias > 0 ? `<small>${nf(o.cantidad_hoy)} hoy y ${nf(o.cantidad_30_dias)} en 30 días</small>` : ""}</dd></dl>
       <dl class="dato"><dt>Costo puesto en Santa Cruz<span class="ayuda">Lo que paga hasta tener el repuesto en el almacén.</span></dt><dd>${bs(c.total_bs)}<small>${o.cantidad ? desg : "sin pedido"}</small></dd></dl>
@@ -2085,7 +2049,6 @@ function pintarAlternativas(R){
 }
 
 function pintarQuiebre(Q, s){
-  $("q-marca").innerHTML = marcaTc();
   lecturaQuiebre(Q, s);
   if(Q === null){
     const m = ultimo ? ultimo.mejor : "";
@@ -2104,18 +2067,19 @@ function pintarQuiebre(Q, s){
       <div class="marca" style="left:${pos(s.tc_base)}%"><span>hoy ${nf(s.tc_base,2)}</span></div>
       <div class="marca q" style="left:${pos(q)}%"><span>quiebre ${nf(q,2)}</span></div>
       <div class="marca su${cerca ? " alto" : ""}" style="left:${pos(s.tc_90)}%"><span>su supuesto ${nf(s.tc_90,2)}</span></div>
-      <span class="eje" style="left:0">9</span><span class="eje" style="left:100%">15 Bs</span>
+      ${[9,10,11,12,13,14,15].filter(v => Math.abs(v - q) > .45).map(v => `<span class="eje" style="left:${pos(v)}%">${v}</span>`).join("")}
     </div>
+    <p class="eje-t">Dólar en 90 días (Bs por dólar)</p>
     <p class="nota-sit" style="margin-top:6px"><strong>Para ${S.rep}:</strong> si cree que el dólar pasará de <strong>${nf(q,2)} Bs</strong> en 90 días, conviene ${B}. ${Math.abs(dist) < 0.005 ? "Hoy está justo en ese punto." : `Hoy está a ${nf(Math.abs(dist),2)} Bs ${dist > 0 ? "por debajo" : "por encima"} de ese punto.`}</p>`;
 }
 
 // En la respuesta del motor, «de» y «a» son la ganancia en cada extremo; el rango de cada supuesto es fijo.
 const SUP = {dolar:["Dólar en 90 días","de 9 a 15 Bs"], venta:["Venta","de −30 % a +30 %"], atraso:["Atraso del proveedor","de 0 a 30 días"]};
 function pintarSens(T){
-  $("t-marca").innerHTML = marcaTc();
   const mx = Math.max(...T.map(x => Math.abs(x.rango_bs)), 1);
   const fr = {dolar:"el dólar", venta:"la venta", atraso:"el atraso del proveedor"};
   $("t-cuerpo").innerHTML = T.map(x => `<div class="fila"><span>${SUP[x.supuesto][0]}<span class="ayuda">${SUP[x.supuesto][1]}</span></span><div class="bar" style="width:${Math.max(1, Math.abs(x.rango_bs) / mx * 100)}%"></div><span class="n">${bs(Math.abs(x.rango_bs))}</span></div>`).join("")
+    + `<p class="eje-t" style="text-align:right;font-size:11.5px;font-weight:600;color:var(--ink-2);margin:6px 0 0">Cambio en la ganancia esperada, de un extremo al otro (Bs)</p>`
     + `<p class="nota">En este repuesto, lo que más mueve la ganancia es ${fr[T[0].supuesto]}${T[0].supuesto === "dolar" ? "" : `, más que ${fr[T[1].supuesto]}`}. Vigílelo primero.</p>`;
 }
 
@@ -2139,14 +2103,6 @@ $("f-rep").addEventListener("change", e => { S.rep = e.target.value; S.prov = RE
 $("f-prov").addEventListener("change", e => { S.prov = e.target.value; etiquetas(); pintarFijos(); recalcular(); });
 $("t-prov").addEventListener("change", e => { if(e.target.name === "prov"){ S.prov = e.target.value; $("f-prov").value = S.prov; etiquetas(); pintarFijos(); recalcular(); } });
 $("seg-sigue").addEventListener("click", e => { const c = e.target.closest(".chip"); if(!c) return; S.sigue = c.dataset.v === "1"; document.querySelectorAll("#seg-sigue .chip").forEach(b => b.setAttribute("aria-pressed", String(b === c))); pintarFijos(); recalcular(); });
-$("tcsel").addEventListener("click", e => {
-  const c = e.target.closest(".chip"); if(!c) return;
-  S.tcModo = c.dataset.tc; AL_TC = null;
-  document.querySelectorAll("#tcsel .chip").forEach(b => b.setAttribute("aria-pressed", String(b === c)));
-  $("tcotro").hidden = S.tcModo !== "otro"; if(S.tcModo === "otro") $("f-otro").focus();
-  etiquetas(); pintarFijos(); recalcular();
-});
-$("f-otro").addEventListener("input", e => { const v = parseFloat(e.target.value); if(v >= 5 && v <= 20){ S.tcOtro = v; AL_TC = null; etiquetas(); recalcularLuego(); } });
 $("s-tc").addEventListener("input", e => { S.tc90 = +e.target.value; etiquetas(); pintarFijos(); recalcularLuego(); });
 $("s-ven").addEventListener("input", e => { S.venta = +e.target.value; etiquetas(); pintarFijos(); recalcularLuego(); });
 $("s-atr").addEventListener("input", e => { S.atraso = +e.target.value; etiquetas(); pintarFijos(); recalcularLuego(); });
@@ -2164,7 +2120,7 @@ function pintarProveedoresVista(){
   $("pv-rep").value = S.pvRep;
   const f = seguro(() => Motor.compararProveedores(D, S.pvRep, tcHoy()), $("t-pv")); if(!f) return;
   const r = REP[S.pvRep], max = f[f.length - 1].total_bs;
-  $("pv-tit").innerHTML = `${S.pvRep} · costo puesto en Santa Cruz con ${S.tcModo === "oficial" ? "el dólar oficial (" + nf(OF.valor,2) + ")" : "el dólar elegido (" + nf(tcHoy(),2) + ")"}${marcaTc()}`;
+  $("pv-tit").innerHTML = `${S.pvRep} · costo puesto en Santa Cruz con el dólar oficial (${nf(OF.valor,2)})`;
   $("t-pv").innerHTML = `<thead><tr><th>Proveedor</th><th>Origen</th><th>Incoterm<span class="ayuda">qué gastos ya incluye el precio</span></th><th>Costo puesto<span class="ayuda">fábrica + flete + aduana, en Bs</span></th><th>Plazo normal</th><th>Variación del plazo<span class="ayuda">cuántos días puede correrse</span></th><th>A tiempo<span class="ayuda">de cada 100 entregas</span></th></tr></thead><tbody>` +
     f.map((p,i) => `<tr${i === 0 ? ' data-sel="true"' : ""}><td><b>${esc(nombreProv(p))}</b>${i === 0 ? ' <span class="tag">Menor costo</span>' : ""}${p.proveedor_id === r.proveedor_id ? ' <span class="tag" style="background:#eceae5;color:var(--ink-2)">El de hoy</span>' : ""}</td><td>${esc(p.origen)}</td><td>${p.incoterm}</td><td>Bs ${nf(p.total_bs,2)}<span class="barra" style="width:${Math.round(p.total_bs / max * 100)}%"></span></td><td>${p.plazo_normal_dias} d</td><td>± ${p.desvio_plazo_dias} d</td><td class="${p.pct_entregas_a_tiempo < 80 ? "c-warn" : ""}">${p.pct_entregas_a_tiempo}</td></tr>`).join("") + "</tbody>";
   const hoy = f.find(p => p.proveedor_id === r.proveedor_id), lentos = f.filter(p => p.pct_entregas_a_tiempo < 80).length;
@@ -2180,7 +2136,7 @@ function pintarPlan(){
     S.presu = Math.max(1000, Math.round(urg / 2 / 1000) * 1000);
   }
   $("f-presu").value = S.presu;
-  $("presu-ayuda").innerHTML = `En bolivianos, con el dólar ${S.tcModo === "oficial" ? "oficial de hoy" : "elegido"}.${marcaTc()}`;
+  $("presu-ayuda").innerHTML = `En bolivianos, con el dólar oficial de hoy.`;
   const filas = seguro(() => Motor.planPresupuesto(al, S.presu), $("t-plan")); if(!filas) return;
   const total = filas.length ? filas[filas.length - 1].acumulado_bs : 0, usado = filas.filter(f => f.alcanza).reduce((s,f) => s + f.costo_bs, 0);
   $("acum").style.width = (S.presu > 0 ? Math.min(100, usado / S.presu * 100) : 0) + "%";
@@ -2190,59 +2146,6 @@ function pintarPlan(){
 }
 let tPresu = null;
 $("f-presu").addEventListener("input", e => { const v = parseFloat(e.target.value); if(v >= 0){ clearTimeout(tPresu); tPresu = setTimeout(() => { S.presu = v; pintarPlan(); }, 150); } });
-
-/* ==================== ¿QUÉ HUBIERA PASADO? ==================== */
-const POL = [["lo_justo","Reponer lo justo","Cada mes, pedir solo lo que cubre la venta durante el plazo."],["cubrir_60","Cubrir 60 días","Cada pedido suma dos meses de venta."],["dos_pedidos","Dividir en dos pedidos","Lo de cubrir 60 días, en dos envíos separados por un mes."]];
-let PASADO = null;
-function pintarPasado(){
-  if(!PASADO) PASADO = seguro(() => POL.map(p => Motor.pasado(D, p[0])), $("bt"));
-  if(!PASADO) return;
-  const g = PASADO.map(x => x.ganancia_bs), im = g.indexOf(Math.max(...g));
-  $("bt").innerHTML = POL.map((p,i) => { const x = PASADO[i]; return `<div class="col${i === im ? " gana" : ""}"><h3>${p[1]}${i === im ? ' <span class="tag">Mejor resultado</span>' : ""}</h3><p class="que">${p[2]}</p>
-    <dl class="dato"><dt>Ventas perdidas<span class="ayuda">Unidades pedidas por clientes sin stock.</span></dt><dd>${nf(x.ventas_perdidas,1)} u</dd></dl>
-    <dl class="dato"><dt>Dinero inmovilizado promedio<span class="ayuda">Dinero en el almacén, mes a mes.</span></dt><dd>${bs(x.capital_promedio_bs)}</dd></dl>
-    <dl class="dato"><dt>Pedidos hechos<span class="ayuda">Cada pedido paga flete y trámites.</span></dt><dd>${nf(x.pedidos)}</dd></dl>
-    <dl class="dato"><dt>Ganancia en 12 meses<span class="ayuda">Ventas menos compras y costo del capital.</span></dt><dd>${bs(x.ganancia_bs)}</dd></dl></div>`; }).join("");
-  // La mejor se compara con las otras dos, de la que más ganó a la que menos (antes se comparaba solo con la peor).
-  const m = PASADO[im], otras = POL.map((p,i) => i).filter(i => i !== im).sort((a,b) => g[b] - g[a]);
-  $("bt-nota").innerHTML = `<strong>Lo que enseña:</strong> con las ventas que de verdad ocurrieron, «${POL[im][1].toLowerCase()}» dejó ${bs(m.ganancia_bs)}: `
-    + otras.map(i => `${bs(m.ganancia_bs - g[i])} más que «${POL[i][1].toLowerCase()}»`).join(" y ")
-    + `, con ${nf(m.ventas_perdidas,1)} unidades perdidas frente a ${otras.map(i => nf(PASADO[i].ventas_perdidas,1)).join(" y ")}.`;
-}
-
-/* ==================== CLASIFICACIÓN ==================== */
-const TIPO = {intermitente:["Intermitente","var(--s1)","Se vende de vez en cuando, en cantidades parecidas. Pronóstico: SBA (Croston corregido)."],
-  irregular:["Irregular","var(--s2)","De vez en cuando y en cantidades muy distintas. Necesita más stock de reserva."],
-  suave:["Suave","var(--s3)","Se vende casi todos los meses, parejo. Un promedio alcanza."],
-  erratica:["Errática","#7a7f87","Casi todos los meses pero con saltos grandes. En carparts no aparece."]};
-function pintarClasificacion(){
-  if(pintado.clasificacion) return;  // no depende del dólar ni de los supuestos
-  const P = D.clasificacion.puntos, C = D.clasificacion.conteo, tot = Object.values(C).reduce((a,b) => a + b, 0), clas = P.length;
-  // Igual que el gráfico de ventas: el viewBox mide lo que mide la caja, para que la letra no se achique en el celular.
-  const W = Math.max(320, Math.round($("chart-cl").clientWidth || 640)), H = Math.round(Math.min(380, Math.max(280, W * .56))), pl = 46, pb = 36, XM = 26, YM = 4;
-  const x = a => pl + Math.log(Math.min(a, XM)) / Math.log(XM) * (W - pl - 10), y = c => 10 + (1 - Math.min(c, YM) / YM) * (H - pb - 10);
-  // Se dibuja primero lo más numeroso para que los grupos chicos queden encima y se vean.
-  const orden = ["intermitente","irregular","suave"];
-  const pts = orden.map(t => P.filter(p => p[2] === t).map(([a,c]) => `<circle cx="${x(a).toFixed(1)}" cy="${y(c).toFixed(1)}" r="2.6" fill="${TIPO[t][1]}" fill-opacity=".55"/>`).join("")).join("");
-  const r30 = D.repuestos.map(r => `<circle class="pt30" cx="${x(r.adi).toFixed(1)}" cy="${y(r.cv2).toFixed(1)}" r="5"><title>${r.repuesto_id}: ADI ${nf(r.adi,2)}, CV² ${nf(r.cv2,2)}</title></circle>`).join("");
-  $("cl-intro").textContent = `Cada punto es uno de los ${nf(tot)} repuestos de carparts. Según cada cuánto se vende y cuánto varía la cantidad, cae en un tipo; cada tipo pide una forma distinta de pronosticar y de comprar.`;
-  $("chart-cl").innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Dispersión de ${nf(clas)} repuestos según ADI y CV², con los cortes 1,32 y 0,49">
-    <line class="grid" x1="${x(1.32)}" x2="${x(1.32)}" y1="10" y2="${H-pb}" stroke-dasharray="4 3" style="stroke:var(--ink-3)"/><line class="grid" x1="${pl}" x2="${W-10}" y1="${y(.49)}" y2="${y(.49)}" stroke-dasharray="4 3" style="stroke:var(--ink-3)"/>
-    ${pts}${r30}<text x="${x(1.32)+4}" y="22">ADI 1,32</text><text x="${W-12}" y="${y(.49)-6}" text-anchor="end">CV² 0,49</text>
-    ${[1,2,5,10,25].map(v => `<text x="${x(v)}" y="${H-16}" text-anchor="middle">${v}</text>`).join("")}<text x="${(W+pl)/2}" y="${H-2}" text-anchor="middle" class="lbl">Cada cuántos meses se vende (ADI)</text>
-    ${[0,1,2,3,4].map(v => `<text x="${pl-6}" y="${y(v)+4}" text-anchor="end">${v}</text>`).join("")}<text transform="translate(12 ${(H-pb)/2}) rotate(-90)" text-anchor="middle" class="lbl">Variación de la cantidad (CV²)</text></svg>`;
-  $("leg-cl").innerHTML = orden.map(t => `<span><i class="sw" style="background:${TIPO[t][1]}"></i>${TIPO[t][0]} · ${nf(C[t] || 0)}</span>`).join("") + '<span><i class="sw" style="background:#fff;border:1.5px solid var(--graphite);border-radius:50%"></i>Los 30 del simulador</span>';
-  $("cuad").innerHTML = ["intermitente","irregular","suave","erratica"].map(t => `<div><span class="lab">${TIPO[t][0]}</span><b>${nf(C[t] || 0)}</b><span class="ayuda">${TIPO[t][2]}</span></div>`).join("");
-  const pi = Math.round((C.intermitente || 0) / clas * 100);
-  $("cl-nota").innerHTML = `<strong>Lo que descubre:</strong> ${pi} de cada 100 repuestos clasificados son intermitentes. Pronosticarlos con un promedio simple los sobreestima; por eso el simulador usa una técnica distinta para cada tipo.`;
-  const sinc = C["sin clasificar"] || 0;
-  $("cl-pie").textContent = `${nf(clas)} de ${nf(tot)} series (${sinc} tienen menos de dos meses con venta y no se clasifican). Valores de ADI mayores que 26 o de CV² mayores que 4 se dibujan en el borde. Ventas REALES de carparts; cortes de Syntetos y Boylan (1,32 y 0,49). Cálculo del equipo (SCRUM-55).`;
-  const med = arr => { const s = arr.slice().sort((a,b) => a - b), n = s.length; return n ? (n % 2 ? s[(n-1)/2] : (s[n/2-1] + s[n/2]) / 2) : null; };
-  $("t-cl").innerHTML = `<thead><tr><th>Tipo</th><th>Repuestos</th><th>De cada 100</th><th>ADI mediano</th><th>CV² mediano</th><th>Regla</th></tr></thead><tbody>` +
-    ["suave","erratica","intermitente","irregular"].map(t => { const g = P.filter(p => p[2] === t), rg = {suave:"ADI ≤ 1,32 y CV² ≤ 0,49", erratica:"ADI ≤ 1,32 y CV² > 0,49", intermitente:"ADI > 1,32 y CV² ≤ 0,49", irregular:"ADI > 1,32 y CV² > 0,49"}[t];
-      return `<tr><td>${TIPO[t][0]}</td><td>${nf(C[t] || 0)}</td><td>${nf((C[t] || 0) / clas * 100, 1)}</td><td>${g.length ? nf(med(g.map(p => p[0])),2) : "—"}</td><td>${g.length ? nf(med(g.map(p => p[1])),2) : "—"}</td><td>${rg}</td></tr>`; }).join("")
-    + `<tr><td>Sin clasificar</td><td>${nf(sinc)}</td><td>—</td><td>—</td><td>—</td><td>menos de dos meses con venta</td></tr></tbody>`;
-}
 
 /* ==================== TEMPORADAS (SCRUM-75) ==================== */
 const MES_L = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
@@ -2265,7 +2168,7 @@ function pintarTemporadas(){
     <div class="kpi"><div class="t">Mes más flojo</div><div class="v">${capital(MES_L[p.mes_flojo - 1])}</div><div class="d">vende ${nf(iflo,1)} veces el promedio</div><span class="ayuda">Buen momento para no llenar el almacén.</span></div>
     <div class="kpi"><div class="t">Meses fuertes</div><div class="v">${p.meses_fuertes.length}<small>de 12</small></div><div class="d">venden más que el promedio</div><span class="ayuda">Son las barras verdes del gráfico.</span></div>
     <div class="kpi"><div class="t">Venta promedio</div><div class="v">${nf(p.media,1)}<small>u/mes</small></div><div class="d">promedio de los 12 meses</div><span class="ayuda">La línea oscura del gráfico.</span></div>`;
-  const W = Math.max(320, Math.round($("chart-tm").clientWidth || 900)), H = 240, pl = 36, pb = 28, pr = 12;
+  const W = Math.max(320, Math.round($("chart-tm").clientWidth || 900)), H = 260, pl = 48, pb = 44, pr = 12;
   const mx = Math.max(...p.promedio_mes.map(v => v || 0), p.media) * 1.15, bw = (W - pl - pr) / 12;
   const X = i => pl + i * bw, Y = v => 10 + (1 - v / mx) * (H - pb - 10);
   const ticks = [0, mx / 2, mx / 1.15].map(t => Math.round(t * 10) / 10);
@@ -2275,7 +2178,9 @@ function pintarTemporadas(){
     ${barras}
     <line x1="${pl}" x2="${W-pr}" y1="${Y(p.media)}" y2="${Y(p.media)}" stroke="var(--graphite)" stroke-width="2"/>
     <text x="${X(p.mes_pico - 1) + bw/2}" y="${Y(p.promedio_mes[p.mes_pico - 1]) - 6}" text-anchor="middle" style="fill:var(--brand-dark);font-weight:600">${nf(p.promedio_mes[p.mes_pico - 1],1)}</text>
-    ${MES.map((m,i) => `<text x="${X(i) + bw/2}" y="${H-8}" text-anchor="middle">${m}</text>`).join("")}</svg>`;
+    ${MES.map((m,i) => `<text x="${X(i) + bw/2}" y="${H-24}" text-anchor="middle">${m}</text>`).join("")}
+    <text class="axt" x="${(pl + W - pr) / 2}" y="${H-4}" text-anchor="middle">Mes del año</text>
+    <text class="axt" transform="translate(12 ${(H - pb) / 2}) rotate(-90)" text-anchor="middle">Unidades por mes (promedio)</text></svg>`;
   $("t-tm").innerHTML = "<thead><tr><th style=\"text-align:left\">Mes</th><th>Venta promedio</th><th>Frente al promedio</th><th>Años con dato</th></tr></thead><tbody>" +
     p.promedio_mes.map((v,i) => `<tr><td style="text-align:left">${capital(MES_L[i])}${p.meses_fuertes.includes(i + 1) ? ' <span class="tag">fuerte</span>' : ""}</td><td>${v === null ? "—" : nf(v,2) + " u"}</td><td>${p.indice[i] === null ? "—" : nf(p.indice[i],2)}</td><td>${p.observaciones[i]}</td></tr>`).join("") + "</tbody>";
   let nota = `<strong>Lo que descubre:</strong> ${capital(MES_L[p.mes_pico - 1])} vende ${nf(ip,1)} veces el promedio y ${MES_L[p.mes_flojo - 1]}, ${nf(iflo,1)}. Los meses fuertes son ${p.meses_fuertes.map(m => MES_L[m - 1]).join(", ")}.`;
@@ -2317,8 +2222,8 @@ function pintarClientes(){
     <div class="kpi"><div class="t">Los 5 que más compran</div><div class="v">${nf(tot ? top5 / tot * 100 : 0)}<small>%</small></div><div class="d">de lo comprado en ${txt}</div><span class="ayuda">Si es alto, perder uno de ellos se nota mucho.</span></div>
     <div class="kpi"><div class="t">Compras en temporada</div><div class="v">${nf(pTemp)}<small>%</small></div><div class="d">meses: ${mesesT}</div><span class="ayuda">${T.temporada.length} meses de 12 concentran esta parte.</span></div>
     <div class="kpi"><div class="t">Tipo que más compra</div><div class="v" style="font-size:22px">${esc(T.por_tipo[0].tipo)}</div><div class="d">${nf(T.por_tipo[0].monto_bs / T.total.monto_bs * 100)} % del total</div><span class="ayuda">Sumando todos los clientes de ese tipo.</span></div>`;
-  $("cli-tit").innerHTML = `Clientes ordenados por compras en ${txt}${marcaTc()}`;
-  $("cli-sub").textContent = `En bolivianos, a precio de lista con el dólar ${S.tcModo === "oficial" ? "oficial de hoy" : "elegido"}. 51 meses de ventas (ago-2022 a oct-2026).`;
+  $("cli-tit").innerHTML = `Clientes ordenados por compras en ${txt}`;
+  $("cli-sub").textContent = `En bolivianos, a precio de lista con el dólar oficial de hoy. 51 meses de ventas (ago-2022 a oct-2026).`;
   $("t-cli").innerHTML = `<thead><tr><th>#</th><th>Cliente</th><th>Compras<span class="ayuda">en el período elegido</span></th><th>Del total</th><th>En temporada<span class="ayuda">parte de sus compras</span></th><th>Qué lleva más<span class="ayuda">unidades en 51 meses</span></th></tr></thead><tbody>` +
     lista.map((c,i) => `<tr><td>${i + 1}</td><td><b>${esc(c.nombre.replace(" (ficticio)", ""))}</b><span class="ayuda">${esc(c.tipo)} · ${esc(c.zona)}</span></td><td>${bs(c[campo])}<span class="barra" style="width:${Math.round(c[campo] / mx * 100)}%"></span></td><td>${tot ? nf(c[campo] / tot * 100, 1) + " %" : "—"}</td><td>${c.pct_temp === null ? "—" : nf(c.pct_temp) + " %"}</td><td class="lleva">${c.top.map(t => `${esc(nombreRep(t.id))} (${t.unidades})`).join("; ")}</td></tr>`).join("") + "</tbody>";
   $("t-cli-tipo").innerHTML = `<thead><tr><th>#</th><th>Tipo</th><th>Compras</th><th>Del total</th><th>En temporada</th><th>Clientes</th></tr></thead><tbody>` +
@@ -2340,8 +2245,6 @@ const TECNICA = {
   simulador:["Simulación de Monte Carlo sobre el pronóstico y el plazo del proveedor","elegir cuánto pedir entre cuatro alternativas, con su riesgo"],
   proveedores:["Comparación del costo puesto en Santa Cruz y del cumplimiento de plazos","elegir a qué proveedor comprar"],
   plan:["Priorización por urgencia y clase dentro de un presupuesto","decidir qué comprar primero cuando el dinero no alcanza"],
-  backtest:["Simulación histórica (backtesting) de las políticas de compra","ver qué política de compra hubiera funcionado mejor"],
-  clasificacion:["Clasificación de la demanda de Syntetos y Boylan (ADI y CV²)","usar la técnica de pronóstico que corresponde a cada repuesto"],
   temporadas:["Índice estacional: venta de cada mes frente al promedio del año","pedir con tiempo antes de los meses fuertes"],
   clientes:["Ranking y concentración de compras por cliente (Pareto)","saber de qué clientes depende la venta"]};
 Object.entries(TECNICA).forEach(([v, [t, d]]) => { const h = document.querySelector(`#v-${v} .hero > div`);
@@ -2358,24 +2261,26 @@ function pintarDashboard(){
   const top = T.clientes[0], rep = T.repuestos[0], empate = T.repuestos.filter(r => r.unidades === rep.unidades);
   const var12 = T.prev12_bs > 0 ? (T.ult12_bs - T.prev12_bs) / T.prev12_bs * 100 : null;
   $("db-kpis").innerHTML = `
-    <div class="kpi"><div class="t">Dinero que entró</div><div class="v">${bs(T.total.monto_bs)}</div><div class="d">${nf(T.total.unidades)} unidades, ${mesL(T.meses[0])} a ${mesL(T.ultimo_mes)}</div><span class="ayuda">Unidades por precio de lista con el dólar ${S.tcModo === "oficial" ? "oficial de hoy" : "elegido"}.</span></div>
+    <div class="kpi"><div class="t">Dinero que entró</div><div class="v">${bs(T.total.monto_bs)}</div><div class="d">${nf(T.total.unidades)} unidades, ${mesL(T.meses[0])} a ${mesL(T.ultimo_mes)}</div><span class="ayuda">Unidades por precio de lista con el dólar oficial de hoy.</span></div>
     <div class="kpi"><div class="t">Últimos 12 meses</div><div class="v">${bs(T.ult12_bs)}</div><div class="d">${var12 === null ? "sin año anterior para comparar" : (var12 >= 0 ? "+" : "−") + nf(Math.abs(var12)) + " % frente a los 12 anteriores"}</div><span class="ayuda">Hasta ${mesL(T.ultimo_mes)}, el último mes con datos.</span></div>
     <div class="kpi"><div class="t">Repuesto que más salió</div><div class="v txt">${esc(nombreRep(rep.id))}</div><div class="d">${rep.id} · ${nf(rep.unidades)} unidades (${nf(rep.pct_unidades,1)} %)</div><span class="ayuda">${empate.length > 1 ? `Empata en unidades con ${empate.slice(1).map(r => r.id).join(", ")}; va primero por dinero.` : "Unidades vendidas desde " + mesL(T.meses[0]) + "."}</span></div>
     <div class="kpi"><div class="t">Cliente que más compra</div><div class="v txt">${esc(nomCli(top.nombre))}</div><div class="d">${bs(top.monto_bs)} · ${nf(top.pct_total,1)} % del total</div><span class="ayuda">Los 5 primeros suman el ${nf(T.top5_pct)} %.</span></div>`;
   // Demanda por mes, con promedio móvil de 12 meses para ver la tendencia sin el ruido de cada mes.
-  const dm = T.demanda_mes, W = Math.max(320, Math.round($("chart-db").clientWidth || 900)), H = 250, pl = 36, pb = 30, pr = 12;
+  const dm = T.demanda_mes, W = Math.max(320, Math.round($("chart-db").clientWidth || 900)), H = 270, pl = 48, pb = 46, pr = 12;
   const mx = Math.max(...dm.map(x => x.unidades), 1) * 1.12, bw = (W - pl - pr) / dm.length;
   const X = i => pl + i * bw, Y = v => 10 + (1 - v / mx) * (H - pb - 10);
   const pm = dm.map((x,i) => i < 11 ? null : dm.slice(i - 11, i + 1).reduce((s,y) => s + y.unidades, 0) / 12);
   const pico = dm.reduce((b,x,i) => x.unidades > dm[b].unidades ? i : b, 0);
   const ticks = [0, Math.round(mx / 2.24), Math.round(mx / 1.12)];
-  const etiq = dm.map((x,i) => x.mes.slice(5) === "01" || (i === 0 && W >= 640) ? `<text x="${X(i) + bw/2}" y="${H-10}" text-anchor="${i === 0 ? "start" : "middle"}">${i === 0 ? mesL(x.mes) : x.mes.slice(0,4)}</text>` : "").join("");
+  const etiq = dm.map((x,i) => x.mes.slice(5) === "01" || (i === 0 && W >= 640) ? `<text x="${X(i) + bw/2}" y="${H-26}" text-anchor="${i === 0 ? "start" : "middle"}">${i === 0 ? mesL(x.mes) : x.mes.slice(0,4)}</text>` : "").join("");
   $("chart-db").innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Unidades vendidas por mes de ${mesL(dm[0].mes)} a ${mesL(T.ultimo_mes)}. Mes más alto: ${mesL(dm[pico].mes)} con ${nf(dm[pico].unidades)} unidades">
     ${ticks.map(t => `<line class="grid" x1="${pl}" x2="${W-pr}" y1="${Y(t)}" y2="${Y(t)}"/><text x="${pl-6}" y="${Y(t)+4}" text-anchor="end">${t}</text>`).join("")}
     ${dm.map((x,i) => `<rect class="bd" x="${(X(i) + bw*.14).toFixed(1)}" y="${Y(x.unidades).toFixed(1)}" width="${Math.max(1, bw*.72).toFixed(1)}" height="${Math.max(0, H - pb - Y(x.unidades)).toFixed(1)}" rx="${bw > 10 ? 2 : 1}"><title>${mesL(x.mes)}: ${nf(x.unidades)} unidades · ${bs(x.monto_bs)}</title></rect>`).join("")}
     <path class="pm" d="${pm.map((v,i) => v === null ? "" : `${pm[i-1] === null || i === 0 ? "M" : "L"}${(X(i) + bw/2).toFixed(1)},${Y(v).toFixed(1)}`).join("")}"/>
     <text x="${X(pico) + bw/2}" y="${Y(dm[pico].unidades) - 6}" text-anchor="middle" style="fill:var(--brand-dark);font-weight:600">${nf(dm[pico].unidades)}</text>
-    ${etiq}</svg>`;
+    ${etiq}
+    <text class="axt" x="${(pl + W - pr) / 2}" y="${H-4}" text-anchor="middle">Mes</text>
+    <text class="axt" transform="translate(12 ${(H - pb) / 2}) rotate(-90)" text-anchor="middle">Unidades vendidas</text></svg>`;
   $("db-dem-sub").textContent = `Unidades vendidas de los 30 repuestos, de ${mesL(dm[0].mes)} a ${mesL(T.ultimo_mes)} (${dm.length} meses). Pase el cursor sobre una barra para ver el mes.`;
   $("t-db-mes").innerHTML = "<thead><tr><th>Mes</th><th>Unidades</th><th>Dinero</th><th>Promedio móvil 12 meses</th></tr></thead><tbody>" +
     dm.map((x,i) => `<tr><td>${mesL(x.mes)}</td><td>${nf(x.unidades)}</td><td>${bs(x.monto_bs)}</td><td>${pm[i] === null ? "—" : nf(pm[i],1)}</td></tr>`).join("") + "</tbody>";
@@ -2385,7 +2290,7 @@ function pintarDashboard(){
       (var12 !== null && (var12 >= 0) !== (pmUlt >= pmPrev) ? ` En dinero pasa lo contrario (${var12 >= 0 ? "+" : "−"}${nf(Math.abs(var12))} %), porque cambió la mezcla: se vendieron ${var12 >= 0 ? "menos unidades pero más caras" : "más unidades pero más baratas"}.` : "") : "");
   // Dinero por año
   const mxA = Math.max(...T.por_anio.map(a => a.monto_bs), 1);
-  $("db-anio-sub").textContent = `En bolivianos, a precio de lista con el dólar ${S.tcModo === "oficial" ? "oficial de hoy" : "elegido"}. ${T.por_anio[0].anio} y ${T.por_anio[T.por_anio.length-1].anio} no tienen los 12 meses.`;
+  $("db-anio-sub").textContent = `En bolivianos, a precio de lista con el dólar oficial de hoy. ${T.por_anio[0].anio} y ${T.por_anio[T.por_anio.length-1].anio} no tienen los 12 meses.`;
   $("t-db-anio").innerHTML = `<thead><tr><th>Año</th><th>Dinero</th><th>Unidades</th><th>Meses<span class="ayuda">con datos</span></th></tr></thead><tbody>` +
     T.por_anio.map(a => `<tr><td><b>${a.anio}</b></td><td>${bs(a.monto_bs)}<span class="barra" style="width:${Math.round(a.monto_bs / mxA * 100)}%"></span></td><td>${nf(a.unidades)}</td><td>${a.meses}</td></tr>`).join("") +
     `<tr><td><b>Total</b></td><td><b>${bs(T.total.monto_bs)}</b></td><td><b>${nf(T.total.unidades)}</b></td><td>${dm.length}</td></tr></tbody>`;
@@ -2397,12 +2302,24 @@ function pintarDashboard(){
   $("b-db-rep").setAttribute("aria-expanded", String(S.dbRep));
   // Clientes: compras por trimestre (minigráfico) y los últimos 6 meses frente a los 6 anteriores.
   const clis = S.dbCli ? T.clientes : T.clientes.slice(0, 10), nT = T.trimestres.length;
-  const mxT = Math.max(...T.clientes.flatMap(c => c.trimestres), 1);
-  const spark = c => `<svg class="spark" viewBox="0 0 ${nT * 6} 30" preserveAspectRatio="none" role="img" aria-label="Compras por trimestre de ${esc(nomCli(c.nombre))}">${c.trimestres.map((v,i) => `<rect class="${v ? "" : "z"}" x="${i * 6 + .6}" y="${v ? (30 - Math.max(2, v / mxT * 30)).toFixed(1) : 28}" width="4.8" height="${v ? Math.max(2, v / mxT * 30).toFixed(1) : 2}"><title>${T.trimestres[i]}: ${bs(v)}</title></rect>`).join("")}</svg>`;
+  if(!S.dbCliSel || !T.clientes.some(c => c.id === S.dbCliSel)) S.dbCliSel = T.clientes[0].id;
+  $("db-cli-sel").innerHTML = T.clientes.map((c,i) => `<option value="${c.id}">${i + 1}. ${esc(nomCli(c.nombre))}</option>`).join("");
+  $("db-cli-sel").value = S.dbCliSel;
+  const cs = T.clientes.find(c => c.id === S.dbCliSel);
+  $("db-cli-tit").textContent = `Compras por trimestre de ${nomCli(cs.nombre)}, en bolivianos`;
+  { const Wq = Math.max(320, Math.round($("chart-db-cli").clientWidth || 900)), Hq = 240, plq = 64, pbq = 46, prq = 12, v = cs.trimestres;
+    const mq = Math.max(...v, 1) * 1.12, bq = (Wq - plq - prq) / nT, Xq = i => plq + i * bq, Yq = x => 10 + (1 - x / mq) * (Hq - pbq - 10);
+    const tq = [0, mq / 2.24, mq / 1.12].map(x => Math.round(x / 100) * 100);
+    $("chart-db-cli").innerHTML = `<svg class="chart" viewBox="0 0 ${Wq} ${Hq}" role="img" aria-label="Compras por trimestre de ${esc(nomCli(cs.nombre))}, de ${T.trimestres[0]} a ${T.trimestres[nT-1]}">
+      ${tq.map(t => `<line class="grid" x1="${plq}" x2="${Wq-prq}" y1="${Yq(t)}" y2="${Yq(t)}"/><text x="${plq-6}" y="${Yq(t)+4}" text-anchor="end">${nf(t)}</text>`).join("")}
+      ${v.map((x,i) => `<rect class="bd" x="${(Xq(i) + bq*.16).toFixed(1)}" y="${Yq(x).toFixed(1)}" width="${(bq*.68).toFixed(1)}" height="${Math.max(0, Hq - pbq - Yq(x)).toFixed(1)}" rx="2"><title>${T.trimestres[i]}: ${bs(x)}</title></rect>`).join("")}
+      ${T.trimestres.map((t,i) => t.endsWith("T1") || i === 0 ? `<text x="${(Xq(i) + bq/2).toFixed(1)}" y="${Hq-26}" text-anchor="middle">${i === 0 && !t.endsWith("T1") ? t.replace("-", " ") : t.slice(0,4)}</text>` : "").join("")}
+      <text class="axt" x="${(plq + Wq - prq) / 2}" y="${Hq-4}" text-anchor="middle">Trimestre</text>
+      <text class="axt" transform="translate(12 ${(Hq - pbq) / 2}) rotate(-90)" text-anchor="middle">Bs comprados</text></svg>`; }
   const tend = c => `<span class="ten ${c.tendencia === "sin compras" ? "sin" : c.tendencia}">${capital(c.tendencia)}${c.variacion_pct === null ? "" : " " + (c.variacion_pct >= 0 ? "+" : "−") + nf(Math.abs(c.variacion_pct)) + " %"}</span>`;
-  $("db-cli-sub").textContent = `Cada barrita es un trimestre, de ${T.trimestres[0]} a ${T.trimestres[nT-1]}. La tendencia compara los últimos 6 meses (hasta ${mesL(T.ultimo_mes)}) con los 6 anteriores: sube o baja si cambia 10 % o más.`;
-  $("t-db-cli").innerHTML = `<thead><tr><th>#</th><th>Cliente</th><th>Compras<span class="ayuda">desde ${mesL(T.meses[0])}</span></th><th>Del total</th><th>Movimiento por trimestre</th><th style="text-align:left">Tendencia<span class="ayuda">últimos 6 meses</span></th><th>Última compra</th></tr></thead><tbody>` +
-    clis.map((c,i) => `<tr><td>${i + 1}</td><td><b>${esc(nomCli(c.nombre))}</b><span class="ayuda">${nf(c.unidades)} unidades</span></td><td>${bs(c.monto_bs)}</td><td>${nf(c.pct_total,1)} %</td><td>${spark(c)}</td><td class="trend">${tend(c)}</td><td>${mesL(c.ultima_compra)}</td></tr>`).join("") + "</tbody>";
+  $("db-cli-sub").textContent = `El gráfico muestra las compras de un cliente por trimestre, de ${T.trimestres[0]} a ${T.trimestres[nT-1]}; la tabla, a todos. La tendencia compara los últimos 6 meses (hasta ${mesL(T.ultimo_mes)}) con los 6 anteriores: sube o baja si cambia 10 % o más.`;
+  $("t-db-cli").innerHTML = `<thead><tr><th>#</th><th>Cliente</th><th>Compras<span class="ayuda">desde ${mesL(T.meses[0])}</span></th><th>Del total</th><th>Últimos 6 meses<span class="ayuda">frente a los 6 anteriores</span></th><th style="text-align:left">Tendencia<span class="ayuda">últimos 6 meses</span></th><th>Última compra</th></tr></thead><tbody>` +
+    clis.map((c,i) => `<tr><td>${i + 1}</td><td><b>${esc(nomCli(c.nombre))}</b><span class="ayuda">${nf(c.unidades)} unidades</span></td><td>${bs(c.monto_bs)}</td><td>${nf(c.pct_total,1)} %</td><td>${bs(c.ult6_bs)}<span class="ayuda">antes ${bs(c.prev6_bs)}</span></td><td class="trend">${tend(c)}</td><td>${mesL(c.ultima_compra)}</td></tr>`).join("") + "</tbody>";
   $("b-db-cli").textContent = S.dbCli ? "Mostrar solo los 10 primeros" : `Mostrar los ${T.clientes.length}`;
   $("b-db-cli").setAttribute("aria-expanded", String(S.dbCli));
   const cnt = k => T.clientes.filter(c => c.tendencia === k).length;
@@ -2410,6 +2327,7 @@ function pintarDashboard(){
 }
 $("b-db-rep").addEventListener("click", () => { S.dbRep = !S.dbRep; pintarDashboard(); });
 $("b-db-cli").addEventListener("click", () => { S.dbCli = !S.dbCli; pintarDashboard(); });
+$("db-cli-sel").addEventListener("change", e => { S.dbCliSel = e.target.value; pintarDashboard(); });
 
 /* ==================== PREDICCIONES (SCRUM-80) ==================== */
 if(S.prCorte === undefined) S.prCorte = "50";
@@ -2456,21 +2374,31 @@ function pintarPredicciones(){
     <tr><td><b>Se vendió</b></td><td class="c ok">${C.vp}<small>acierto</small></td><td class="c mal">${C.fn}<small>venta no anticipada</small></td></tr>
     <tr><td><b>No se vendió</b></td><td class="c mal">${C.fp}<small>falsa alarma</small></td><td class="c ok">${C.vn}<small>acierto</small></td></tr></tbody></table>`;
   // Calibración
-  const cal = V.calibracion, Wc = Math.max(280, Math.round($("chart-pr-cal").clientWidth || 520)), Hc = 220, plc = 34, pbc = 30;
+  const cal = V.calibracion, Wc = Math.max(280, Math.round($("chart-pr-cal").clientWidth || 520)), Hc = 250, plc = 52, pbc = 46;
   const gw = (Wc - plc - 8) / cal.length, Yc = v => 10 + (1 - v) * (Hc - pbc - 10), mxc = 1;
   $("chart-pr-cal").innerHTML = `<svg class="chart" viewBox="0 0 ${Wc} ${Hc}" role="img" aria-label="Calibración del modelo por tramo de probabilidad">
     ${[0, .25, .5, .75].map(t => `<line class="grid" x1="${plc}" x2="${Wc-8}" y1="${Yc(t)}" y2="${Yc(t)}"/><text x="${plc-6}" y="${Yc(t)+4}" text-anchor="end">${nf(t * 100)} %</text>`).join("")}
     ${cal.map((c,i) => { const x0 = plc + i * gw, b = gw * .34;
       return `<rect x="${(x0 + gw*.14).toFixed(1)}" y="${Yc(c.prob_media).toFixed(1)}" width="${b.toFixed(1)}" height="${(Hc - pbc - Yc(c.prob_media)).toFixed(1)}" rx="2" fill="#c9cec8"><title>${nf(c.desde*100)}–${nf(c.hasta*100)} %: el modelo dio ${nf(c.prob_media*100)} % en promedio</title></rect>
         <rect x="${(x0 + gw*.14 + b + 2).toFixed(1)}" y="${Yc(c.vendidos).toFixed(1)}" width="${b.toFixed(1)}" height="${(Hc - pbc - Yc(c.vendidos)).toFixed(1)}" rx="2" fill="var(--brand)"><title>${nf(c.desde*100)}–${nf(c.hasta*100)} %: se vendió en ${nf(c.vendidos*100)} % de ${c.n} casos</title></rect>
-        <text x="${(x0 + gw/2).toFixed(1)}" y="${Hc-12}" text-anchor="middle">${nf(c.desde*100)}–${nf(c.hasta*100)}</text>`; }).join("")}</svg>`;
+        <text x="${(x0 + gw/2).toFixed(1)}" y="${Hc-26}" text-anchor="middle">${nf(c.desde*100)}–${nf(c.hasta*100)}</text>`; }).join("")}
+    <text class="axt" x="${(plc + Wc - 8) / 2}" y="${Hc-4}" text-anchor="middle">Probabilidad que dio el modelo (tramo, %)</text>
+    <text class="axt" transform="translate(12 ${(Hc - pbc) / 2}) rotate(-90)" text-anchor="middle">% de casos</text></svg>`;
   $("t-pr-cal").innerHTML = "<thead><tr><th>Tramo</th><th>Casos</th><th>Probabilidad que dio</th><th>Se vendió de verdad</th></tr></thead><tbody>" +
     cal.map(c => `<tr><td>${nf(c.desde*100)} a ${nf(c.hasta*100)} %</td><td>${c.n}</td><td>${nf(c.prob_media*100,1)} %</td><td>${nf(c.vendidos*100,1)} %</td></tr>`).join("") + "</tbody>";
   // Coeficientes
   const NOM = {}; P.variables.forEach(v => NOM[v.clave] = v.nombre);
-  const mxk = Math.max(...P.coeficientes.estandarizados.map(c => Math.abs(c.coef)), .01);
-  $("pr-coef").innerHTML = P.coeficientes.estandarizados.slice().sort((a,b) => Math.abs(b.coef) - Math.abs(a.coef)).map(c =>
-    `<div class="coef"><span>${esc(NOM[c.clave])}</span><span class="eje"><span class="${c.coef >= 0 ? "pos" : "neg"}" style="width:${(Math.abs(c.coef) / mxk * 50).toFixed(1)}%"></span></span><b>${c.coef >= 0 ? "+" : "−"}${nf(Math.abs(c.coef),2)}</b></div>`).join("");
+  const co = P.coeficientes.estandarizados.slice().sort((a,b) => b.coef - a.coef);
+  const mxk = Math.ceil(Math.max(...co.map(c => Math.abs(c.coef)), .1) * 10) / 10;
+  const Wk = Math.max(300, Math.round($("pr-coef").clientWidth || 520)), lk = Math.min(230, Wk * .45), Hk = 40 + co.length * 34 + 40, rk = 52;
+  const Xk = v => lk + (v + mxk) / (2 * mxk) * (Wk - lk - rk), Yk = i => 20 + i * 34;
+  const tkk = [-mxk, -mxk / 2, 0, mxk / 2, mxk];
+  $("pr-coef").innerHTML = `<svg class="chart" viewBox="0 0 ${Wk} ${Hk}" role="img" aria-label="Peso de cada variable en la probabilidad de venta">
+    ${tkk.map(t => `<line class="grid" x1="${Xk(t).toFixed(1)}" x2="${Xk(t).toFixed(1)}" y1="14" y2="${Yk(co.length)}"${t === 0 ? ' style="stroke:var(--graphite)"' : ""}/><text x="${Xk(t).toFixed(1)}" y="${Yk(co.length) + 14}" text-anchor="middle">${t > 0 ? "+" : t < 0 ? "−" : ""}${nf(Math.abs(t),2)}</text>`).join("")}
+    ${co.map((c,i) => `<text x="${lk - 8}" y="${Yk(i) + 15}" text-anchor="end" style="fill:var(--ink-2)">${esc(NOM[c.clave])}</text>
+      <rect x="${Math.min(Xk(0), Xk(c.coef)).toFixed(1)}" y="${Yk(i) + 4}" width="${Math.max(1.5, Math.abs(Xk(c.coef) - Xk(0))).toFixed(1)}" height="16" rx="2" fill="${c.coef >= 0 ? "var(--brand)" : "var(--bad)"}"><title>${esc(NOM[c.clave])}: ${nf(c.coef,2)}</title></rect>
+      <text x="${(c.coef >= 0 ? Xk(c.coef) + 5 : Xk(c.coef) - 5).toFixed(1)}" y="${Yk(i) + 16}" text-anchor="${c.coef >= 0 ? "start" : "end"}" style="font-weight:600;fill:var(--ink)">${c.coef >= 0 ? "+" : "−"}${nf(Math.abs(c.coef),2)}</text>`).join("")}
+    <text class="axt" x="${(lk + Wk - rk) / 2}" y="${Hk-4}" text-anchor="middle">Peso en la probabilidad de venta (desvíos estándar)</text></svg>`;
   $("pr-pie").textContent = `Técnica: ${P.tecnica}, con penalización L2 (λ = ${nf(P.lambda_l2)}) y variables estandarizadas. Las variables salen solo de los meses anteriores al que se predice. El modelo final se volvió a entrenar con todos los meses hasta ${mesL(P.ultimo_mes_con_dato)}. ${P.origen_dato}. Cálculo: src/scrum-80/predecir_venta.py.`;
 }
 $("pr-corte").addEventListener("click", e => { const b = e.target.closest("button[data-v]"); if(b){ S.prCorte = b.dataset.v; pintarPredicciones(); } });
@@ -2561,7 +2489,7 @@ function cotizarAhora(){
   catch(e){ $("cot-err").textContent = "Escriba una cantidad entera de 1 o más."; $("cot-q").setAttribute("aria-invalid","true"); $("cot-res").innerHTML = ""; tramosTxt(null); return; }
   $("cot-err").textContent = ""; $("cot-q").removeAttribute("aria-invalid");
   tramosTxt(c.pct_tramo);
-  const dolar = S.tcModo === "oficial" ? `dólar oficial ${nf(OF.valor,2)} del ${fecha(OF.fecha)} (BCB)` : `dólar elegido ${nf(tcHoy(),2)}`;
+  const dolar = `dólar oficial ${nf(OF.valor,2)} del ${fecha(OF.fecha)} (BCB)`;
   const sig = c.siguiente_tramo ? `<p class="d">Si lleva ${nf(c.siguiente_tramo.faltan)} más (${nf(c.siguiente_tramo.desde)} en total), cada unidad sale ${c.siguiente_tramo.pct} % más barata que el precio de lista.</p>` : "";
   const stock = c.en_stock === null ? "No hay dato de stock: hay que confirmarlo." : c.por_pedir === 0 ? `Hay stock para entregar las ${nf(c.cantidad)} unidades.` : `Hay ${nf(c.en_stock)} en el almacén; las otras ${nf(c.por_pedir)} llegan en unos ${nf(c.plazo_dias)} días, el plazo del proveedor.`;
   $("cot-res").innerHTML = `<div class="scroll"><table class="cot-desg"><thead><tr><th>Concepto</th><th>Monto</th></tr></thead><tbody>
@@ -2572,8 +2500,8 @@ function cotizarAhora(){
       <tr><td>Subtotal a precio de lista</td><td>${bs2(c.subtotal_bs)}</td></tr>
       <tr><td>Descuento</td><td>${c.descuento_bs ? "− " + bs2(c.descuento_bs) : bs2(0)}</td></tr>
       <tr class="t"><td>Total</td><td>${bs2(c.total_bs)}</td></tr></tbody></table></div>
-    <div class="cot-tot"><div class="lab">Total a pagar${marcaTc()}</div><div class="v">${bs2(c.total_bs)}</div>
-      <p class="d">${bs2(c.precio_unitario_bs)} por unidad, con el ${dolar}.${S.tcModo === "oficial" ? avisoTc() : ""}</p>${sig}<p class="d">${stock}</p>
+    <div class="cot-tot"><div class="lab">Total a pagar</div><div class="v">${bs2(c.total_bs)}</div>
+      <p class="d">${bs2(c.precio_unitario_bs)} por unidad, con el ${dolar}.${avisoTc()}</p>${sig}<p class="d">${stock}</p>
       ${c.tope ? `<p class="d"><strong>El descuento se limitó a ${nf(c.pct_aplicado,2)} %</strong> para no vender por debajo del costo puesto.</p>` : ""}</div>`;
   $("cot-guardar").hidden = !PORTAL;
   $("cot-pie").textContent = "Precio de venta SINTÉTICO: costo puesto en Santa Cruz más el margen de SCRUM-55, convertido con el dólar del día. Los tramos de descuento son de EJEMPLO. El descuento nunca baja el precio del costo puesto. " + (PORTAL ? "Al emitirla, la cotización se guarda con su número (SCRUM-73)." : "Abierta como archivo, la cotización no se guarda: se guarda en el portal (SCRUM-73).");
@@ -2635,7 +2563,7 @@ async function cargarServidor(){
 }
 async function iniciarPortal(){
   try { const t = await api("/api/tc");
-    if(t && t.fecha >= OF.fecha){ OF.valor = t.valor; OF.fecha = t.fecha; if(S.tcModo === "oficial"){ S.tcOtro = t.valor; } INI.tcOtro = INI.tc90 = S.tc90 = t.valor;
+    if(t && t.fecha >= OF.fecha){ OF.valor = t.valor; OF.fecha = t.fecha; INI.tc90 = S.tc90 = t.valor;
       if(!D.tc.serie.length || D.tc.serie[D.tc.serie.length - 1][0] < t.fecha) D.tc.serie.push([t.fecha, t.valor]); }
   } catch(e){ console.warn("Dólar del portal:", e.message); }
   const tok = guardado.get();
@@ -2753,7 +2681,6 @@ async function pintarMiProv(){
 
 let tRz = null;
 window.addEventListener("resize", () => { clearTimeout(tRz); tRz = setTimeout(() => { if(S.vista === "simulador") pintarVentas(pronostico(S.rep));
-  if(S.vista === "clasificacion"){ pintado.clasificacion = false; pintarClasificacion(); pintado.clasificacion = true; }
   if(S.vista === "temporadas") pintarTemporadas();
   if(S.vista === "dashboard") pintarDashboard(); if(S.vista === "predicciones") pintarPredicciones(); }, 150); });
 

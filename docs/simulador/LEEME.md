@@ -17,8 +17,6 @@ Las funciones del importador van en el menú de la izquierda, agrupadas en Resum
 | Simulador de compra | Tipo de cambio de hoy, repuesto y proveedor, tres supuestos (dólar a 90 días, venta y atraso del proveedor), las cuatro alternativas con su puntaje, el dólar de quiebre y qué supuesto pesa más. |
 | Comparar proveedores | Para un repuesto, el costo puesto en Santa Cruz con cada uno de los 10 proveedores. |
 | Plan con presupuesto | Se escribe cuánto se puede gastar y la app marca hasta qué pedido alcanza. |
-| ¿Qué hubiera pasado? | Tres formas de comprar aplicadas a los últimos 12 meses reales. |
-| Clasificación de repuestos | Las 2.674 series de carparts según ADI y CV², con los cortes 1,32 y 0,49. |
 | Temporadas de venta (SCRUM-75) | Venta promedio por mes del año, de los 30 juntos o de uno, con los meses que superan el promedio y un mapa de los 30 repuestos mes a mes. Para un repuesto dice en qué mes tiene que salir el pedido para llegar al mes fuerte. Los meses están re-fechados desde carparts: el patrón es el de carparts corrido siete meses, no el de Santa Cruz. |
 | Clientes que más compran (SCRUM-76) | Ranking de los 20 clientes SINTÉTICOS por compras en todo el año, en temporada o fuera de ella, con qué repuestos lleva cada uno y el resumen por tipo de cliente. |
 | Catálogo (SCRUM-74) | Ficha de cada repuesto con foto, categoría, descripción, precio con el dólar del día y disponibilidad. Nombres ILUSTRATIVOS; fotos con licencia libre y sus créditos. |
@@ -26,7 +24,9 @@ Las funciones del importador van en el menú de la izquierda, agrupadas en Resum
 
 ### El dólar
 
-El dólar oficial del BCB es la base. En el simulador se puede elegir el paralelo (11,99 Bs al 23-10-2026, promedio de plataformas P2P, marcado PRIVADO) u otro valor escrito a mano. Mientras el dólar elegido no sea el oficial, cada resultado que depende de él lleva una etiqueta amarilla que lo dice, también en Alertas, Comparar proveedores y Plan con presupuesto. «¿Qué hubiera pasado?» usa siempre el dólar oficial real de cada día.
+Todo se calcula con el dólar oficial del BCB del día. El paralelo (11,99 Bs al 23-10-2026, promedio de plataformas P2P, marcado PRIVADO) se muestra en el simulador solo como referencia y no entra en ningún cálculo. El único dólar que se mueve es el supuesto de «¿A cuánto estará el dólar en 90 días?», que alimenta la tarjeta del dólar de quiebre.
+
+El 16-11-2026, a pedido de Fiorella y Sam, se quitaron el selector «Dólar para calcular» (oficial, paralelo u otro valor) y las vistas «¿Qué hubiera pasado?» y «Clasificación de repuestos». Las funciones del motor que las calculaban (`Motor.pasado` y la clasificación de SCRUM-55) siguen en el repositorio con sus pruebas: el tipo de demanda de cada repuesto todavía elige su pronóstico. También desde ese día cada gráfico es de barras, de líneas, un histograma o una torta, con título y ejes con nombre.
 
 ### Qué es real y qué es simulado
 
