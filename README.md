@@ -21,7 +21,8 @@ análisis de sensibilidad con dólar de quiebre y validación con los últimos 1
   con la misma estructura. Cada archivo indica si es de prueba.
 - **PÚBLICOS y reales, del simulador:** las ventas mensuales de repuestos de auto del conjunto carparts (Hyndman,
   Koehler, Ord y Snyder, 2008), con las fechas adaptadas a 2022-2026, y el tipo de cambio oficial diario del BCB desde el
-  27-06-2026. Proveedores, costos, precios y stock del simulador son SINTÉTICOS y así están marcados.
+  27-06-2026. Clientes, proveedores, costos, precios y stock del simulador son SINTÉTICOS; en pantalla lo dice una nota
+  fija al pie del menú y de la tienda (decisión de Sam del 17-11-2026, SCRUM-82).
 - **PÚBLICOS y reales:** los fletes de importación (INE de Bolivia, cotizaciones de un agente de carga y el índice SCFI de
   Shanghái) y el tipo de cambio oficial del Banco Central de Bolivia.
 - **MIXTOS:** los costos de importación de HU-31 y la comparación del tipo de cambio de HU-32 combinan las fuentes

@@ -49,6 +49,8 @@ a{color:inherit}
 .side nav svg{width:16px;height:16px;flex:none}
 .side .foot{margin-top:auto;border-top:1px solid #ffffff2e;padding-top:18px;font-size:11.5px;line-height:1.75;color:var(--side-mute)}
 .side .foot strong{display:block;color:#fff;font-size:12.5px}
+/* La nota sobre el origen de los datos queda siempre a la vista al pie del menú, aunque el menú tenga que desplazarse. */
+.side .side-nota{position:sticky;bottom:-26px;margin:12px -18px -26px;padding:10px 18px 14px;background:var(--side);border-top:1px solid #ffffff2e;font-size:11px;line-height:1.5;color:var(--side-ink)}
 
 .main{margin-left:236px;padding:0 36px 120px}
 .inner{max-width:1600px;margin:0 auto}
@@ -200,7 +202,8 @@ summary{cursor:pointer;color:var(--ink-2);font-weight:600;min-height:32px;displa
 @media (max-width:760px){
   .side{position:static;width:auto;flex-direction:row;align-items:center;justify-content:space-between;padding:10px 16px;gap:10px}
   .side .logo{width:150px;margin:0}
-  .side .sub,.side .navt,.side .foot{display:none}
+  .side .sub,.side .navt,.side .foot,.side .side-nota{display:none}
+  .inner .nota-datos{display:block}
   .side nav{display:flex;gap:4px}
   .side nav a{margin:0;padding:8px 10px;font-size:12px}
   .side nav a span{display:none}
@@ -449,28 +452,42 @@ svg.chart .pm{fill:none;stroke:var(--graphite);stroke-width:2}
 @media (max-width:1400px){.db-dos{grid-template-columns:1fr}.db-dos .card+.card{margin-top:0}}
 @media (max-width:1100px){.pr-val{grid-template-columns:1fr}}
 @media (max-width:760px){.kpi .v.txt{font-size:16px}.tecnica{font-size:12px}}
+/* Nota única sobre el origen de los datos (SCRUM-82, decisión de Sam del 17-11): al pie del menú; en el celular, al pie de la página. */
+.nota-datos{display:none;margin:28px 0 8px;padding-top:12px;border-top:1px solid var(--line);font-size:11.5px;color:var(--ink-3)}
+/* 16. ÍCONO DE INFORMACIÓN (SCRUM-82): «i» junto a indicadores, gráficos, campos y columnas.
+   Se abre con clic, toque o teclado (y además al pasar el cursor, si hay mouse); se cierra con Escape o tocando fuera. */
+.info{position:relative;display:inline-grid;place-items:center;width:17px;height:17px;margin:0 0 0 6px;padding:0;vertical-align:-3px;
+  border:1.5px solid var(--ink-3);border-radius:50%;background:transparent;color:var(--ink-3);
+  font:italic 700 10.5px/1 Georgia,"Times New Roman",serif;letter-spacing:0;text-transform:none;cursor:help;flex:none}
+.info::after{content:"";position:absolute;inset:-8px}                      /* zona de toque de 33 px */
+.info:hover,.info[aria-expanded="true"]{border-color:var(--brand);background:var(--brand);color:#fff}
+.side .info{border-color:var(--side-mute);color:var(--side-mute)}
+#info-pop{position:fixed;z-index:60;max-width:min(320px,calc(100vw - 24px));background:var(--graphite);color:#fff;border-radius:8px;
+  padding:10px 12px;font:400 12.5px/1.5 Poppins,system-ui,sans-serif;letter-spacing:0;text-transform:none;box-shadow:0 6px 24px rgba(0,0,0,.22)}
+#info-pop[hidden]{display:none}
+#info-pop b{display:block;font-weight:600;margin-bottom:3px}
 </style>
 </head>
 <body>
 <aside class="side" aria-label="Navegación">
   <img class="logo" src="__LOGO__" alt="MULTIPARTES Santa Cruz" width="300" height="111">
   <div class="sub">Inteligencia de compras</div>
-  <div class="navt">Funciones del simulador</div>
+  <div class="navt">Funciones del portal</div>
   <nav id="menu"></nav>
-  <div class="foot"><strong>Jefatura de compras</strong>Santa Cruz de la Sierra<br>Proyecto académico · Univalle<br><br>Ventas: carparts (Hyndman), reales y re-fechadas. Proveedores, costos y stock: SINTÉTICO. Dólar: oficial del BCB.</div>
+  <div class="foot"><strong>Jefatura de compras</strong>Santa Cruz de la Sierra<br>Proyecto académico · Univalle</div>
+  <div class="side-nota nota-datos-txt">Ventas: base pública carparts. Clientes, proveedores, precios y stock: datos de demostración.</div>
 </aside>
 
 <div class="main"><div class="inner">
-  <div class="topbar"><span id="miga">Funciones &nbsp;/&nbsp; Alertas de reposición</span><span class="sesion" id="sesion" hidden></span><span class="pill" id="pill-datos">Datos SINTÉTICOS sobre ventas reales</span></div>
+  <div class="topbar"><span id="miga">Funciones &nbsp;/&nbsp; Alertas de reposición</span><span class="sesion" id="sesion" hidden></span></div>
 
   <!-- ============ ALERTAS ============ -->
   <section class="vista" id="v-alertas" hidden aria-labelledby="h1-alertas">
-    <div class="hero"><div><div class="eyebrow">Lo primero que ve el jefe de compras</div><h1 id="h1-alertas">¿Qué hay que pedir esta semana?</h1>
-      <p>Los 30 repuestos ordenados por urgencia: cuánto stock queda, cuánto tarda el proveedor y si ya llegó al punto de pedido.</p></div>
-      <span class="pill neutra">historia nueva</span></div>
+    <div class="hero"><div><div class="eyebrow">Primera pantalla de la jefatura de compras</div><h1 id="h1-alertas">¿Qué hay que pedir esta semana?</h1>
+      <p>Los 30 repuestos ordenados por urgencia: cuánto stock queda, cuánto tarda el proveedor y si ya llegó al punto de pedido.</p></div></div>
     <div class="grid-k" id="al-kpis" aria-live="polite"></div>
     <section class="card" style="margin-top:18px">
-      <div class="card-h"><div><h2>Los 30 repuestos, del más urgente al menos urgente</h2>
+      <div class="card-h"><div><h2 data-i="Orden de urgencia|Primero los repuestos que ya llegaron al punto de pedido, después los que llegarán antes de que el proveedor pueda entregar y al final los que están cubiertos. Al elegir una fila se abre el simulador con ese repuesto.">Los 30 repuestos, del más urgente al menos urgente</h2>
         <p>Primero los que ya llegaron al punto de pedido; después, los que llegarán antes de que el proveedor pueda entregar.</p></div></div>
       <div class="scroll"><table id="t-alertas"></table></div>
       <button class="btn2 mas" id="b-mas" type="button" aria-expanded="false">Mostrar los 30</button>
@@ -482,20 +499,20 @@ svg.chart .pm{fill:none;stroke:var(--graphite);stroke-width:2}
   <section class="vista" id="v-simulador" hidden aria-labelledby="h1-sim">
     <div class="hero"><div><div class="eyebrow">Simulador de decisiones de compra</div><h1 id="h1-sim">¿Cuánto pedir y cuándo?</h1>
       <p id="sim-intro"></p></div>
-      <button class="btn2" id="b-reset" type="button">↻ Restablecer</button></div>
+      <button class="btn2" id="b-reset" type="button">Volver a los valores iniciales</button></div>
 
     <section class="card" aria-labelledby="h-tchoy">
-      <div class="card-h"><div><h2 id="h-tchoy"><span class="num">1</span>Tipo de cambio de hoy</h2>
-        <p>Es el precio del dólar con el que se calcula el costo de cada pedido. Se usa el oficial porque tiene fuente y fecha.</p></div></div>
+      <div class="card-h"><div><h2 id="h-tchoy"><span class="num">1</span>Precio del dólar hoy (tipo de cambio)</h2>
+        <p>Con este valor se calcula el costo de cada pedido. Se usa el dólar oficial porque tiene fuente pública y fecha.</p></div></div>
       <div class="tchoy">
         <div class="oficial">
-          <div class="lab">Oficial del BCB <span class="badge-real">REAL</span></div>
+          <div class="lab" data-i="Dólar oficial|Tipo de cambio que publica cada día el Banco Central de Bolivia (BCB): cuántos bolivianos cuesta un dólar. Es el único que entra en los cálculos.">Oficial del Banco Central de Bolivia <span class="badge-real">dato real</span></div>
           <div class="v" id="of-v"></div>
           <p class="src" id="of-src"></p>
         </div>
-        <div class="spark"><div class="lab">Cómo se movió desde que el BCB lo publica <span class="ayuda" style="display:inline" id="spark-dias"></span></div><div id="spark"></div></div>
+        <div class="spark"><div class="lab">Evolución del dólar oficial <span class="ayuda" style="display:inline" id="spark-dias"></span></div><div id="spark"></div></div>
         <div class="paralelo">
-          <div class="lab">Dólar paralelo <span class="badge-priv">PRIVADO</span></div>
+          <div class="lab" data-i="Dólar paralelo|Precio promedio del dólar en plataformas de compraventa entre personas (P2P). Es de fuente privada y se muestra solo como referencia: no entra en ningún cálculo.">Dólar paralelo <span class="badge-priv">fuente privada</span></div>
           <div class="v" id="pa-v"></div>
           <span class="ayuda" id="pa-ayuda"></span>
         </div>
@@ -505,28 +522,28 @@ svg.chart .pm{fill:none;stroke:var(--graphite);stroke-width:2}
     <section class="card" aria-labelledby="h-rep">
       <div class="card-h"><div><h2 id="h-rep"><span class="num">2</span>¿Qué repuesto quiere comprar?</h2></div></div>
       <div class="filtros"><div class="fila rep4">
-        <div><label for="f-cat">Categoría<span class="ayuda">Agrupa repuestos por cómo se venden.</span></label><select id="f-cat"></select></div>
+        <div><label for="f-cat">Patrón de venta<span class="ayuda">Agrupa los repuestos según cómo se venden y su clase ABC.</span></label><select id="f-cat"></select></div>
         <div><label for="f-rep">Repuesto<span class="ayuda">Entre paréntesis, los días que alcanza el stock de hoy.</span></label><select id="f-rep"></select></div>
-        <div><label for="f-prov">Proveedor<span class="ayuda">El de menor costo puesto en Santa Cruz va primero.</span></label><select id="f-prov"></select></div>
-        <div><span class="lab" id="sigue-lab">¿Sube su precio de venta cuando sube el dólar?<span class="ayuda">Si no lo sube, un dólar caro se come su ganancia.</span></span>
-          <div class="seg" role="group" aria-labelledby="sigue-lab" id="seg-sigue"><button class="chip" type="button" data-v="1">Sí, igual que el dólar</button><button class="chip" type="button" data-v="0">No, precio fijo</button></div></div>
+        <div><label for="f-prov">Proveedor<span class="ayuda">El de menor costo puesto en Santa Cruz (fábrica, flete y aduana) va primero.</span></label><select id="f-prov"></select></div>
+        <div><span class="lab" id="sigue-lab">¿Sube su precio de venta cuando sube el dólar?<span class="ayuda">Si no lo sube, un dólar más caro reduce su ganancia.</span></span>
+          <div class="seg" role="group" aria-labelledby="sigue-lab" id="seg-sigue"><button class="chip" type="button" data-v="1">Sí, en la misma proporción</button><button class="chip" type="button" data-v="0">No, mantengo el precio</button></div></div>
       </div></div>
     </section>
 
     <section class="card" aria-labelledby="h-sup">
-      <div class="card-h"><div><h2 id="h-sup"><span class="num">3</span>Mueva los supuestos</h2>
-        <p>Son lo que usted cree que va a pasar. Al moverlos, el simulador vuelve a probar las cuatro alternativas al instante.</p></div></div>
+      <div class="card-h"><div><h2 id="h-sup"><span class="num">3</span>Supuestos de la simulación</h2>
+        <p>Indique lo que usted espera que ocurra. Al cambiarlos, el simulador vuelve a evaluar las cuatro alternativas al instante.</p></div></div>
       <div class="sims">
-        <div class="sim"><label for="s-tc">¿A cuánto estará el dólar en 90 días?</label><div class="val" id="v-tc"></div>
+        <div class="sim"><label for="s-tc" data-i="Dólar en 90 días|Precio del dólar que usted espera dentro de 90 días. La simulación prueba valores alrededor de este número; si espera que suba, comprar antes sale más barato.">¿A cuánto estará el dólar en 90 días?</label><div class="val" id="v-tc"></div>
           <input id="s-tc" type="range" min="9" max="15" step="0.05"><div class="esc"><span>9</span><span>15</span></div>
           <span class="ayuda">Si espera que suba, comprar antes sale más barato.</span></div>
-        <div class="sim"><label for="s-ven">¿Cuánto más o menos venderá?</label><div class="val" id="v-ven"></div>
+        <div class="sim"><label for="s-ven" data-i="Venta respecto del pronóstico|Aumenta o reduce la venta pronosticada en el porcentaje elegido. Sirve para ver si el pedido alcanza si se vende más o menos de lo esperado.">¿Cuánto venderá respecto del pronóstico?</label><div class="val" id="v-ven"></div>
           <input id="s-ven" type="range" min="-30" max="30" step="5"><div class="esc"><span>−30 %</span><span>+30 %</span></div>
-          <span class="ayuda">Mueve la venta esperada para ver si el pedido alcanza.</span></div>
-        <div class="sim"><label for="s-atr">¿Cuántos días puede atrasarse el proveedor?</label><div class="val" id="v-atr"></div>
+          <span class="ayuda">Aumenta o reduce la venta esperada para ver si el pedido alcanza.</span></div>
+        <div class="sim"><label for="s-atr" data-i="Atraso del proveedor|Días que el proveedor podría demorarse además de su plazo normal. Un atraso mayor aumenta el riesgo de quedarse sin stock.">¿Cuántos días puede atrasarse el proveedor?</label><div class="val" id="v-atr"></div>
           <input id="s-atr" type="range" min="0" max="30" step="1"><div class="esc"><span>0</span><span>30</span></div>
           <span class="ayuda" id="atr-ayuda"></span></div>
-        <p class="sup-t"><b>Lo real y lo simulado.</b> El dólar de hoy es real (BCB). Las ventas vienen de carparts y lo demás es SINTÉTICO.</p>
+        
       </div>
     </section>
 
@@ -546,27 +563,27 @@ svg.chart .pm{fill:none;stroke:var(--graphite);stroke-width:2}
 
     <div class="dos-desc">
       <section class="card quiebre calc" aria-labelledby="h-q" id="c-quiebre">
-        <div class="card-h"><div><h2 id="h-q"><span class="num">4</span>Lo que descubre: el dólar de quiebre</h2><p id="q-txt"></p></div></div>
+        <div class="card-h"><div><h2 id="h-q"><span class="num">4</span>El dólar de quiebre<button type="button" class="info" aria-label="Qué es: El dólar de quiebre" aria-expanded="false" data-tema="El dólar de quiebre" data-info="Precio del dólar a partir del cual conviene comprar más ahora. Se calcula repitiendo la simulación con dólares de 9 a 15 Bs y viendo dónde cambia la alternativa ganadora.">i</button></h2><p id="q-txt"></p></div></div>
         <div id="q-cuerpo"></div>
       </section>
       <section class="card tornado calc" aria-labelledby="h-t" id="c-sens">
-        <div class="card-h"><div><h2 id="h-t"><span class="num">5</span>¿Qué supuesto pesa más?</h2>
-          <p>Cuánto cambia la ganancia esperada al mover cada supuesto de un extremo al otro. Vigile primero el de arriba.</p></div></div>
+        <div class="card-h"><div><h2 id="h-t"><span class="num">5</span>¿Qué supuesto influye más en la ganancia?<button type="button" class="info" aria-label="Qué es: Supuesto que más influye" aria-expanded="false" data-tema="Supuesto que más influye" data-info="Análisis de sensibilidad: se lleva cada supuesto de su valor más bajo al más alto, sin tocar los otros, y se mide cuánto cambia la ganancia esperada. La barra más larga es la que más conviene seguir.">i</button></h2>
+          <p>Cuánto cambia la ganancia esperada al llevar cada supuesto de un extremo al otro. El de arriba es el que más conviene seguir.</p></div></div>
         <div id="t-cuerpo"></div>
       </section>
     </div>
 
     <div class="herr">
       <h2>Las herramientas que respaldan cada alternativa</h2>
-      <p>Lo que el simulador usa para calcular. Cada etiqueta de las alternativas apunta a una de estas.</p>
+      <p>Lo que el simulador usa para calcular. Cada botón de las alternativas lleva a una de estas secciones.</p>
       <section class="card" id="h-pro" aria-labelledby="t-pro">
-        <div class="card-h"><div><h2 id="t-pro"><span class="num">a</span>Pronóstico de la venta</h2><p id="pro-txt"></p></div></div>
+        <div class="card-h"><div><h2 id="t-pro"><span class="num">a</span>Pronóstico de la venta<button type="button" class="info" aria-label="Qué es: Pronóstico de la venta" aria-expanded="false" data-tema="Pronóstico de la venta" data-info="Las barras oscuras son las ventas reales de cada mes. La línea verde es la venta mensual que el simulador espera, calculada con el método que mejor se ajusta al patrón de venta del repuesto.">i</button></h2><p id="pro-txt"></p></div></div>
         <div class="chartbox" id="chart-ven"></div>
-        <div class="legend"><span><i class="sw" style="background:var(--graphite)"></i>Ventas reales por mes (carparts, re-fechadas)</span><span><i class="sw" style="background:var(--brand)"></i>Pronóstico mensual que usa el simulador</span></div>
+        <div class="legend"><span><i class="sw" style="background:var(--graphite)"></i>Ventas reales por mes (base carparts, fechas trasladadas)</span><span><i class="sw" style="background:var(--brand)"></i>Pronóstico mensual que usa el simulador</span></div>
         <details><summary>Ver los datos del gráfico como tabla</summary><div class="scroll"><table id="t-ven"></table></div></details>
       </section>
       <section class="card" id="h-prv" aria-labelledby="t-prv">
-        <div class="card-h"><div><h2 id="t-prv"><span class="num">b</span>Proveedores de este repuesto (SINTÉTICO, sobre carparts)</h2>
+        <div class="card-h"><div><h2 id="t-prv"><span class="num">b</span>Proveedores de este repuesto</h2>
           <p>Costo puesto en Santa Cruz por unidad con el dólar oficial de hoy. Elegir otro proveedor recalcula las alternativas.</p></div></div>
         <div class="scroll"><table id="t-prov" class="prov"></table></div>
       </section>
@@ -576,48 +593,45 @@ svg.chart .pm{fill:none;stroke:var(--graphite);stroke-width:2}
 
   <!-- ============ PROVEEDORES ============ -->
   <section class="vista" id="v-proveedores" hidden aria-labelledby="h1-pv">
-    <div class="hero"><div><div class="eyebrow">Para un repuesto, todos los proveedores lado a lado</div><h1 id="h1-pv">¿A quién le compro?</h1>
-      <p>El más barato en fábrica no siempre es el más barato en Santa Cruz: el Incoterm, el flete y la puntualidad cambian la cuenta.</p></div>
-      <span class="pill neutra">historia nueva</span></div>
+    <div class="hero"><div><div class="eyebrow">Todos los proveedores de un repuesto, uno al lado del otro</div><h1 id="h1-pv">¿A qué proveedor conviene comprar?</h1>
+      <p>El proveedor más barato en fábrica no siempre es el más barato en Santa Cruz: las condiciones de envío (Incoterm), el flete y la puntualidad cambian el costo final.</p></div></div>
     <section class="card">
-      <div class="selrep"><label for="pv-rep">Repuesto<span class="ayuda">El precio de fábrica es el mismo para todos; cambia lo que suma cada proveedor.</span></label><select id="pv-rep"></select></div>
-      <div class="card-h"><div><h2 id="pv-tit"></h2><p>Mismo precio de fábrica para comparar; cambia lo que suma cada proveedor.</p></div></div>
+      <div class="selrep"><label for="pv-rep">Repuesto</label><select id="pv-rep"></select></div>
+      <div class="card-h"><div><h2 id="pv-tit"></h2><p>Se usa el mismo precio de fábrica para todos; cambia lo que suma cada proveedor por envío, aduana y plazo.</p></div></div>
       <div class="scroll"><table id="t-pv"></table></div>
       <p class="nota-sit" style="margin-top:14px" id="pv-nota"></p>
-      <p class="pie">Proveedores, plazos y puntualidad: SINTÉTICOS (SCRUM-55). Flete de China: INE vía HU-31; Brasil y EE. UU.: supuestos del equipo. Gastos de aduana: HU-31.</p>
+      <p class="pie">Flete desde China: Instituto Nacional de Estadística (historia HU-31 del proyecto); flete desde Brasil y EE. UU.: supuestos del equipo. Gastos de aduana: historia HU-31.</p>
     </section>
   </section>
 
   <!-- ============ PLAN ============ -->
   <section class="vista" id="v-plan" hidden aria-labelledby="h1-plan">
-    <div class="hero"><div><div class="eyebrow">Cuando el dinero no alcanza para todo</div><h1 id="h1-plan">¿Qué compro primero con lo que tengo?</h1>
-      <p>Escriba cuánto puede gastar. El simulador ordena los pedidos por urgencia y marca hasta dónde llega el presupuesto.</p></div>
-      <span class="pill neutra">historia nueva</span></div>
+    <div class="hero"><div><div class="eyebrow">Cuando el dinero no alcanza para todo</div><h1 id="h1-plan">¿Qué conviene comprar primero con el presupuesto disponible?</h1>
+      <p>Indique cuánto puede invertir. El sistema ordena los pedidos por urgencia y marca hasta dónde alcanza el presupuesto.</p></div></div>
     <section class="card">
-      <div class="presu"><div><label for="f-presu">Presupuesto para importar<span class="ayuda" id="presu-ayuda"></span></label><input id="f-presu" type="number" min="0" step="500" inputmode="numeric"></div>
-        <div style="flex:1;min-width:220px"><span class="lab">Usado<span class="ayuda" id="usado-txt"></span></span><div class="acum" aria-hidden="true"><span id="acum"></span></div></div></div>
+      <div class="presu"><div><label for="f-presu" data-i="Presupuesto para importar|Monto en bolivianos que puede destinar a compras. Los pedidos se ordenan por urgencia y se marcan los que entran en este monto.">Presupuesto para importar<span class="ayuda" id="presu-ayuda"></span></label><input id="f-presu" type="number" min="0" step="500" inputmode="numeric"></div>
+        <div style="flex:1;min-width:220px"><span class="lab">Presupuesto usado<span class="ayuda" id="usado-txt"></span></span><div class="acum" aria-hidden="true"><span id="acum"></span></div></div></div>
       <div class="scroll" style="margin-top:14px"><table id="t-plan"></table></div>
-      <p class="pie">Ordena por urgencia; a igual urgencia, primero el de clase A. Costos SINTÉTICOS (SCRUM-55) con el dólar oficial de hoy.</p>
+      <p class="pie">Se ordena por urgencia; a igual urgencia, va primero el repuesto de clase A. Costos con el dólar oficial de hoy.</p>
     </section>
   </section>
 
   <!-- ============ TEMPORADAS (SCRUM-75) ============ -->
   <section class="vista" id="v-temporadas" hidden aria-labelledby="h1-tm">
     <div class="hero"><div><div class="eyebrow">Minería de datos: cuándo se vende más</div><h1 id="h1-tm">¿En qué meses se vende más?</h1>
-      <p>La venta promedio de cada mes del año, con las ventas reales de carparts. Sirve para pedir antes de los meses fuertes.</p></div>
-      <span class="pill neutra">historia nueva</span></div>
+      <p>La venta promedio de cada mes del año, calculada con las ventas reales. Sirve para pedir con anticipación a los meses de mayor venta.</p></div></div>
     <section class="card">
       <div class="selrep"><label for="tm-rep">Repuesto<span class="ayuda">Puede ver los 30 juntos o uno solo.</span></label><select id="tm-rep"></select></div>
       <div class="grid-k" id="tm-kpis" aria-live="polite" style="margin-top:0"></div>
       <div class="card-h" style="margin-top:18px"><div><h2 id="tm-tit"></h2><p>En verde, los meses que venden más que el promedio del año.</p></div></div>
       <div class="chartbox" id="chart-tm"></div>
-      <div class="legend"><span><i class="sw" style="background:var(--brand)"></i>Mes fuerte: vende más que el promedio</span><span><i class="sw" style="background:#c9cec8"></i>Mes flojo</span><span><i class="sw" style="background:var(--graphite);height:2px;vertical-align:3px"></i>Promedio del año</span></div>
+      <div class="legend"><span><i class="sw" style="background:var(--brand)"></i>Temporada alta: vende más que el promedio</span><span><i class="sw" style="background:#c9cec8"></i>Temporada baja</span><span><i class="sw" style="background:var(--graphite);height:2px;vertical-align:3px"></i>Promedio del año</span></div>
       <details><summary>Ver los datos del gráfico como tabla</summary><div class="scroll"><table id="t-tm"></table></div></details>
       <p class="nota-sit" style="margin-top:14px" id="tm-nota"></p>
     </section>
     <section class="card">
       <div class="card-h"><div><h2>Los 30 repuestos, mes a mes</h2>
-        <p>Cada casilla compara el mes con el promedio del repuesto: 1,0 es un mes normal; 2,0, el doble. Toque una fila para verla arriba.</p></div></div>
+        <p>Cada casilla compara el mes con el promedio del repuesto: 1,0 es un mes normal y 2,0, el doble. Al elegir una fila, el gráfico de arriba muestra ese repuesto.</p></div></div>
       <div class="scroll"><table id="t-tm-mapa" class="tm-mapa"></table></div>
       <p class="pie" id="tm-pie"></p>
     </section>
@@ -626,10 +640,9 @@ svg.chart .pm{fill:none;stroke:var(--graphite);stroke-width:2}
   <!-- ============ CLIENTES (SCRUM-76) ============ -->
   <section class="vista" id="v-clientes" hidden aria-labelledby="h1-cli">
     <div class="hero"><div><div class="eyebrow">Minería de datos: quién compra y cuándo</div><h1 id="h1-cli">¿Qué clientes compran más?</h1>
-      <p>Los clientes ordenados por lo que compran, en los meses de temporada y fuera de ellos, y qué repuestos llevan.</p></div>
-      <span class="pill neutra">Clientes SINTÉTICOS</span></div>
+      <p>Los clientes ordenados por sus compras, dentro y fuera de los meses de temporada alta, y los repuestos que más compran.</p></div></div>
     <section class="card">
-      <span class="lab" id="cli-per-lab">Período<span class="ayuda">Temporada: los meses que venden más que el promedio, según las ventas reales.</span></span>
+      <span class="lab" id="cli-per-lab" data-i="Período|Temporada: los meses del año que venden más que el promedio, según la pantalla Temporadas de venta. Elija si quiere ver las compras de todo el año, solo de esos meses o del resto.">Período</span>
       <div class="seg" role="group" aria-labelledby="cli-per-lab" id="cli-per"><button class="chip" type="button" data-v="todo">Todo el año</button><button class="chip" type="button" data-v="temp">En temporada</button><button class="chip" type="button" data-v="fuera">Fuera de temporada</button></div>
       <div class="grid-k" id="cli-kpis" aria-live="polite"></div>
       <div class="card-h" style="margin-top:18px"><div><h2 id="cli-tit"></h2><p id="cli-sub"></p></div></div>
@@ -637,7 +650,7 @@ svg.chart .pm{fill:none;stroke:var(--graphite);stroke-width:2}
       <p class="nota-sit" style="margin-top:14px" id="cli-nota"></p>
     </section>
     <section class="card">
-      <div class="card-h"><div><h2>Por tipo de cliente</h2><p>Cuánto compra cada tipo y qué parte de eso cae en temporada.</p></div></div>
+      <div class="card-h"><div><h2>Por tipo de cliente</h2><p>Cuánto compra cada tipo de cliente y qué parte de eso corresponde a la temporada alta.</p></div></div>
       <div class="scroll"><table id="t-cli-tipo" class="cli-t"></table></div>
       <p class="pie" id="cli-pie"></p>
     </section>
@@ -646,30 +659,29 @@ svg.chart .pm{fill:none;stroke:var(--graphite);stroke-width:2}
   <!-- ============ DASHBOARD (SCRUM-79) ============ -->
   <section class="vista" id="v-dashboard" hidden aria-labelledby="h1-db">
     <div class="hero"><div><div class="eyebrow">Resumen de ventas hasta la fecha</div><h1 id="h1-db">¿Cómo van las ventas?</h1>
-      <p id="db-intro">Quién compra más, qué repuesto sale más, cómo se mueve la demanda mes a mes y cuánto dinero entró.</p></div>
-      <span class="pill neutra">Clientes SINTÉTICOS · ventas reales</span></div>
+      <p id="db-intro">Qué clientes compran más, qué repuestos se venden más, cómo cambia la demanda de un mes a otro y cuánto se ha vendido en bolivianos.</p></div></div>
     <div class="grid-k" id="db-kpis" aria-live="polite"></div>
     <section class="card" style="margin-top:18px">
-      <div class="card-h"><div><h2>Demanda de repuestos por mes</h2><p id="db-dem-sub"></p></div></div>
+      <div class="card-h"><div><h2>Unidades vendidas por mes<button type="button" class="info" aria-label="Qué es: Unidades vendidas por mes" aria-expanded="false" data-tema="Unidades vendidas por mes" data-info="Cada barra es la cantidad de unidades vendidas en un mes, sumando los 30 repuestos. La línea oscura es el promedio de los 12 meses anteriores: si sube, la demanda está creciendo.">i</button></h2><p id="db-dem-sub"></p></div></div>
       <div class="chartbox" id="chart-db"></div>
-      <div class="legend"><span><i class="sw" style="background:var(--brand)"></i>Unidades vendidas en el mes (los 30 repuestos)</span><span><i class="sw" style="background:var(--graphite);height:2px;vertical-align:3px"></i>Promedio móvil de 12 meses</span></div>
+      <div class="legend"><span><i class="sw" style="background:var(--brand)"></i>Unidades vendidas en el mes (los 30 repuestos)</span><span><i class="sw" style="background:var(--graphite);height:2px;vertical-align:3px"></i>Promedio de los últimos 12 meses (promedio móvil)</span></div>
       <details><summary>Ver los datos del gráfico como tabla</summary><div class="scroll"><table id="t-db-mes"></table></div></details>
       <p class="nota-sit" style="margin-top:14px" id="db-nota"></p>
     </section>
     <div class="dos db-dos">
       <section class="card">
-        <div class="card-h"><div><h2>Dinero que entró, por año</h2><p id="db-anio-sub"></p></div></div>
+        <div class="card-h"><div><h2>Ventas por año, en bolivianos<button type="button" class="info" aria-label="Qué es: Ventas por año" aria-expanded="false" data-tema="Ventas por año" data-info="Suma de las ventas de cada año calendario, a precio de lista de hoy. El primer y el último año tienen menos de 12 meses con datos, por eso se ven más bajos.">i</button></h2><p id="db-anio-sub"></p></div></div>
         <div class="scroll"><table id="t-db-anio" class="cli-t"></table></div>
       </section>
       <section class="card">
-        <div class="card-h"><div><h2>Repuestos que más salieron</h2><p>Unidades vendidas desde ago-2022. Toque «Mostrar los 30» para ver el resto.</p></div></div>
+        <div class="card-h"><div><h2>Repuestos más vendidos</h2><p>Unidades vendidas desde ago-2022. El botón «Mostrar los 30» abre la lista completa.</p></div></div>
         <div class="scroll"><table id="t-db-rep" class="cli-t"></table></div>
         <button class="btn2 mas" id="b-db-rep" type="button" aria-expanded="false">Mostrar los 30</button>
       </section>
     </div>
     <section class="card">
-      <div class="card-h"><div><h2>Movimiento de compra de los clientes</h2><p id="db-cli-sub"></p></div></div>
-      <div class="selrep selrep-db"><label for="db-cli-sel">Cliente del gráfico<span class="ayuda">Elija uno para ver sus compras trimestre a trimestre.</span></label><select id="db-cli-sel"></select></div>
+      <div class="card-h"><div><h2>Evolución de las compras por cliente</h2><p id="db-cli-sub"></p></div></div>
+      <div class="selrep selrep-db"><label for="db-cli-sel">Cliente que se muestra en el gráfico<span class="ayuda">Elija un cliente para ver sus compras de cada trimestre.</span></label><select id="db-cli-sel"></select></div>
       <h3 class="chart-t" id="db-cli-tit"></h3>
       <div class="chartbox" id="chart-db-cli"></div>
       <div class="scroll" style="margin-top:16px"><table id="t-db-cli" class="cli-t db-cli"></table></div>
@@ -681,20 +693,19 @@ svg.chart .pm{fill:none;stroke:var(--graphite);stroke-width:2}
   <!-- ============ PREDICCIONES (SCRUM-80) ============ -->
   <section class="vista" id="v-predicciones" hidden aria-labelledby="h1-pr">
     <div class="hero"><div><div class="eyebrow">Minería de datos: clasificación con probabilidad</div><h1 id="h1-pr">¿Qué repuestos se venderán el mes que viene?</h1>
-      <p id="pr-intro"></p></div>
-      <span class="pill neutra">Ventas reales de carparts</span></div>
+      <p id="pr-intro"></p></div></div>
     <div class="grid-k" id="pr-kpis" aria-live="polite"></div>
     <section class="card" style="margin-top:18px">
-      <div class="card-h"><div><h2 id="pr-tit"></h2><p>Ordenados de más a menos probable. La barra es la probabilidad; la línea fina marca el corte del 50 %.</p></div></div>
+      <div class="card-h"><div><h2 id="pr-tit"></h2><p>Ordenados de más a menos probable. La barra es la probabilidad; la línea fina marca el 50 %.</p></div></div>
       <div class="scroll"><table id="t-pr" class="cli-t pr-t"></table></div>
       <p class="nota-sit" style="margin-top:14px" id="pr-nota"></p>
     </section>
     <section class="card">
-      <div class="card-h"><div><h2>¿Qué tan confiable es? La validación</h2><p id="pr-val-sub"></p></div></div>
+      <div class="card-h"><div><h2 data-i="Validación|Para saber si el modelo sirve, se lo probó con 12 meses que no usó para aprender y se comparó lo que predijo con lo que realmente pasó.">¿Qué tan confiable es el modelo? Validación</h2><p id="pr-val-sub"></p></div></div>
       <div class="pr-val">
         <div><div class="scroll"><table id="t-pr-met"></table></div><p class="pie" id="pr-met-pie"></p></div>
         <div>
-          <span class="lab" id="pr-corte-lab">Matriz de confusión (12 meses de prueba)<span class="ayuda">Con qué corte se dice «se vende».</span></span>
+          <span class="lab" id="pr-corte-lab" data-i="Matriz de confusión|Cruza lo que predijo el modelo con lo que pasó en los 12 meses de prueba. Las casillas verdes son aciertos y las rojas, errores.">Tabla de aciertos y errores (matriz de confusión), 12 meses de prueba<span class="ayuda">Elija desde qué probabilidad se considera «se vende».</span></span>
           <div class="seg" role="group" aria-labelledby="pr-corte-lab" id="pr-corte"></div>
           <div id="pr-conf" class="pr-conf"></div>
         </div>
@@ -702,13 +713,13 @@ svg.chart .pm{fill:none;stroke:var(--graphite);stroke-width:2}
     </section>
     <div class="dos db-dos">
       <section class="card">
-        <div class="card-h"><div><h2>¿Cuando dice 30 %, se vende 3 de cada 10?</h2><p>Calibración: los 360 casos de prueba agrupados por la probabilidad que les dio el modelo. Si las dos barras de cada tramo miden parecido, el modelo es confiable.</p></div></div>
+        <div class="card-h"><div><h2 data-i="Calibración|Compara la probabilidad que dio el modelo con lo que realmente pasó. Si el modelo dice 30 %, deberían venderse unos 3 de cada 10 casos. Si las dos barras miden parecido, la probabilidad es confiable.">¿Cuando dice 30 %, se vende 3 de cada 10?</h2><p>Calibración: los 360 casos de prueba agrupados por la probabilidad que les dio el modelo. Si las dos barras de cada tramo miden parecido, la probabilidad es confiable.</p></div></div>
         <div class="chartbox" id="chart-pr-cal"></div>
-        <div class="legend"><span><i class="sw" style="background:#c9cec8"></i>Probabilidad que dio el modelo (promedio del tramo)</span><span><i class="sw" style="background:var(--brand)"></i>Parte que se vendió de verdad</span></div>
+        <div class="legend"><span><i class="sw" style="background:#c9cec8"></i>Probabilidad que dio el modelo (promedio del tramo)</span><span><i class="sw" style="background:var(--brand)"></i>Parte que realmente se vendió</span></div>
         <details><summary>Ver la tabla de calibración</summary><div class="scroll"><table id="t-pr-cal"></table></div></details>
       </section>
       <section class="card">
-        <div class="card-h"><div><h2>Qué mira el modelo</h2><p>Barras a la derecha (verde): la variable sube la probabilidad de venta. A la izquierda (rojo): la baja. Cuanto más larga, más pesa.</p></div></div>
+        <div class="card-h"><div><h2 data-i="Peso de cada variable|Coeficientes de la regresión logística con las variables estandarizadas, es decir, llevadas a una misma escala para poder compararlas. Una barra más larga indica una variable con más influencia.">Qué variables pesan en la predicción</h2><p>Barras a la derecha (verde): la variable aumenta la probabilidad de venta. A la izquierda (rojo): la reduce. Cuanto más larga, más influye.</p></div></div>
         <div id="pr-coef"></div>
         <p class="pie" id="pr-pie"></p>
       </section>
@@ -717,17 +728,16 @@ svg.chart .pm{fill:none;stroke:var(--graphite);stroke-width:2}
 
   <!-- ============ ROTACIÓN E IMPORTANCIA (SCRUM-81) ============ -->
   <section class="vista" id="v-rotacion" hidden aria-labelledby="h1-rt">
-    <div class="hero"><div><div class="eyebrow">Minería de datos: qué importa y qué se acumula</div><h1 id="h1-rt">¿Qué repuestos importan y cuáles se acumulan?</h1>
-      <p>Cada repuesto según cuánto dinero mueve (clase ABC) y qué tan rápido rota su stock, con las alertas de acumulación y baja rotación.</p></div>
-      <span class="pill neutra">historia nueva</span></div>
+    <div class="hero"><div><div class="eyebrow">Minería de datos: qué importa y qué se acumula</div><h1 id="h1-rt">¿Qué repuestos son más importantes y cuáles se acumulan?</h1>
+      <p>Cada repuesto según su peso en las ventas (clase ABC) y la rapidez con que se vende su stock (rotación), con alertas de acumulación y de baja rotación.</p></div></div>
     <div class="grid-k" id="rt-kpis" aria-live="polite"></div>
     <section class="card" style="margin-top:18px">
-      <div class="card-h"><div><h2>Matriz ABC × rotación</h2><p>Filas: importancia económica. Columnas: qué tan rápido se vende el stock. Cada casilla dice cuántos repuestos caen ahí y qué hacer con ellos.</p></div></div>
+      <div class="card-h"><div><h2 data-i="Clase ABC según rotación|Cruza la importancia económica de cada repuesto (clase A, B o C) con la rapidez con que se vende su stock. Cada casilla indica cuántos repuestos tiene y la acción recomendada.">Clase ABC según rotación</h2><p>Filas: importancia económica. Columnas: rapidez con que se vende el stock. Cada casilla indica cuántos repuestos hay y qué conviene hacer con ellos.</p></div></div>
       <div class="scroll"><table id="t-rt-mat" class="rt-mat"></table></div>
       <p class="nota-sit" style="margin-top:14px" id="rt-nota"></p>
     </section>
     <section class="card">
-      <div class="card-h"><div><h2>Los 30 repuestos</h2><p>Ordenados por clase y por el dinero que movieron en los últimos 12 meses.</p></div></div>
+      <div class="card-h"><div><h2>Los 30 repuestos</h2><p>Ordenados por clase y por el monto vendido en los últimos 12 meses.</p></div></div>
       <div class="scroll"><table id="t-rt" class="cli-t"></table></div>
       <p class="pie" id="rt-pie"></p>
     </section>
@@ -736,12 +746,11 @@ svg.chart .pm{fill:none;stroke:var(--graphite);stroke-width:2}
   <!-- ============ CATÁLOGO (SCRUM-74) ============ -->
   <section class="vista" id="v-catalogo" hidden aria-labelledby="h1-catv">
     <div class="hero"><div><div class="eyebrow">Para el cliente: qué vende MULTIPARTES</div><h1 id="h1-catv">Catálogo de repuestos</h1>
-      <p>Cada repuesto con su foto, para qué sirve, su precio con el dólar del día y si hay en el almacén.</p></div>
-      <span class="pill neutra">Nombres ILUSTRATIVOS</span></div>
+      <p>Cada repuesto con su foto, para qué sirve, su precio con el dólar oficial del día y las unidades disponibles en el almacén.</p></div></div>
     <section class="card">
       <div class="cat-fil">
-        <div><label for="catv-q">Buscar<span class="ayuda">Por nombre, categoría o código.</span></label><input id="catv-q" type="search" autocomplete="off"></div>
-        <div><label for="catv-c">Categoría<span class="ayuda">Agrupa piezas que cumplen la misma función.</span></label><select id="catv-c"></select></div>
+        <div><label for="catv-q">Buscar<span class="ayuda">Por nombre, categoría o código del repuesto.</span></label><input id="catv-q" type="search" autocomplete="off"></div>
+        <div><label for="catv-c">Categoría<span class="ayuda">Agrupa los repuestos que cumplen la misma función.</span></label><select id="catv-c"></select></div>
       </div>
       <p class="pie" id="catv-n" aria-live="polite"></p>
       <div class="cat-grid" id="catv-grid"></div>
@@ -755,20 +764,20 @@ svg.chart .pm{fill:none;stroke:var(--graphite);stroke-width:2}
     <div class="acc">
       <div class="acc-izq"><a class="acc-volver" href="/">← Volver a la tienda</a><img id="acc-logo" alt="MULTIPARTES Santa Cruz" width="300" height="111">
         <h1 id="h1-ent">Área de la empresa</h1>
-        <p>Para el equipo de MULTIPARTES y sus proveedores. Los clientes no necesitan cuenta: cotizan desde la tienda.</p>
-        <div class="acc-rol"><b>Importador</b><span>Alertas, simulador de compra, plan con presupuesto, temporadas, clientes, cotizaciones guardadas y carga de datos.</span></div>
-        <div class="acc-rol"><b>Proveedor</b><span>Sus repuestos en MULTIPARTES: qué está por pedirse, cuánto y sus entregas a tiempo.</span></div></div>
+        <p>Acceso para el personal de MULTIPARTES y sus proveedores. Los clientes no necesitan cuenta: pueden cotizar desde la tienda.</p>
+        <div class="acc-rol"><b>Personal de MULTIPARTES</b><span>Ventas, predicciones, alertas de reposición, simulador de compra, cotizaciones y registro de datos.</span></div>
+        <div class="acc-rol"><b>Proveedores</b><span>Sus repuestos en MULTIPARTES, qué se les pedirá pronto y su puntualidad de entrega.</span></div></div>
       <div class="acc-der"><div class="acc-f">
-        <h2>Entrar</h2><div class="s">Con el usuario que le dio MULTIPARTES.</div>
+        <h2>Entrar</h2><div class="s">Ingrese con el usuario y la clave que le asignó MULTIPARTES.</div>
         <p class="nota-sit" id="ent-aviso" hidden></p>
         <form class="entrar" id="f-entrar" autocomplete="on">
-          <div><label for="ent-u">Usuario<span class="ayuda">El que le dio MULTIPARTES.</span></label><input id="ent-u" autocomplete="username" required></div>
-          <div><label for="ent-c">Clave<span class="ayuda">Distingue mayúsculas de minúsculas.</span></label><input id="ent-c" type="password" autocomplete="current-password" required></div>
+          <div><label for="ent-u">Usuario</label><input id="ent-u" autocomplete="username" required></div>
+          <div><label for="ent-c">Clave<span class="ayuda">Distingue entre mayúsculas y minúsculas.</span></label><input id="ent-c" type="password" autocomplete="current-password" required></div>
           <button class="btn1" type="submit" id="ent-b">Entrar</button>
           <p class="msg" id="ent-msg" aria-live="polite"></p>
-          <div class="demo"><b>Usuarios de DEMOSTRACIÓN</b> para la revisión: <code>importador</code> / <code>demo-importador</code> y <code>proveedor</code> / <code>demo-proveedor</code>.</div>
+          <div class="demo"><b>Usuarios de demostración</b> para la revisión: <code>importador</code> / <code>demo-importador</code> y <code>proveedor</code> / <code>demo-proveedor</code>.</div>
         </form>
-        <p class="acc-cli">¿Es cliente? <a href="/">Cotice en la tienda →</a></p>
+        <p class="acc-cli">¿Es cliente? <a href="/">Cotice en la tienda</a></p>
       </div></div>
     </div>
   </section>
@@ -776,48 +785,46 @@ svg.chart .pm{fill:none;stroke:var(--graphite);stroke-width:2}
   <!-- ============ COTIZACIONES GUARDADAS (SCRUM-73) ============ -->
   <section class="vista" id="v-cotizaciones" hidden aria-labelledby="h1-cz">
     <div class="hero"><div><div class="eyebrow">Lo que piden los clientes, aunque no compren</div><h1 id="h1-cz">Cotizaciones guardadas</h1>
-      <p>Cada cotización emitida queda guardada con su número. Una cotización sin venta también es un dato: muestra demanda que no se cerró.</p></div>
-      <span class="pill neutra">historia nueva</span></div>
+      <p>Cada cotización emitida queda guardada con su número. Una cotización que no terminó en venta también es información: muestra demanda que no se concretó.</p></div></div>
     <div class="grid-k" id="cz-kpis" aria-live="polite"></div>
     <section class="card" style="margin-top:18px">
       <div class="cz-fil">
-        <div><label for="cz-cli">Cliente<span class="ayuda">Solo las unidas a un cliente registrado.</span></label><select id="cz-cli"></select></div>
+        <div><label for="cz-cli">Cliente<span class="ayuda">Solo las cotizaciones asociadas a un cliente registrado.</span></label><select id="cz-cli"></select></div>
         <div><label for="cz-rep">Repuesto<span class="ayuda">Filtra por el repuesto cotizado.</span></label><select id="cz-rep"></select></div>
-        <div><label for="cz-mes">Mes<span class="ayuda">Mes en que se emitió.</span></label><input id="cz-mes" type="month"></div>
-        <button class="btn2" id="cz-csv" type="button">Exportar CSV</button>
+        <div><label for="cz-mes">Mes<span class="ayuda">Mes en que se emitió la cotización.</span></label><input id="cz-mes" type="month"></div>
+        <button class="btn2" id="cz-csv" type="button">Descargar en Excel (CSV)</button>
       </div>
       <div class="scroll" style="margin-top:14px"><table id="t-cz"></table></div>
       <p class="msg" id="cz-msg" aria-live="polite"></p>
-      <p class="pie">Precios recalculados por el servidor con el dólar oficial del día en que se emitió cada cotización. «Marcar venta» la suma al tablero de clientes.</p>
+      <p class="pie">Los precios se recalculan en el servidor con el dólar oficial del día en que se emitió cada cotización. El botón «Marcar venta» la suma a las ventas del Tablero y de Clientes.</p>
     </section>
   </section>
 
   <!-- ============ CARGAR DATOS (SCRUM-77) ============ -->
   <section class="vista" id="v-cargar" hidden aria-labelledby="h1-cg">
-    <div class="hero"><div><div class="eyebrow">Mantener la información sin tocar archivos</div><h1 id="h1-cg">Cargar repuestos y clientes</h1>
-      <p>Lo que se carga aquí aparece en el catálogo, el cotizador y las alertas.</p></div>
-      <span class="pill neutra">historia nueva</span></div>
+    <div class="hero"><div><div class="eyebrow">Actualizar los datos desde esta pantalla</div><h1 id="h1-cg">Registrar repuestos y clientes</h1>
+      <p>Lo que se registra aquí aparece en el catálogo, el cotizador y las alertas.</p></div></div>
     <section class="card">
       <div class="card-h"><div><h2>Repuesto nuevo</h2><p>Sin historial de venta, las alertas lo muestran como «Sin datos» hasta que tenga ventas.</p></div></div>
       <form class="form2" id="f-nuevo-rep" novalidate>
         <div class="ancho"><label for="cg-nom">Nombre<span class="ayuda">Cómo lo busca el cliente, por ejemplo «Filtro de aire para motor 1.6».</span></label><input id="cg-nom" maxlength="80" required></div>
-        <div><label for="cg-cat">Categoría<span class="ayuda">Si coincide con una existente, usa su foto.</span></label><input id="cg-cat" maxlength="60" list="cg-cats" required><datalist id="cg-cats"></datalist></div>
-        <div><label for="cg-prov">Proveedor<span class="ayuda">De él salen el plazo, el flete y el Incoterm.</span></label><select id="cg-prov" required></select></div>
+        <div><label for="cg-cat">Categoría<span class="ayuda">Si coincide con una existente, se usa su foto.</span></label><input id="cg-cat" maxlength="60" list="cg-cats" required><datalist id="cg-cats"></datalist></div>
+        <div><label for="cg-prov">Proveedor<span class="ayuda">De él se toman el plazo, el flete y la condición de envío (Incoterm).</span></label><select id="cg-prov" required></select></div>
         <div class="ancho"><label for="cg-desc">Descripción<span class="ayuda">Para qué sirve, en una o dos frases.</span></label><input id="cg-desc" maxlength="200"></div>
-        <div><label for="cg-costo">Costo de fábrica en USD<span class="ayuda">Precio por unidad que cobra el proveedor.</span></label><input id="cg-costo" type="number" min="0.01" step="0.01" inputmode="decimal" required></div>
-        <div><label for="cg-mar">Margen en %<span class="ayuda">Cuánto se suma al costo para el precio de venta.</span></label><input id="cg-mar" type="number" min="0" max="300" step="1" value="35" inputmode="numeric" required></div>
-        <div><label for="cg-stock">Stock<span class="ayuda">Unidades en el almacén hoy. Cero es válido.</span></label><input id="cg-stock" type="number" min="0" step="1" value="0" inputmode="numeric" required></div>
+        <div><label for="cg-costo">Costo de fábrica en dólares (USD)<span class="ayuda">Precio por unidad que cobra el proveedor.</span></label><input id="cg-costo" type="number" min="0.01" step="0.01" inputmode="decimal" required></div>
+        <div><label for="cg-mar">Margen en %<span class="ayuda">Porcentaje que se suma al costo puesto para obtener el precio de venta.</span></label><input id="cg-mar" type="number" min="0" max="300" step="1" value="35" inputmode="numeric" required></div>
+        <div><label for="cg-stock">Stock<span class="ayuda">Unidades en el almacén hoy. Puede ser cero.</span></label><input id="cg-stock" type="number" min="0" step="1" value="0" inputmode="numeric" required></div>
         <div><label for="cg-fecha">Fecha de ingreso<span class="ayuda">Cuándo entró al almacén o al catálogo.</span></label><input id="cg-fecha" type="date" required></div>
         <div class="ancho"><button class="btn1" type="submit">Guardar repuesto</button><p class="msg" id="cg-rep-msg" aria-live="polite"></p></div>
       </form>
     </section>
     <section class="card">
-      <div class="card-h"><div><h2>Cliente nuevo</h2><p>Queda disponible para unirle cotizaciones y aparece en el tablero de clientes.</p></div></div>
+      <div class="card-h"><div><h2>Cliente nuevo</h2><p>Queda disponible para asociarle cotizaciones y aparece en la pantalla de clientes.</p></div></div>
       <form class="form2" id="f-cli" novalidate>
         <div class="ancho"><label for="cc-nom">Nombre o razón social<span class="ayuda">Como figura en la factura.</span></label><input id="cc-nom" maxlength="80" required></div>
-        <div><label for="cc-tipo">Tipo<span class="ayuda">Ayuda a ver qué tipo de cliente compra más.</span></label><select id="cc-tipo" required><option>Taller mecánico</option><option>Flota de empresa</option><option>Repuestera</option><option>Particular</option></select></div>
+        <div><label for="cc-tipo">Tipo<span class="ayuda">Permite ver qué tipo de cliente compra más.</span></label><select id="cc-tipo" required><option>Taller mecánico</option><option>Flota de empresa</option><option>Repuestera</option><option>Particular</option></select></div>
         <div><label for="cc-zona">Zona<span class="ayuda">Barrio o zona de Santa Cruz.</span></label><input id="cc-zona" maxlength="40" required></div>
-        <div class="ancho"><button class="btn1" type="submit">Dar de alta</button><p class="msg" id="cg-cli-msg" aria-live="polite"></p></div>
+        <div class="ancho"><button class="btn1" type="submit">Registrar cliente</button><p class="msg" id="cg-cli-msg" aria-live="polite"></p></div>
       </form>
       <div class="scroll" style="margin-top:14px"><table id="t-cg-cli"></table></div>
     </section>
@@ -830,31 +837,31 @@ svg.chart .pm{fill:none;stroke:var(--graphite);stroke-width:2}
     <div class="grid-k" id="mp-kpis" aria-live="polite"></div>
     <section class="card" style="margin-top:18px">
       <div class="scroll"><table id="t-mp"></table></div>
-      <p class="pie">El proveedor ve solo sus repuestos. Stock y punto de pedido SINTÉTICOS (SCRUM-55); dólar oficial del día.</p>
+      <p class="pie">Cada proveedor ve solo sus repuestos. Montos con el dólar oficial del día.</p>
     </section>
   </section>
 
   <!-- ============ COTIZAR (SCRUM-72) ============ -->
   <section class="vista" id="v-cotizar" hidden aria-labelledby="h1-cot">
-    <div class="hero"><div><div class="eyebrow">Para el cliente: precio al instante</div><h1 id="h1-cot">¿Cuánto cuesta lo que necesito?</h1>
-      <p>Elija el repuesto y la cantidad. El precio sale en bolivianos con el dólar oficial del día y baja si lleva más unidades.</p></div>
-      <span class="pill neutra">historia nueva</span></div>
+    <div class="hero"><div><div class="eyebrow">Para el cliente: precio al instante</div><h1 id="h1-cot">¿Cuánto cuesta un pedido?</h1>
+      <p>Elija el repuesto y la cantidad. El precio se calcula en bolivianos con el dólar oficial del día y baja si lleva más unidades.</p></div></div>
     <section class="card">
       <div class="cot-form">
-        <div><label for="cot-rep">Repuesto<span class="ayuda">Entre paréntesis, cuántas unidades hay en el almacén.</span></label><select id="cot-rep"></select></div>
-        <div><label for="cot-q">Cantidad<span class="ayuda">Unidades enteras, de 1 en adelante.</span></label><input id="cot-q" type="number" min="1" step="1" inputmode="numeric" aria-describedby="cot-err"><div class="err-in" id="cot-err" aria-live="polite"></div></div>
+        <div><label for="cot-rep" data-i="Repuesto|Elija el repuesto que quiere cotizar. Entre paréntesis figuran las unidades disponibles hoy en el almacén.">Repuesto<span class="ayuda">Entre paréntesis, las unidades disponibles en el almacén.</span></label><select id="cot-rep"></select></div>
+        <div><label for="cot-q" data-i="Cantidad|Número de unidades del pedido, de 1 en adelante. A partir de cierta cantidad se aplica un descuento por volumen.">Cantidad<span class="ayuda">Unidades enteras, de 1 en adelante.</span></label><input id="cot-q" type="number" min="1" step="1" inputmode="numeric" aria-describedby="cot-err"><div class="err-in" id="cot-err" aria-live="polite"></div></div>
       </div>
-      <div><span class="lab">Descuento por cantidad<span class="ayuda">Tramos de EJEMPLO, todavía no son la política de MULTIPARTES.</span></span><div class="tramos" id="cot-tramos"></div></div>
+      <div><span class="lab" data-i="Descuento por cantidad|Porcentaje que se descuenta del precio de lista según la cantidad pedida. El tramo resaltado es el que corresponde a su pedido. El descuento nunca deja el precio por debajo del costo.">Descuento por cantidad</span><div class="tramos" id="cot-tramos"></div></div>
       <div class="cot-res" id="cot-res" aria-live="polite"></div>
       <div class="cot-guardar" id="cot-guardar" hidden>
-        <div><label for="cot-nom">Su nombre o empresa<span class="ayuda">Opcional. Sirve para encontrar la cotización después.</span></label><input id="cot-nom" maxlength="80" autocomplete="organization"></div>
-        <div id="cot-cli-box" hidden><label for="cot-cli">Cliente registrado<span class="ayuda">Solo el importador: une la cotización al cliente.</span></label><select id="cot-cli"></select></div>
+        <div><label for="cot-nom" data-i="Su nombre o empresa|Dato opcional que queda guardado con la cotización, para poder encontrarla después.">Su nombre o empresa<span class="ayuda">Opcional. Sirve para encontrar la cotización después.</span></label><input id="cot-nom" maxlength="80" autocomplete="organization"></div>
+        <div id="cot-cli-box" hidden><label for="cot-cli" data-i="Cliente registrado|Solo para el personal de MULTIPARTES: asocia la cotización a un cliente registrado, para que cuente en sus compras si se marca como venta.">Cliente registrado<span class="ayuda">Asocia la cotización a un cliente registrado.</span></label><select id="cot-cli"></select></div>
         <button class="btn1" id="cot-emitir" type="button">Emitir cotización</button>
       </div>
       <p class="msg" id="cot-msg" aria-live="polite"></p>
       <p class="pie" id="cot-pie"></p>
     </section>
   </section>
+  <p class="nota-datos">Ventas: base pública carparts. Clientes, proveedores, precios y stock: datos de demostración.</p>
 </div></div>
 
 <script type="application/json" id="datos">__DATA__</script>
@@ -888,8 +895,10 @@ const fecha = f => { const [y,m,d] = f.split("-"); return +d + "-" + MES[+m-1] +
 const fechaDia = f => DIA[new Date(f + "T12:00:00").getDay()] + " " + fecha(f);
 // SCRUM-71: el BCB publica un valor por día. Si el último tiene más de un día, se avisa desde qué fecha se usa.
 const diasTc = () => { const h = new Date(), hoy = Date.UTC(h.getFullYear(), h.getMonth(), h.getDate()), [y,m,d] = OF.fecha.split("-"); return Math.round((hoy - Date.UTC(+y, +m - 1, +d)) / 864e5); };
-const avisoTc = () => diasTc() > 1 ? ` <span class="marca-tc">El BCB no tiene un valor más nuevo en estos datos: se usa el del ${fecha(OF.fecha)}.</span>` : "";
+const avisoTc = () => diasTc() > 1 ? ` <span class="marca-tc">El Banco Central de Bolivia no publicó un valor más reciente: se usa el del ${fecha(OF.fecha)}.</span>` : "";
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+// Ícono «i» (SCRUM-82): tema = de qué habla; txt = qué es, de dónde sale el dato y cómo leerlo, en una o dos frases.
+const info = (tema, txt) => `<button type="button" class="info" aria-label="Qué es: ${esc(tema)}" aria-expanded="false" data-tema="${esc(tema)}" data-info="${esc(txt)}">i</button>`;
 const nombreProv = p => p.nombre.replace(" (ficticio)", "");
 const capital = s => s.charAt(0).toUpperCase() + s.slice(1);
 
@@ -931,14 +940,14 @@ function puede(v){ const q = QUIEN[v], r = rol();
   if(q === "imp-portal") return PORTAL && r === "importador";
   if(q === "prov") return PORTAL && r === "proveedor";
   return r === "importador"; }
-const VISTAS = [["dashboard","Dashboard","db","SCRUM-79"],["predicciones","Predicciones","pr","SCRUM-80"],["rotacion","Rotación e importancia (ABC)","rt","SCRUM-81"],
+const VISTAS = [["dashboard","Tablero de ventas","db","SCRUM-79"],["predicciones","Predicción de ventas","pr","SCRUM-80"],["rotacion","Importancia y rotación (ABC)","rt","SCRUM-81"],
   ["alertas","Alertas de reposición","al","nuevo"],["simulador","Simulador de compra","sim","SCRUM-61"],["proveedores","Comparar proveedores","prov","nuevo"],
-  ["plan","Plan con presupuesto","plan","nuevo"],
+  ["plan","Plan de compra con presupuesto","plan","nuevo"],
   ["temporadas","Temporadas de venta","tm","nuevo"],["clientes","Clientes que más compran","cli","nuevo"],["catalogo","Catálogo","cat","nuevo"],["cotizar","Cotizar por cantidad","cot","nuevo"],
-  ["cotizaciones","Cotizaciones guardadas","cz","nuevo"],["cargar","Cargar repuestos y clientes","cg","nuevo"],["miprov","Mis repuestos","prov","nuevo"],["entrar","Entrar","ent","portal"]];
+  ["cotizaciones","Cotizaciones guardadas","cz","nuevo"],["cargar","Registrar repuestos y clientes","cg","nuevo"],["miprov","Mis repuestos","prov","nuevo"],["entrar","Entrar","ent","portal"]];
 const GRUPOS = [["Resumen",["dashboard","predicciones"]],["Decidir",["alertas","simulador","proveedores","plan"]],["Entender la demanda",["rotacion","temporadas","clientes"]],
   ["Gestionar",["cotizaciones","cargar","catalogo","cotizar"]],["Proveedor",["miprov"]],["",["entrar"]]];
-const enlaceMenu = ([k,t,i,h]) => `<a href="#${k}" data-v="${k}" aria-label="${t}" title="${t}"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">${IC[i]}</svg><span>${t}</span>${h.startsWith("SCRUM") ? `<i class="hu">${h}</i>` : `<i class="nuevo">${h}</i>`}</a>`;
+const enlaceMenu = ([k,t,i,h]) => `<a href="#${k}" data-v="${k}" aria-label="${t}" title="${t}"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">${IC[i]}</svg><span>${t}</span></a>`;
 function pintarMenu(){
   $("menu").innerHTML = GRUPOS.map(([g, vs]) => { const items = VISTAS.filter(x => vs.includes(x[0]) && puede(x[0]));
     return items.length ? (g ? `<div class="navg">${g}</div>` : "") + items.map(enlaceMenu).join("") : ""; }).join("");
@@ -963,6 +972,42 @@ function ir(v){
   pintado[v] = true;
 }
 window.addEventListener("hashchange", () => { ir(location.hash.slice(1)); window.scrollTo(0,0); });
+
+// Explicaciones del ícono «i». Un solo globo para toda la página: clic, toque o Enter lo fija; con mouse también se
+// abre al pasar. Se cierra con Escape, tocando fuera, al cambiar de vista o al desplazar la página.
+const infoPop = document.createElement("div");
+infoPop.id = "info-pop"; infoPop.setAttribute("role", "tooltip"); infoPop.hidden = true;
+document.body.appendChild(infoPop);
+let infoAbierto = null, infoFijo = false;
+function infoMostrar(b, fijo){
+  if(infoAbierto && infoAbierto !== b) infoAbierto.setAttribute("aria-expanded", "false");
+  infoAbierto = b; infoFijo = fijo;
+  infoPop.innerHTML = `<b>${esc(b.dataset.tema)}</b>${esc(b.dataset.info)}`;
+  infoPop.hidden = false; b.setAttribute("aria-expanded", "true"); b.setAttribute("aria-describedby", "info-pop");
+  const r = b.getBoundingClientRect(), w = infoPop.offsetWidth, h = infoPop.offsetHeight;
+  const x = Math.min(Math.max(12, r.left + r.width / 2 - w / 2), innerWidth - w - 12);
+  const y = r.bottom + 8 + h > innerHeight - 8 ? r.top - 8 - h : r.bottom + 8;
+  infoPop.style.left = x + "px"; infoPop.style.top = Math.max(8, y) + "px";
+}
+function infoCerrar(){
+  if(!infoAbierto) return;
+  infoAbierto.setAttribute("aria-expanded", "false"); infoAbierto.removeAttribute("aria-describedby");
+  infoAbierto = null; infoFijo = false; infoPop.hidden = true;
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest(".info");
+  if(b){ e.preventDefault(); e.stopPropagation(); (infoAbierto === b && infoFijo) ? infoCerrar() : infoMostrar(b, true); return; }
+  if(!e.target.closest("#info-pop")) infoCerrar();
+}, true);
+const hayMouse = matchMedia("(hover:hover) and (pointer:fine)").matches;
+document.addEventListener("mouseover", e => { const b = hayMouse && e.target.closest(".info"); if(b && !infoFijo) infoMostrar(b, false); });
+document.addEventListener("mouseout", e => { const b = e.target.closest(".info"); if(b && b === infoAbierto && !infoFijo) infoCerrar(); });
+document.addEventListener("keydown", e => { if(e.key === "Escape" && infoAbierto){ const b = infoAbierto; infoCerrar(); b.focus(); } });
+window.addEventListener("scroll", infoCerrar, {passive:true, capture:true});
+window.addEventListener("hashchange", infoCerrar);
+window.addEventListener("resize", infoCerrar);
+// En el HTML fijo, un elemento con data-i="Tema|Explicación" recibe su ícono «i» al final.
+document.querySelectorAll("[data-i]").forEach(el => { const [t, x] = el.dataset.i.split("|"); el.insertAdjacentHTML("beforeend", info(t, x)); });
 // Repuestos cargados en el portal (SCRUM-77): entran al catálogo, el cotizador, las alertas y el plan, pero no a las
 // vistas que necesitan historial de venta (simulador, temporadas y predicciones; en rotación aparecen como «Sin datos»).
 D.nuevos = [];
@@ -972,6 +1017,8 @@ const DM = () => D.nuevos.length ? Object.assign({}, D, {repuestos: todos()}) : 
 /* ==================== ALERTAS ==================== */
 const insignia = e => e === 0 ? '<span class="insignia no">Pedir ya</span>' : e === 1 ? '<span class="insignia" style="background:var(--warn-soft);color:var(--warn)">Vigilar</span>' : e === 2 ? '<span class="insignia si">Cubierto</span>' : '<span class="insignia na">Sin datos</span>';
 // Motivos de «Sin datos» en palabras: un dato que falta no se reemplaza por cero (criterio de HU-09).
+const INCOTERM_TXT = "Regla internacional que indica qué gastos de envío ya incluye el precio. EXW: se retira en la fábrica; FOB: puesto en el barco de origen; CIF: incluye flete y seguro hasta el puerto de destino.";
+const PATRON = {intermitente:"venta ocasional", irregular:"venta irregular", suave:"venta regular", erratica:"venta errática"};
 const MOTIVO = {STOCK_FALTANTE:"falta el stock", PLAZO_FALTANTE:"falta el plazo del proveedor", DEMANDA_FALTANTE:"falta el historial de venta", REGLA_FALTANTE:"falta el punto de pedido"};
 let AL = null, AL_TC = null;
 function alertas(){ if(AL_TC !== tcHoy()){ AL = Motor.alertas(DM(), tcHoy()); AL_TC = tcHoy(); } return AL; }
@@ -979,17 +1026,17 @@ function pintarAlertas(){
   const al = seguro(alertas, $("t-alertas")); if(!al) return;
   const pedir = al.filter(a => a.est === 0).length, vig = al.filter(a => a.est === 1).length, camino = al.reduce((s,a) => s + (a.en_camino || 0), 0), sinDatos = al.filter(a => a.est === 3).length;
   $("al-kpis").innerHTML = `
-    <div class="kpi"><div class="t">Pedir esta semana</div><div class="v c-bad">${pedir}<small>repuestos</small></div><div class="d">llegaron al punto de pedido</div><span class="ayuda">El stock más lo que viene en camino ya no alcanza para esperar.</span></div>
-    <div class="kpi"><div class="t">En vigilancia</div><div class="v c-warn">${vig}<small>repuestos</small></div><div class="d">llegan al punto de pedido antes de que llegue un pedido</div><span class="ayuda">Conviene pedirlos pronto aunque todavía no estén en cero.</span></div>
-    <div class="kpi"><div class="t">En camino</div><div class="v">${nf(camino)}<small>unidades</small></div><div class="d">pedidos que todavía no llegan</div><span class="ayuda">Se cuentan como stock futuro al decidir.</span></div>
-    <div class="kpi"><div class="t">Dólar de hoy</div><div class="v">${nf(tcHoy(),2)}<small>Bs</small></div><div class="d">oficial BCB · ${fecha(OF.fecha)}</div><span class="ayuda">Con este valor se calcula el costo de lo que hay que pedir.</span></div>`;
+    <div class="kpi"><div class="t">Pedir esta semana${info("Pedir esta semana", "Repuestos cuyo stock, sumado a lo que viene en camino, ya no alcanza para cubrir la venta mientras llega un pedido nuevo. Conviene pedirlos ahora.")}</div><div class="v c-bad">${pedir}<small>repuestos</small></div><div class="d">llegaron al punto de pedido</div></div>
+    <div class="kpi"><div class="t">En vigilancia${info("En vigilancia", "Repuestos que todavía tienen stock, pero que llegarán al punto de pedido antes de que pueda llegar un pedido nuevo. Conviene pedirlos pronto.")}</div><div class="v c-warn">${vig}<small>repuestos</small></div><div class="d">llegarán al punto de pedido antes de que pueda llegar un pedido nuevo</div></div>
+    <div class="kpi"><div class="t">En camino${info("En camino", "Unidades de pedidos ya hechos que todavía no llegaron al almacén. Se cuentan como stock futuro al decidir qué pedir.")}</div><div class="v">${nf(camino)}<small>unidades</small></div><div class="d">de pedidos ya hechos que todavía no llegan</div></div>
+    <div class="kpi"><div class="t">Dólar de hoy${info("Dólar de hoy", "Tipo de cambio oficial publicado por el Banco Central de Bolivia: cuántos bolivianos cuesta un dólar. Con este valor se calcula el costo de lo que hay que pedir.")}</div><div class="v">${nf(tcHoy(),2)}<small>Bs</small></div><div class="d">oficial del Banco Central de Bolivia · ${fecha(OF.fecha)}</div></div>`;
   const filas = S.verTodas ? al : al.slice(0, 12);
-  $("t-alertas").innerHTML = `<thead><tr><th>Repuesto</th><th>Estado</th><th>Stock<span class="ayuda">en almacén</span></th><th>En camino</th><th>Punto de pedido<span class="ayuda">con esto o menos, se pide</span></th><th>Plazo</th><th>Venta en el plazo<span class="ayuda">promedio pronosticado; si supera stock y camino, falta</span></th><th>Cantidad sugerida</th><th>Costo puesto</th><th style="text-align:left">Proveedor</th></tr></thead><tbody>` +
+  $("t-alertas").innerHTML = `<thead><tr><th>Repuesto${info("Repuesto", "Debajo del código va el código en la base de ventas, el patrón de venta (regular, irregular u ocasional) y la clase ABC: A son los repuestos más importantes en ventas.")}</th><th>Estado</th><th>Stock<span class="ayuda">en almacén</span></th><th>En camino</th><th>Punto de pedido${info("Punto de pedido", "Nivel de stock en el que hay que pedir. Cubre la venta esperada mientras llega el pedido, más un stock de seguridad por si se vende más o el proveedor se atrasa.")}</th><th>Plazo${info("Plazo", "Días que tarda el proveedor en entregar, desde que se hace el pedido hasta que llega al almacén.")}</th><th>Venta en el plazo${info("Venta en el plazo", "Unidades que se espera vender mientras llega el pedido, según el pronóstico. Si supera al stock más lo que viene en camino, faltará mercadería.")}</th><th>Cantidad sugerida${info("Cantidad sugerida", "Unidades a pedir para volver al nivel de reposición, descontando el stock y lo que viene en camino.")}</th><th>Costo puesto${info("Costo puesto", "Lo que cuesta tener el pedido en el almacén de Santa Cruz: precio de fábrica, flete y gastos de aduana, en bolivianos.")}</th><th style="text-align:left">Proveedor</th></tr></thead><tbody>` +
     filas.map(a => { const r = REP[a.id], p = PRV[r.proveedor_id];
-      return `<tr class="alerta-fila" tabindex="0" data-rep="${a.id}" aria-label="${a.id}: ${a.etiqueta}. Abrir en el simulador"><td><b>${a.id}</b><span class="ayuda">carparts ${r.codigo_carparts} · ${r.tipo_demanda} ${r.clase_abc}</span></td><td>${insignia(a.est)}${a.est === 3 ? `<span class="ayuda">${a.motivos.map(m => MOTIVO[m] || m).join("; ")}</span>` : ""}</td><td>${nf(a.stock)}</td><td>${nf(a.en_camino)}</td><td>${nf(a.punto_pedido)}</td><td>${a.plazo === null ? "—" : nf(a.plazo) + " d"}</td><td>${a.est === 3 ? "—" : nf(a.demanda_entrega,1) + " u" + (a.faltante_previsto > 0 ? ` <span class="insignia no">faltan ${nf(a.faltante_previsto,1)}</span>` : "")}</td><td>${a.est < 2 ? nf(a.cantidad_sugerida) : "—"}</td><td>${a.est < 2 ? bs(a.costo_bs) : "—"}</td><td style="text-align:left">${esc(nombreProv(p))} · ${esc(p.origen)} · ${p.incoterm}</td></tr>`; }).join("") + "</tbody>";
+      return `<tr class="alerta-fila" tabindex="0" data-rep="${a.id}" aria-label="${a.id}: ${a.etiqueta}. Abrir en el simulador"><td><b>${a.id}</b><span class="ayuda">base ${r.codigo_carparts} · ${PATRON[r.tipo_demanda] || r.tipo_demanda} · clase ${r.clase_abc}</span></td><td>${insignia(a.est)}${a.est === 3 ? `<span class="ayuda">${a.motivos.map(m => MOTIVO[m] || m).join("; ")}</span>` : ""}</td><td>${nf(a.stock)}</td><td>${nf(a.en_camino)}</td><td>${nf(a.punto_pedido)}</td><td>${a.plazo === null ? "—" : nf(a.plazo) + " d"}</td><td>${a.est === 3 ? "—" : nf(a.demanda_entrega,1) + " u" + (a.faltante_previsto > 0 ? ` <span class="insignia no">faltan ${nf(a.faltante_previsto,1)}</span>` : "")}</td><td>${a.est < 2 ? nf(a.cantidad_sugerida) : "—"}</td><td>${a.est < 2 ? bs(a.costo_bs) : "—"}</td><td style="text-align:left">${esc(nombreProv(p))} · ${esc(p.origen)} · ${p.incoterm}</td></tr>`; }).join("") + "</tbody>";
   $("b-mas").textContent = S.verTodas ? "Mostrar solo los 12 más urgentes" : "Mostrar los 30";
   $("b-mas").setAttribute("aria-expanded", String(S.verTodas));
-  $("al-pie").textContent = `${S.verTodas ? "Se muestran los 30." : "Se muestran los 12 más urgentes de 30."} Stock, punto de pedido y proveedor son SINTÉTICOS sobre ventas reales de carparts (SCRUM-55). Una fila abre el simulador con ese repuesto. La venta en el plazo es el promedio; el riesgo de cada futuro está en el simulador.${sinDatos ? ` ${sinDatos} sin datos suficientes: no se calculan.` : ""}`;
+  $("al-pie").textContent = `${S.verTodas ? "Se muestran los 30." : "Se muestran los 12 más urgentes de 30."} Punto de pedido según la historia SCRUM-55 del proyecto. Al elegir una fila se abre el simulador con ese repuesto. La venta en el plazo es un promedio; el riesgo de cada escenario se ve en el simulador.${sinDatos ? ` ${sinDatos} sin datos suficientes: no se calculan.` : ""}`;
 }
 function abrirEnSimulador(id){ if(!(D.ventas[id] || []).length) return; S.rep = id; S.cat = ""; S.prov = REP[id].proveedor_id; S.elegida = null; location.hash = "#simulador"; }
 $("t-alertas").addEventListener("click", e => { const tr = e.target.closest("tr[data-rep]"); if(tr) abrirEnSimulador(tr.dataset.rep); });
@@ -1001,16 +1048,16 @@ const ALT = {
   A:{t:"Reponer lo justo", que:"Pedir solo lo que cubre la venta mientras llega el pedido, con el atraso supuesto. Al menos una unidad.",
      por:"Compra lo mínimo para no quedarse sin stock mientras llega el pedido. Inmoviliza menos dinero, pero deja poco margen si las ventas suben o el proveedor se atrasa.", t2:["a","b"]},
   B:{t:"Cubrir 30 días más", que:"Sumar un mes de ventas pronosticadas después de que llegue el pedido.",
-     por:"Suma un mes de ventas pronosticadas. Un solo pedido, con un mes de respiro después de la entrega.", t2:["a","b"]},
+     por:"Suma un mes de ventas pronosticadas. Un solo pedido, con un mes de margen después de la entrega.", t2:["a","b"]},
   C:{t:"Cubrir 60 días más", que:"Comprar para dos meses: menos pedidos y menos exposición a un dólar más caro después.",
      por:"Compra para dos meses hoy. Conviene si se espera que el dólar suba, porque fija el costo con el dólar de hoy; a cambio, inmoviliza más dinero.", t2:["tc","a"]},
   D:{t:"Dividir en dos pedidos", que:"Misma cantidad que cubrir 60 días, pero la mitad hoy y la mitad dentro de 30 días.",
-     por:"La misma cantidad que C, pero la mitad hoy y la mitad en 30 días. Reparte el desembolso y el riesgo del dólar en dos momentos.", t2:["tc","b"]}
+     por:"La misma cantidad que la alternativa C (cubrir 60 días más), pero la mitad hoy y la mitad en 30 días. Reparte el desembolso y el riesgo del dólar en dos momentos.", t2:["tc","b"]}
 };
 const TOOL = {a:'<button type="button" class="tool" data-ir="h-pro"><b>a</b> Pronóstico de la venta</button>', b:'<button type="button" class="tool" data-ir="h-prv"><b>b</b> Proveedores y plazos</button>',
-  tc:'<button type="button" class="tool" data-ir="h-tchoy"><b>1</b> Tipo de cambio</button>', sim:`<span class="tool">Simulación · ${nf(PAR.simulaciones)} futuros</span>`};
+  tc:'<button type="button" class="tool" data-ir="h-tchoy"><b>1</b> Precio del dólar</button>', sim:`<span class="tool">Simulación en ${nf(PAR.simulaciones)} escenarios</span>`};
 const CATS = [...new Set(D.repuestos.map(r => r.tipo_demanda + "|" + r.clase_abc))].sort();
-const catTxt = c => { const [t,a] = c.split("|"); return capital(t) + " · clase " + a; };
+const catTxt = c => { const [t,a] = c.split("|"); return capital(PATRON[t] || t) + " · clase " + a; };
 
 function listaProveedores(){ return Motor.compararProveedores(D, S.rep, tcHoy()); }
 
@@ -1019,7 +1066,7 @@ function controles(){
   $("f-cat").value = S.cat;
   const lista = D.repuestos.filter(r => !S.cat || r.tipo_demanda + "|" + r.clase_abc === S.cat);
   if(!lista.some(r => r.repuesto_id === S.rep)){ S.rep = lista[0].repuesto_id; S.prov = REP[S.rep].proveedor_id; }
-  $("f-rep").innerHTML = lista.map(r => `<option value="${r.repuesto_id}">${r.repuesto_id} · carparts ${r.codigo_carparts} (${nf(r.stock_al_2026_11_10 / ventaDia(r.repuesto_id))} d)</option>`).join("");
+  $("f-rep").innerHTML = lista.map(r => `<option value="${r.repuesto_id}">${r.repuesto_id} · ${esc(nombreRep(r.repuesto_id))} (${nf(r.stock_al_2026_11_10 / ventaDia(r.repuesto_id))} días)</option>`).join("");
   $("f-rep").value = S.rep;
   if(!S.prov) S.prov = REP[S.rep].proveedor_id;
   const provs = seguro(listaProveedores) || [];
@@ -1031,24 +1078,24 @@ function controles(){
 }
 function etiquetas(){
   const p = PRV[S.prov];
-  $("v-tc").innerHTML = `${nf(S.tc90,2)}<small>Bs (hoy ${nf(tcHoy(),2)})</small>`;
-  $("v-ven").innerHTML = `${S.venta > 0 ? "+" : ""}${nf(S.venta)} %<small>sobre el pronóstico</small>`;
-  $("v-atr").innerHTML = `${nf(S.atraso)}<small>días más que su plazo normal (${p.plazo_normal_dias})</small>`;
-  $("atr-ayuda").textContent = `Este proveedor llegó a tiempo en ${p.pct_entregas_a_tiempo} de cada 100 entregas.`;
+  $("v-tc").innerHTML = `${nf(S.tc90,2)}<small>Bs por dólar (hoy: ${nf(tcHoy(),2)})</small>`;
+  $("v-ven").innerHTML = `${S.venta > 0 ? "+" : ""}${nf(S.venta)} %<small>respecto del pronóstico</small>`;
+  $("v-atr").innerHTML = `${nf(S.atraso)}<small>días de atraso sobre su plazo normal de ${p.plazo_normal_dias} días</small>`;
+  $("atr-ayuda").textContent = `Este proveedor entregó a tiempo ${p.pct_entregas_a_tiempo} de cada 100 pedidos.`;
 }
 
 function pintarCabecera(){
-  $("sim-intro").textContent = `Elija un repuesto y mueva los supuestos: el dólar, la venta y el atraso del proveedor. El simulador prueba cada alternativa en ${nf(PAR.simulaciones)} futuros posibles y le muestra cuál conviene. La decisión la toma usted.`;
+  $("sim-intro").textContent = `Elija un repuesto y ajuste los supuestos: el precio del dólar, la venta esperada y el atraso del proveedor. El simulador evalúa cada alternativa en ${nf(PAR.simulaciones)} escenarios posibles y le muestra cuál conviene. La decisión la toma usted.`;
   $("of-v").innerHTML = `${nf(OF.valor,2)}<small>Bs por dólar</small>`;
-  $("of-src").innerHTML = `Vigente el <b>${fechaDia(OF.fecha)}</b>. Fuente: Banco Central de Bolivia, tabla «Tipo de cambio oficial, diario». Se actualiza solo una vez al día.${avisoTc()}`;
+  $("of-src").innerHTML = `Vigente el <b>${fechaDia(OF.fecha)}</b>. Fuente: Banco Central de Bolivia, tabla «Tipo de cambio oficial, diario». Se actualiza una vez al día.${avisoTc()}`;
   $("pa-v").innerHTML = `${nf(PA.valor,2)} <small style="font-size:12px;color:var(--ink-3);font-weight:500">Bs</small>`;
-  $("pa-ayuda").textContent = `Promedio de plataformas P2P al ${fecha(PA.fecha)}. Solo como referencia: los cálculos usan el oficial.`;
+  $("pa-ayuda").textContent = `Promedio de plataformas de compraventa entre personas (P2P) al ${fecha(PA.fecha)}. Solo como referencia: los cálculos usan el dólar oficial.`;
   const se = D.tc.serie, W = Math.max(300, Math.round($("spark").clientWidth || 520)), H = 170, pl = 44, pb = 38, pr = 10, vs = se.map(x => x[1]);
   const lo = Math.floor(Math.min(...vs) * 2) / 2 - .25, hi = Math.ceil(Math.max(...vs) * 2) / 2 + .25, n = se.length - 1;
   const X = i => pl + i * (W - pl - pr) / n, Y = v => 8 + (hi - v) * (H - pb - 8) / (hi - lo);
   const tk = [lo + .25, (lo + hi) / 2, hi - .25].map(v => Math.round(v * 4) / 4);
   const fx = [0, Math.round(n / 2), n];
-  $("spark").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Tipo de cambio oficial del BCB desde el ${fecha(se[0][0])}: de ${nf(vs[0],2)} a ${nf(vs[n],2)} Bs">
+  $("spark").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Tipo de cambio oficial del Banco Central de Bolivia desde el ${fecha(se[0][0])}: de ${nf(vs[0],2)} a ${nf(vs[n],2)} Bs">
     ${tk.map(v => `<line x1="${pl}" x2="${W-pr}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}" stroke="var(--line)"/><text x="${pl-6}" y="${(Y(v)+4).toFixed(1)}" text-anchor="end">${nf(v,2)}</text>`).join("")}
     <polyline class="l" points="${se.map((x,i) => X(i).toFixed(1) + "," + Y(x[1]).toFixed(1)).join(" ")}"/>
     <circle cx="${X(n)}" cy="${Y(vs[n])}" r="4" fill="var(--brand)"/>
@@ -1056,10 +1103,10 @@ function pintarCabecera(){
     <text class="axt" x="${(pl + W - pr) / 2}" y="${H-3}" text-anchor="middle">Fecha</text>
     <text class="axt" transform="translate(11 ${(H - pb) / 2}) rotate(-90)" text-anchor="middle">Bs por dólar</text></svg>`;
   $("spark-dias").textContent = `· ${se.length} días`;
-  $("metodo-ul").innerHTML = `<li>Ventas: carparts (Hyndman, Koehler, Ord y Snyder, 2008), ventas mensuales reales de repuestos de auto, re-fechadas a 2022-2026. Proveedores, plazos, costos y stock: SINTÉTICOS.</li>
-    <li>Tipo de cambio: oficial del BCB del día, con fuente y fecha. El paralelo (PRIVADO) se muestra solo como referencia: no entra en ningún cálculo.</li>
-    <li>Puntaje: en cuántos de cada 100 futuros simulados de 90 días cada alternativa deja la mayor ganancia (${nf(PAR.simulaciones)} futuros, semilla ${PAR.semilla}).</li>
-    <li>Costo de cada pedido (trámites y despacho): ${bs(PAR.costo_pedido_bs)}; costo del dinero inmovilizado: ${nf(PAR.costo_capital_mensual*100,1)} % al mes. Los dos son supuestos SINTÉTICOS del equipo.</li>`;
+  $("metodo-ul").innerHTML = `<li>Ventas: base pública carparts (Hyndman, Koehler, Ord y Snyder, 2008), con ventas mensuales de repuestos de auto; las fechas se trasladaron a 2022-2026.</li>
+    <li>Tipo de cambio: dólar oficial del Banco Central de Bolivia del día, con fuente y fecha. El dólar paralelo, de fuente privada, se muestra solo como referencia: no entra en ningún cálculo.</li>
+    <li>Puntaje: en cuántos de cada 100 escenarios de 90 días cada alternativa deja la mayor ganancia (${nf(PAR.simulaciones)} escenarios generados al azar; semilla ${PAR.semilla}, para que el resultado se pueda repetir).</li>
+    <li>Costo de cada pedido (trámites y despacho): ${bs(PAR.costo_pedido_bs)}; costo del dinero inmovilizado: ${nf(PAR.costo_capital_mensual*100,1)} % al mes. Los dos son supuestos del equipo.</li>`;
 }
 
 function pintarSimulador(){
@@ -1075,20 +1122,20 @@ function pintarFijos(){
   const r = REP[S.rep], p = PRV[S.prov], f = pronostico(S.rep), dia = ventaDia(S.rep) * (1 + S.venta / 100);
   const stock = r.stock_al_2026_11_10, alcanza = stock / dia, plazo = p.plazo_normal_dias + S.atraso;
   const est = alcanza < plazo ? ["bad","Urgente"] : alcanza < plazo + 30 ? ["warn","Margen corto"] : ["ok","Con margen"];
-  const metodo = f.metodo === "SBA" ? "SBA (Croston corregido)" : "media de 12 meses";
+  const metodo = f.metodo === "SBA" ? "método SBA, para venta ocasional" : "promedio de 12 meses";
   $("kpis").innerHTML = `
-    <div class="kpi"><div class="t">Stock actual</div><div class="v">${nf(stock)}<small>u</small></div><div class="d">al ${fecha(FECHA_STOCK)} · ${nf(r.en_transito_al_2026_11_10)} en camino</div><span class="ayuda">Unidades en el almacén hoy.</span></div>
-    <div class="kpi"><div class="t">Venta pronosticada</div><div class="v">${nf(dia,2)}<small>u/día</small></div><div class="d">${nf(dia*30,1)} u al mes · ${metodo}</div><span class="ayuda">Lo que se espera vender por día, con el ajuste de venta elegido.</span></div>
-    <div class="kpi"><div class="t">El stock alcanza para</div><div class="v c-${est[0]}">${alcanza > 999 ? "+999" : nf(alcanza)}<small>días</small><span class="est ${est[0]}">${est[1]}</span></div><div class="d">a ese ritmo de venta</div><span class="ayuda">Días hasta quedarse sin stock si no llega nada.</span></div>
-    <div class="kpi"><div class="t">Entrega del proveedor</div><div class="v">${nf(plazo)}<small>días</small></div><div class="d">${p.plazo_normal_dias} de plazo normal + ${S.atraso} de atraso supuesto</div><span class="ayuda">Días que tarda el proveedor, con el atraso supuesto.</span></div>`;
+    <div class="kpi"><div class="t">Stock actual${info("Stock actual", "Unidades de este repuesto en el almacén a la fecha indicada. Debajo, las unidades de pedidos ya hechos que todavía no llegan.")}</div><div class="v">${nf(stock)}<small>unidades</small></div><div class="d">al ${fecha(FECHA_STOCK)} · ${nf(r.en_transito_al_2026_11_10)} en camino</div></div>
+    <div class="kpi"><div class="t">Venta pronosticada${info("Venta pronosticada", "Unidades que se espera vender por día, según el pronóstico del historial de ventas y el ajuste que usted eligió en el supuesto de venta. El método SBA (corrección del método de Croston) se usa para repuestos que se venden de vez en cuando.")}</div><div class="v">${nf(dia,2)}<small>unidades por día</small></div><div class="d">${nf(dia*30,1)} unidades al mes · ${metodo}</div></div>
+    <div class="kpi"><div class="t">El stock alcanza para${info("El stock alcanza para", "Días que dura el stock actual al ritmo de venta pronosticado, si no llega ningún pedido. Se compara con el plazo del proveedor para saber si hay margen.")}</div><div class="v c-${est[0]}">${alcanza > 999 ? "+999" : nf(alcanza)}<small>días</small><span class="est ${est[0]}">${est[1]}</span></div><div class="d">a ese ritmo de venta</div></div>
+    <div class="kpi"><div class="t">Entrega del proveedor${info("Entrega del proveedor", "Días que tarda en llegar un pedido: el plazo normal del proveedor más el atraso que usted supuso.")}</div><div class="v">${nf(plazo)}<small>días</small></div><div class="d">${p.plazo_normal_dias} días de plazo normal + ${S.atraso} de atraso supuesto</div></div>`;
   $("situ").innerHTML = (stock === 0 ? "<strong>El stock está en cero.</strong> Las ventas recientes pueden estar subestimadas por falta de mercadería. " : "")
-    + (alcanza < plazo ? "<strong>El stock se agota antes de que llegue un pedido hecho hoy.</strong> Conviene decidir hoy." : alcanza < plazo + 30 ? "<strong>El margen después de la entrega es corto.</strong> Conviene decidir pronto." : "<strong>Hay margen para esperar.</strong> Ninguna alternativa es urgente.");
+    + (alcanza < plazo ? "<strong>El stock se agota antes de que llegue un pedido hecho hoy.</strong> Conviene decidir hoy mismo." : alcanza < plazo + 30 ? "<strong>El margen después de la entrega es corto.</strong> Conviene decidir pronto." : "<strong>Hay margen para esperar.</strong> Ninguna alternativa es urgente.");
   $("h-rep2").textContent = S.rep;
-  $("h-sub").textContent = `${S.rep} · ${nombreProv(p)} (${p.incoterm}) · dólar esperado ${nf(S.tc90,2)} Bs · venta ${S.venta > 0 ? "+" : ""}${S.venta} % · atraso de ${S.atraso} días · precio ${S.sigue ? "sigue al dólar" : "fijo"}`;
-  $("como-txt").innerHTML = `<b>Cómo leer el puntaje.</b> Cada alternativa se probó en ${nf(PAR.simulaciones)} futuros de 90 días, cada uno con un dólar, una venta y una demora distintos, alrededor de los supuestos que usted eligió. El puntaje dice en cuántos de cada 100 futuros esa alternativa dejó más ganancia que las otras tres.`;
+  $("h-sub").textContent = `${S.rep} · ${nombreProv(p)} (condición ${p.incoterm}) · dólar esperado ${nf(S.tc90,2)} Bs · venta ${S.venta > 0 ? "+" : ""}${S.venta} % · atraso de ${S.atraso} días · precio de venta ${S.sigue ? "ajustado al dólar" : "fijo"}`;
+  $("como-txt").innerHTML = `<b>Cómo leer el puntaje.</b> Cada alternativa se evaluó en ${nf(PAR.simulaciones)} escenarios de 90 días, cada uno con un precio del dólar, una venta y una demora distintos, alrededor de los supuestos que usted eligió. El puntaje indica en cuántos de cada 100 escenarios esa alternativa dejó más ganancia que las otras tres.`;
   pintarVentas(f);
   const provs = seguro(listaProveedores, $("t-prov")); if(!provs) return;
-  $("t-prov").innerHTML = `<thead><tr><th>Proveedor</th><th>Origen</th><th>Incoterm<span class="ayuda">Qué gastos de envío ya incluye el precio.</span></th><th>Costo puesto por unidad<span class="ayuda">Precio + flete + aduana, en Bs.</span></th><th>Plazo normal</th><th>Entregas a tiempo<span class="ayuda">De cada 100 pedidos pasados.</span></th></tr></thead><tbody>` +
+  $("t-prov").innerHTML = `<thead><tr><th>Proveedor</th><th>Origen</th><th>Incoterm${info("Incoterm", INCOTERM_TXT)}</th><th>Costo puesto por unidad${info("Costo puesto por unidad", "Precio de fábrica más flete y gastos de aduana, en bolivianos con el dólar oficial de hoy: lo que cuesta tener una unidad en el almacén de Santa Cruz.")}</th><th>Plazo normal</th><th>Entregas a tiempo${info("Entregas a tiempo", "De cada 100 pedidos pasados, cuántos llegaron dentro del plazo. Si son menos de 80, el simulador suma el riesgo de atraso.")}</th></tr></thead><tbody>` +
     provs.map((q,i) => `<tr data-sel="${q.proveedor_id === S.prov}"><td><label style="display:inline;font-weight:${q.proveedor_id === S.prov ? 600 : 400};font-size:13.5px;color:var(--ink)"><input type="radio" name="prov" value="${q.proveedor_id}"${q.proveedor_id === S.prov ? " checked" : ""}>${esc(nombreProv(q))}</label>${i === 0 ? ' <span class="tag">Menor costo</span>' : ""}${q.proveedor_id === r.proveedor_id ? ' <span class="tag" style="background:#eceae5;color:var(--ink-2)">El de hoy</span>' : ""}</td><td>${esc(q.origen)}</td><td>${q.incoterm}</td><td>${bs(q.total_bs)}</td><td>${q.plazo_normal_dias} días</td><td class="${q.pct_entregas_a_tiempo < 80 ? "c-warn" : ""}">${q.pct_entregas_a_tiempo}</td></tr>`).join("") + "</tbody>";
 }
 
@@ -1109,8 +1156,8 @@ function pintarVentas(f){
     <text class="axt" x="${(pl + W - pr) / 2}" y="${H-4}" text-anchor="middle">Mes</text>
     <text class="axt" transform="translate(12 ${(H - pb) / 2}) rotate(-90)" text-anchor="middle">Unidades vendidas</text></svg>`;
   $("pro-txt").textContent = f.metodo === "SBA"
-    ? `Este repuesto se vende de vez en cuando (${REP[S.rep].tipo_demanda}). Para ese patrón se usa SBA, la versión corregida de Croston, que no sobreestima como un promedio simple.`
-    : "Este repuesto se vende casi todos los meses, así que alcanza con la media de los últimos 12 meses.";
+    ? `Este repuesto se vende de vez en cuando (${PATRON[REP[S.rep].tipo_demanda] || REP[S.rep].tipo_demanda}). Para ese patrón se usa el método SBA (versión corregida del método de Croston), pensado para ventas ocasionales, que no sobreestima como un promedio simple.`
+    : "Este repuesto se vende casi todos los meses, así que alcanza con el promedio de los últimos 12 meses.";
   $("t-ven").innerHTML = "<thead><tr><th>Mes</th><th>Unidades vendidas</th></tr></thead><tbody>" + se.map(x => `<tr><td>${x[0]}</td><td>${x[1]}</td></tr>`).join("") + "</tbody>";
 }
 
@@ -1153,24 +1200,24 @@ function pintarAlternativas(R){
     const desg = `fábrica ${nf(c.fabrica_bs)} · flete ${c.flete_incluido || !(c.flete_bs > 0) ? "incluido" : nf(c.flete_bs)} · aduana ${nf(c.gastos_bs)}`
       + (o.pedidos === 2 ? ` · dos envíos: trámite ${bs(c.pedidos_bs)} aparte` : ` · trámite ${bs(c.pedidos_bs)} aparte`);
     return `<article class="alt${mejor ? " mejor" : ""}" data-elegida="${sel}" aria-label="Alternativa ${k}" style="grid-row:span 11">
-      <h3><i>${k}</i>${a.t}${mejor ? '<span class="tag">Gana más veces</span>' : ""}</h3>
+      <h3><i>${k}</i>${a.t}${mejor ? '<span class="tag">La mejor en más escenarios</span>' : ""}</h3>
       <p class="que">${a.que}</p>
       <div class="score"><div class="big">${o.puntaje}<small>de 100</small></div>
-        <div class="lbl">futuros simulados en que deja más ganancia<span class="ayuda">Compara alternativas entre sí; no es la probabilidad de acertar.</span></div>
+        <div class="lbl">escenarios en que deja más ganancia${info("Puntaje", "En cuántos de cada 100 escenarios de la simulación esta alternativa dejó más ganancia que las otras tres. Compara las alternativas entre sí; no es la probabilidad de acertar.")}</div>
         <div class="meter" aria-hidden="true"><span style="width:${Math.max(2, o.puntaje)}%"></span></div></div>
-      <dl class="dato"><dt>Cantidad a pedir<span class="ayuda">Unidades que entran en este pedido.${k === "A" ? " Pide al menos una, aunque el stock alcance." : ""}</span></dt><dd>${o.cantidad === 0 ? "Nada por ahora" : nf(o.cantidad) + (o.cantidad === 1 ? " unidad" : " unidades")}${o.cantidad_30_dias > 0 ? `<small>${nf(o.cantidad_hoy)} hoy y ${nf(o.cantidad_30_dias)} en 30 días</small>` : ""}</dd></dl>
-      <dl class="dato"><dt>Costo puesto en Santa Cruz<span class="ayuda">Lo que paga hasta tener el repuesto en el almacén.</span></dt><dd>${bs(c.total_bs)}<small>${o.cantidad ? desg : "sin pedido"}</small></dd></dl>
-      <dl class="dato"><dt>Margen después de la entrega<span class="ayuda">Días de venta que quedan cubiertos cuando llega el pedido.</span></dt><dd class="${mc}">${md < 0 ? "Falta stock" : nf(md) + " días"}<small>${md < 0 ? "se pierden " + nf(-md) + " días de venta" : "de venta cubiertos"}</small></dd></dl>
-      <dl class="dato"><dt>Riesgo de quedarse sin stock<span class="ayuda">En cuántos futuros de cada 100 se pierde alguna venta por falta de stock.</span></dt><dd><span class="${rc}">${r} de 100</span><small>futuros simulados · ${nf(o.unidades_perdidas,1)} u perdidas en promedio</small></dd></dl>
-      <dl class="dato"><dt>Dinero inmovilizado<span class="ayuda">Dinero guardado en stock que no está disponible en caja.</span></dt><dd>${bs(o.capital_inmovilizado_bs)}<small>se vende en ${nf(o.dias_venta_capital)} días</small></dd></dl>
-      <dl class="dato"><dt>Ganancia esperada en 90 días<span class="ayuda">Ventas menos costos, promedio de los futuros; lo que sobra al día 90 vale su reposición.</span></dt><dd>${bs(o.ganancia_media_bs)}<small>en un mal escenario (1 de cada 10): ${bs(o.ganancia_p10_bs)}</small></dd></dl>
+      <dl class="dato"><dt>Cantidad a pedir${info("Cantidad a pedir", "Unidades que entran en este pedido." + (k === "A" ? " Pide al menos una, aunque el stock alcance." : ""))}</dt><dd>${o.cantidad === 0 ? "Nada por ahora" : nf(o.cantidad) + (o.cantidad === 1 ? " unidad" : " unidades")}${o.cantidad_30_dias > 0 ? `<small>${nf(o.cantidad_hoy)} hoy y ${nf(o.cantidad_30_dias)} en 30 días</small>` : ""}</dd></dl>
+      <dl class="dato"><dt>Costo puesto en Santa Cruz${info("Costo puesto en Santa Cruz", "Lo que se paga hasta tener el pedido en el almacén: precio de fábrica, flete, aduana y el trámite de cada envío.")}</dt><dd>${bs(c.total_bs)}<small>${o.cantidad ? desg : "sin pedido"}</small></dd></dl>
+      <dl class="dato"><dt>Margen después de la entrega${info("Margen después de la entrega", "Días de venta que todavía cubre el stock cuando llega el pedido. Si es negativo, falta mercadería antes de que llegue.")}</dt><dd class="${mc}">${md < 0 ? "Falta stock" : nf(md) + " días"}<small>${md < 0 ? "se pierden " + nf(-md) + " días de venta" : "de venta cubiertos"}</small></dd></dl>
+      <dl class="dato"><dt>Riesgo de quedarse sin stock${info("Riesgo de quedarse sin stock", "En cuántos de cada 100 escenarios se pierde al menos una venta por falta de stock, y cuántas unidades se pierden en promedio.")}</dt><dd><span class="${rc}">${r} de 100</span><small>escenarios · ${nf(o.unidades_perdidas,1)} unidades perdidas en promedio</small></dd></dl>
+      <dl class="dato"><dt>Dinero inmovilizado${info("Dinero inmovilizado", "Dinero invertido en mercadería que todavía no se vendió y que no está disponible en caja. Debajo, en cuántos días se recupera vendiendo.")}</dt><dd>${bs(o.capital_inmovilizado_bs)}<small>se vende en ${nf(o.dias_venta_capital)} días</small></dd></dl>
+      <dl class="dato"><dt>Ganancia esperada en 90 días${info("Ganancia esperada en 90 días", "Ventas menos costos, en promedio de todos los escenarios. El stock que sobra al día 90 se valora a su costo de reposición. Debajo, la ganancia en un escenario desfavorable (el peor de cada 10).")}</dt><dd>${bs(o.ganancia_media_bs)}<small>en un escenario desfavorable (1 de cada 10): ${bs(o.ganancia_p10_bs)}</small></dd></dl>
       <div class="porque"><div class="lt">¿Por qué esta alternativa?</div><p>${a.por}</p><div class="tools">${a.t2.map(x => TOOL[x]).join("")}${TOOL.sim}</div></div>
-      <button class="elegir" type="button" data-alt="${k}" aria-pressed="${sel}">${sel ? "Elegida ✓" : "Elegir esta"}</button>
+      <button class="elegir" type="button" data-alt="${k}" aria-pressed="${sel}">${sel ? "Elegida ✓" : "Elegir esta alternativa"}</button>
     </article>`;
   }).join("");
   $("alts-nota").textContent = todasCero
     ? "Con el stock y lo que viene en camino no hace falta pedir hoy: las cuatro alternativas piden cero. Vuelva a mirar cuando el stock baje al punto de pedido."
-    : `La cantidad de cada alternativa cubre la venta esperada durante la entrega, con el atraso supuesto, más los días de cobertura elegidos. El costo usa el dólar de hoy (${nf(tcHoy(),2)} Bs); lo que se paga a los 30 días, el dólar simulado.`;
+    : `La cantidad de cada alternativa cubre la venta esperada durante la entrega, con el atraso supuesto, más los días de cobertura elegidos. El costo usa el dólar de hoy (${nf(tcHoy(),2)} Bs); lo que se paga a los 30 días usa el dólar de cada escenario.`;
 }
 
 function pintarQuiebre(Q, s){
@@ -1178,7 +1225,7 @@ function pintarQuiebre(Q, s){
   if(Q === null){
     const m = ultimo ? ultimo.mejor : "";
     $("q-txt").textContent = "Entre 9 y 15 Bs por dólar la mejor alternativa no cambia.";
-    $("q-cuerpo").innerHTML = `<p class="nota-sit" style="margin-top:6px"><strong>Para ${S.rep}:</strong> ${m ? `gana la alternativa ${m} (${ALT[m].t.toLowerCase()}) con cualquier dólar entre 9 y 15 Bs, así que la decisión no depende de adivinar el dólar.` : "la decisión no depende del dólar."}</p>`;
+    $("q-cuerpo").innerHTML = `<p class="nota-sit" style="margin-top:6px"><strong>Para ${S.rep}:</strong> ${m ? `conviene la alternativa ${m} (${ALT[m].t.toLowerCase()}) con cualquier dólar entre 9 y 15 Bs, así que la decisión no depende de anticipar el precio del dólar.` : "la decisión no depende del dólar."}</p>`;
     return;
   }
   const pos = v => (Math.min(15, Math.max(9, v)) - 9) / 6 * 100, q = Q.valor, A = ALT[Q.antes].t.toLowerCase(), B = ALT[Q.despues].t.toLowerCase();
@@ -1188,10 +1235,10 @@ function pintarQuiebre(Q, s){
   const dist = q - s.tc_base;
   $("q-cuerpo").innerHTML = `<div class="linea" role="img" aria-label="Dólar de quiebre ${nf(q,2)} Bs; hoy ${nf(s.tc_base,2)}; su supuesto ${nf(s.tc_90,2)}">
       <div class="zona za" style="left:0;width:${pos(q)}%"></div><div class="zona zc" style="left:${pos(q)}%;right:0"></div>
-      <span class="zl" style="left:0">Gana ${Q.antes} · ${A}</span><span class="zl" style="right:0;text-align:right">Gana ${Q.despues} · ${B}</span>
-      <div class="marca" style="left:${pos(s.tc_base)}%"><span>hoy ${nf(s.tc_base,2)}</span></div>
-      <div class="marca q" style="left:${pos(q)}%"><span>quiebre ${nf(q,2)}</span></div>
-      <div class="marca su${cerca ? " alto" : ""}" style="left:${pos(s.tc_90)}%"><span>su supuesto ${nf(s.tc_90,2)}</span></div>
+      <span class="zl" style="left:0">Conviene ${Q.antes}: ${A}</span><span class="zl" style="right:0;text-align:right">Conviene ${Q.despues}: ${B}</span>
+      <div class="marca" style="left:${pos(s.tc_base)}%"><span>hoy: ${nf(s.tc_base,2)}</span></div>
+      <div class="marca q" style="left:${pos(q)}%"><span>quiebre: ${nf(q,2)}</span></div>
+      <div class="marca su${cerca ? " alto" : ""}" style="left:${pos(s.tc_90)}%"><span>su supuesto: ${nf(s.tc_90,2)}</span></div>
       ${[9,10,11,12,13,14,15].filter(v => Math.abs(v - q) > .45).map(v => `<span class="eje" style="left:${pos(v)}%">${v}</span>`).join("")}
     </div>
     <p class="eje-t">Dólar en 90 días (Bs por dólar)</p>
@@ -1205,7 +1252,7 @@ function pintarSens(T){
   const fr = {dolar:"el dólar", venta:"la venta", atraso:"el atraso del proveedor"};
   $("t-cuerpo").innerHTML = T.map(x => `<div class="fila"><span>${SUP[x.supuesto][0]}<span class="ayuda">${SUP[x.supuesto][1]}</span></span><div class="bar" style="width:${Math.max(1, Math.abs(x.rango_bs) / mx * 100)}%"></div><span class="n">${bs(Math.abs(x.rango_bs))}</span></div>`).join("")
     + `<p class="eje-t" style="text-align:right;font-size:11.5px;font-weight:600;color:var(--ink-2);margin:6px 0 0">Cambio en la ganancia esperada, de un extremo al otro (Bs)</p>`
-    + `<p class="nota">En este repuesto, lo que más mueve la ganancia es ${fr[T[0].supuesto]}${T[0].supuesto === "dolar" ? "" : `, más que ${fr[T[1].supuesto]}`}. Vigílelo primero.</p>`;
+    + `<p class="nota">En este repuesto, lo que más cambia la ganancia es ${fr[T[0].supuesto]}${T[0].supuesto === "dolar" ? "" : `, más que ${fr[T[1].supuesto]}`}: conviene seguirlo de cerca.</p>`;
 }
 
 /* Con los supuestos de base gana «lo justo» en los 30 repuestos (el stock alcanza y comprar de más solo paga si el
@@ -1214,11 +1261,11 @@ function lecturaQuiebre(Q, s){
   const el = $("alts-q"), m = ultimo && ultimo.mejor;
   if(!m){ el.hidden = true; return; }
   const t = k => "«" + ALT[k].t.toLowerCase() + "»";
-  let txt = `<strong>Con estos supuestos gana ${t(m)}.</strong> `;
+  let txt = `<strong>Con estos supuestos conviene ${t(m)}.</strong> `;
   if(m === "A") txt += "El stock y lo que viene en camino alcanzan; comprar de más solo conviene si el dólar sube lo suficiente para pagar el costo del dinero inmovilizado. ";
-  if(Q === null) txt += "Con cualquier dólar a 90 días entre 9 y 15 Bs gana la misma alternativa.";
-  else if(s.tc_90 < Q.valor) txt += `Si espera que el dólar llegue a <strong>${nf(Q.valor,2)} Bs</strong> en 90 días, pasa a ganar ${t(Q.despues)}: mueva el primer supuesto para verlo.`;
-  else txt += `Su supuesto (${nf(s.tc_90,2)} Bs) está por encima del dólar de quiebre (${nf(Q.valor,2)} Bs); por debajo de ese valor ganaría ${t(Q.antes)}.`;
+  if(Q === null) txt += "Con cualquier dólar a 90 días entre 9 y 15 Bs conviene la misma alternativa.";
+  else if(s.tc_90 < Q.valor) txt += `Si espera que el dólar llegue a <strong>${nf(Q.valor,2)} Bs</strong> en 90 días, pasa a convenir ${t(Q.despues)}: cambie el primer supuesto para verlo.`;
+  else txt += `Su supuesto (${nf(s.tc_90,2)} Bs) está por encima del dólar de quiebre (${nf(Q.valor,2)} Bs); por debajo de ese valor convendría ${t(Q.antes)}.`;
   el.innerHTML = txt; el.hidden = false;
 }
 
@@ -1241,15 +1288,15 @@ $("b-reset").addEventListener("click", () => { Object.assign(S, INI, {elegida:nu
 /* ==================== PROVEEDORES ==================== */
 function pintarProveedoresVista(){
   if(!S.pvRep) S.pvRep = S.rep || (seguro(alertas) || [{id:D.repuestos[0].repuesto_id}])[0].id;
-  $("pv-rep").innerHTML = D.repuestos.map(r => `<option value="${r.repuesto_id}">${r.repuesto_id} · carparts ${r.codigo_carparts} · ${r.tipo_demanda} ${r.clase_abc}</option>`).join("");
+  $("pv-rep").innerHTML = D.repuestos.map(r => `<option value="${r.repuesto_id}">${r.repuesto_id} · ${PATRON[r.tipo_demanda] || r.tipo_demanda} · clase ${r.clase_abc}</option>`).join("");
   $("pv-rep").value = S.pvRep;
   const f = seguro(() => Motor.compararProveedores(D, S.pvRep, tcHoy()), $("t-pv")); if(!f) return;
   const r = REP[S.pvRep], max = f[f.length - 1].total_bs;
   $("pv-tit").innerHTML = `${S.pvRep} · costo puesto en Santa Cruz con el dólar oficial (${nf(OF.valor,2)})`;
-  $("t-pv").innerHTML = `<thead><tr><th>Proveedor</th><th>Origen</th><th>Incoterm<span class="ayuda">qué gastos ya incluye el precio</span></th><th>Costo puesto<span class="ayuda">fábrica + flete + aduana, en Bs</span></th><th>Plazo normal</th><th>Variación del plazo<span class="ayuda">cuántos días puede correrse</span></th><th>A tiempo<span class="ayuda">de cada 100 entregas</span></th></tr></thead><tbody>` +
+  $("t-pv").innerHTML = `<thead><tr><th>Proveedor</th><th>Origen</th><th>Incoterm${info("Incoterm", INCOTERM_TXT)}</th><th>Costo puesto${info("Costo puesto", "Precio de fábrica más flete y gastos de aduana, en bolivianos: lo que cuesta tener una unidad en el almacén de Santa Cruz.")}</th><th>Plazo normal${info("Plazo normal", "Días que tarda habitualmente el proveedor desde el pedido hasta la llegada al almacén.")}</th><th>Variación del plazo${info("Variación del plazo", "Cuántos días suele adelantarse o atrasarse la entrega respecto del plazo normal.")}</th><th>Entregas a tiempo${info("Entregas a tiempo", "De cada 100 pedidos pasados, cuántos llegaron dentro del plazo.")}</th></tr></thead><tbody>` +
     f.map((p,i) => `<tr${i === 0 ? ' data-sel="true"' : ""}><td><b>${esc(nombreProv(p))}</b>${i === 0 ? ' <span class="tag">Menor costo</span>' : ""}${p.proveedor_id === r.proveedor_id ? ' <span class="tag" style="background:#eceae5;color:var(--ink-2)">El de hoy</span>' : ""}</td><td>${esc(p.origen)}</td><td>${p.incoterm}</td><td>Bs ${nf(p.total_bs,2)}<span class="barra" style="width:${Math.round(p.total_bs / max * 100)}%"></span></td><td>${p.plazo_normal_dias} d</td><td>± ${p.desvio_plazo_dias} d</td><td class="${p.pct_entregas_a_tiempo < 80 ? "c-warn" : ""}">${p.pct_entregas_a_tiempo}</td></tr>`).join("") + "</tbody>";
   const hoy = f.find(p => p.proveedor_id === r.proveedor_id), lentos = f.filter(p => p.pct_entregas_a_tiempo < 80).length;
-  $("pv-nota").innerHTML = `<strong>Lo que se ve al comparar:</strong> el más barato puesto en Santa Cruz es ${esc(nombreProv(f[0]))}, Bs ${nf(f[0].total_bs,2)} por unidad${hoy && hoy !== f[0] ? `; el proveedor de hoy cuesta Bs ${nf(hoy.total_bs - f[0].total_bs,2)} más` : hoy === f[0] ? ", y es el proveedor de hoy" : ""}. ${lentos ? `Ojo con los ${lentos} que llegan a tiempo menos de 80 de cada 100 veces: el simulador les suma el riesgo de atraso.` : ""}`;
+  $("pv-nota").innerHTML = `<strong>Conclusión:</strong> el más barato puesto en Santa Cruz es ${esc(nombreProv(f[0]))}, con Bs ${nf(f[0].total_bs,2)} por unidad${hoy && hoy !== f[0] ? (hoy.total_bs - f[0].total_bs >= 0.005 ? `; el proveedor actual cuesta Bs ${nf(hoy.total_bs - f[0].total_bs,2)} más` : "; el proveedor actual cuesta lo mismo") : hoy === f[0] ? ", y es el proveedor actual" : ""}. ${lentos ? `Atención: ${lentos} ${lentos === 1 ? "proveedor entrega" : "proveedores entregan"} a tiempo menos de 80 de cada 100 pedidos; el simulador les suma el riesgo de atraso.` : ""}`;
 }
 $("pv-rep").addEventListener("change", e => { S.pvRep = e.target.value; pintarProveedoresVista(); });
 
@@ -1266,8 +1313,8 @@ function pintarPlan(){
   const total = filas.length ? filas[filas.length - 1].acumulado_bs : 0, usado = filas.filter(f => f.alcanza).reduce((s,f) => s + f.costo_bs, 0);
   $("acum").style.width = (S.presu > 0 ? Math.min(100, usado / S.presu * 100) : 0) + "%";
   $("usado-txt").textContent = `${bs(usado)} de ${bs(S.presu)}. Pedir todo costaría ${bs(total)}.`;
-  $("t-plan").innerHTML = `<thead><tr><th>Orden</th><th style="text-align:left">Repuesto</th><th style="text-align:left">Por qué ahora<span class="ayuda">días que faltan para el punto de pedido</span></th><th>Cantidad</th><th>Costo puesto</th><th>Acumulado</th></tr></thead><tbody>` +
-    filas.map((a,i) => `<tr${a.alcanza ? "" : ' class="fuera"'}><td>${i + 1}</td><td style="text-align:left"><b>${a.id}</b><span class="ayuda">clase ${REP[a.id].clase_abc}</span></td><td style="text-align:left">${insignia(a.est)} ${a.margen_dias <= 0 ? "ya está en el punto de pedido" : nf(a.margen_dias) + " días para el punto de pedido"}</td><td>${nf(a.cantidad_sugerida)}</td><td>${bs(a.costo_bs)}</td><td>${bs(a.acumulado_bs)}${a.alcanza ? "" : ' <span class="insignia na">No alcanza</span>'}</td></tr>`).join("") + "</tbody>";
+  $("t-plan").innerHTML = `<thead><tr><th>Orden</th><th style="text-align:left">Repuesto</th><th style="text-align:left">Motivo${info("Motivo", "Estado del repuesto y días que faltan para que llegue al punto de pedido, es decir, al nivel en que hay que pedir.")}</th><th>Cantidad</th><th>Costo puesto</th><th>Acumulado${info("Acumulado", "Suma del costo de este pedido y de todos los anteriores en la lista. Cuando supera el presupuesto, el pedido queda fuera.")}</th></tr></thead><tbody>` +
+    filas.map((a,i) => `<tr${a.alcanza ? "" : ' class="fuera"'}><td>${i + 1}</td><td style="text-align:left"><b>${a.id}</b><span class="ayuda">clase ${REP[a.id].clase_abc}</span></td><td style="text-align:left">${insignia(a.est)} ${a.margen_dias <= 0 ? "ya está en el punto de pedido" : nf(a.margen_dias) + " días para el punto de pedido"}</td><td>${nf(a.cantidad_sugerida)}</td><td>${bs(a.costo_bs)}</td><td>${bs(a.acumulado_bs)}${a.alcanza ? "" : ' <span class="insignia na">Fuera del presupuesto</span>'}</td></tr>`).join("") + "</tbody>";
 }
 let tPresu = null;
 $("f-presu").addEventListener("input", e => { const v = parseFloat(e.target.value); if(v >= 0){ clearTimeout(tPresu); tPresu = setTimeout(() => { S.presu = v; pintarPlan(); }, 150); } });
@@ -1279,26 +1326,26 @@ const tmDatos = () => TM || (TM = Motor.temporadas(D));
 function pintarTemporadas(){
   const T = seguro(tmDatos, $("chart-tm")); if(!T) return;
   if(S.tmRep === undefined) S.tmRep = "";
-  $("tm-rep").innerHTML = '<option value="">Los 30 repuestos juntos</option>' + D.repuestos.map(r => `<option value="${r.repuesto_id}">${r.repuesto_id} · carparts ${r.codigo_carparts} · ${r.tipo_demanda} ${r.clase_abc}</option>`).join("");
+  $("tm-rep").innerHTML = '<option value="">Los 30 repuestos juntos</option>' + D.repuestos.map(r => `<option value="${r.repuesto_id}">${r.repuesto_id} · ${PATRON[r.tipo_demanda] || r.tipo_demanda} · clase ${r.clase_abc}</option>`).join("");
   $("tm-rep").value = S.tmRep;
   const p = S.tmRep ? T.repuestos.find(x => x.id === S.tmRep) : T.total, quien = S.tmRep || "los 30 repuestos juntos";
-  $("tm-tit").textContent = `Venta promedio por mes del año: ${quien}`;
+  $("tm-tit").innerHTML = esc(`Venta promedio por mes del año: ${quien}`) + info("Venta promedio por mes del año", "Cada barra es el promedio de unidades vendidas en ese mes, considerando todos los años con datos. En verde, los meses que venden más que el promedio del año (temporada alta).");
   if(!p || !p.media){
     $("tm-kpis").innerHTML = ""; $("chart-tm").innerHTML = '<p class="err">Este repuesto no tiene ventas registradas: no se puede ver su temporada.</p>';
     $("t-tm").innerHTML = ""; $("tm-nota").textContent = ""; pintarMapa(T); return;
   }
   const ip = p.indice[p.mes_pico - 1], iflo = p.indice[p.mes_flojo - 1];
   $("tm-kpis").innerHTML = `
-    <div class="kpi"><div class="t">Mes más fuerte</div><div class="v">${capital(MES_L[p.mes_pico - 1])}</div><div class="d">vende ${nf(ip,1)} veces el promedio</div><span class="ayuda">Conviene tener stock antes de que empiece.</span></div>
-    <div class="kpi"><div class="t">Mes más flojo</div><div class="v">${capital(MES_L[p.mes_flojo - 1])}</div><div class="d">vende ${nf(iflo,1)} veces el promedio</div><span class="ayuda">Buen momento para no llenar el almacén.</span></div>
-    <div class="kpi"><div class="t">Meses fuertes</div><div class="v">${p.meses_fuertes.length}<small>de 12</small></div><div class="d">venden más que el promedio</div><span class="ayuda">Son las barras verdes del gráfico.</span></div>
-    <div class="kpi"><div class="t">Venta promedio</div><div class="v">${nf(p.media,1)}<small>u/mes</small></div><div class="d">promedio de los 12 meses</div><span class="ayuda">La línea oscura del gráfico.</span></div>`;
+    <div class="kpi"><div class="t">Mes de mayor venta${info("Mes de mayor venta", "El mes del año con la venta promedio más alta, comparada con el promedio de los 12 meses. Conviene tener stock antes de que empiece.")}</div><div class="v">${capital(MES_L[p.mes_pico - 1])}</div><div class="d">vende ${nf(ip,1)} veces el promedio</div></div>
+    <div class="kpi"><div class="t">Mes de menor venta${info("Mes de menor venta", "El mes del año con la venta promedio más baja. Conviene no acumular stock para ese mes.")}</div><div class="v">${capital(MES_L[p.mes_flojo - 1])}</div><div class="d">vende ${nf(iflo,1)} veces el promedio</div></div>
+    <div class="kpi"><div class="t">Meses de temporada alta${info("Meses de temporada alta", "Cantidad de meses del año que venden más que el promedio. Son las barras verdes del gráfico.")}</div><div class="v">${p.meses_fuertes.length}<small>de 12</small></div><div class="d">venden más que el promedio</div></div>
+    <div class="kpi"><div class="t">Venta promedio${info("Venta promedio", "Unidades vendidas por mes en promedio, considerando los 12 meses del año. Es la línea oscura del gráfico.")}</div><div class="v">${nf(p.media,1)}<small>unidades por mes</small></div><div class="d">promedio de los 12 meses</div></div>`;
   const W = Math.max(320, Math.round($("chart-tm").clientWidth || 900)), H = 260, pl = 48, pb = 44, pr = 12;
   const mx = Math.max(...p.promedio_mes.map(v => v || 0), p.media) * 1.15, bw = (W - pl - pr) / 12;
   const X = i => pl + i * bw, Y = v => 10 + (1 - v / mx) * (H - pb - 10);
   const ticks = [0, mx / 2, mx / 1.15].map(t => Math.round(t * 10) / 10);
-  const barras = p.promedio_mes.map((v,i) => v === null ? "" : `<rect class="bm${p.meses_fuertes.includes(i + 1) ? " f" : ""}" x="${(X(i) + bw*.18).toFixed(1)}" y="${Y(v).toFixed(1)}" width="${(bw*.64).toFixed(1)}" height="${Math.max(0, H - pb - Y(v)).toFixed(1)}" rx="3"><title>${capital(MES_L[i])}: ${nf(v,2)} u en promedio (${p.observaciones[i]} años con dato)</title></rect>`).join("");
-  $("chart-tm").innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Venta promedio por mes de ${esc(quien)}. Mes más fuerte: ${MES_L[p.mes_pico - 1]}; más flojo: ${MES_L[p.mes_flojo - 1]}">
+  const barras = p.promedio_mes.map((v,i) => v === null ? "" : `<rect class="bm${p.meses_fuertes.includes(i + 1) ? " f" : ""}" x="${(X(i) + bw*.18).toFixed(1)}" y="${Y(v).toFixed(1)}" width="${(bw*.64).toFixed(1)}" height="${Math.max(0, H - pb - Y(v)).toFixed(1)}" rx="3"><title>${capital(MES_L[i])}: ${nf(v,2)} unidades en promedio (${p.observaciones[i]} años con dato)</title></rect>`).join("");
+  $("chart-tm").innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Venta promedio por mes de ${esc(quien)}. Mes de mayor venta: ${MES_L[p.mes_pico - 1]}; de menor venta: ${MES_L[p.mes_flojo - 1]}">
     ${ticks.map(t => `<line class="grid" x1="${pl}" x2="${W-pr}" y1="${Y(t)}" y2="${Y(t)}"/><text x="${pl-6}" y="${Y(t)+4}" text-anchor="end">${nf(t, mx < 11.5 ? 1 : 0)}</text>`).join("")}
     ${barras}
     <line x1="${pl}" x2="${W-pr}" y1="${Y(p.media)}" y2="${Y(p.media)}" stroke="var(--graphite)" stroke-width="2"/>
@@ -1306,9 +1353,9 @@ function pintarTemporadas(){
     ${MES.map((m,i) => `<text x="${X(i) + bw/2}" y="${H-24}" text-anchor="middle">${m}</text>`).join("")}
     <text class="axt" x="${(pl + W - pr) / 2}" y="${H-4}" text-anchor="middle">Mes del año</text>
     <text class="axt" transform="translate(12 ${(H - pb) / 2}) rotate(-90)" text-anchor="middle">Unidades por mes (promedio)</text></svg>`;
-  $("t-tm").innerHTML = "<thead><tr><th style=\"text-align:left\">Mes</th><th>Venta promedio</th><th>Frente al promedio</th><th>Años con dato</th></tr></thead><tbody>" +
-    p.promedio_mes.map((v,i) => `<tr><td style="text-align:left">${capital(MES_L[i])}${p.meses_fuertes.includes(i + 1) ? ' <span class="tag">fuerte</span>' : ""}</td><td>${v === null ? "—" : nf(v,2) + " u"}</td><td>${p.indice[i] === null ? "—" : nf(p.indice[i],2)}</td><td>${p.observaciones[i]}</td></tr>`).join("") + "</tbody>";
-  let nota = `<strong>Lo que descubre:</strong> ${capital(MES_L[p.mes_pico - 1])} vende ${nf(ip,1)} veces el promedio y ${MES_L[p.mes_flojo - 1]}, ${nf(iflo,1)}. Los meses fuertes son ${p.meses_fuertes.map(m => MES_L[m - 1]).join(", ")}.`;
+  $("t-tm").innerHTML = `<thead><tr><th style="text-align:left">Mes</th><th>Venta promedio</th><th>Respecto del promedio${info("Respecto del promedio", "Índice estacional: venta del mes dividida por el promedio del año. 1,0 es un mes normal; 1,4 significa un 40 % más.")}</th><th>Años con dato</th></tr></thead><tbody>` +
+    p.promedio_mes.map((v,i) => `<tr><td style="text-align:left">${capital(MES_L[i])}${p.meses_fuertes.includes(i + 1) ? ' <span class="tag">temporada alta</span>' : ""}</td><td>${v === null ? "—" : nf(v,2) + " unidades"}</td><td>${p.indice[i] === null ? "—" : nf(p.indice[i],2)}</td><td>${p.observaciones[i]}</td></tr>`).join("") + "</tbody>";
+  let nota = `<strong>Conclusión:</strong> ${capital(MES_L[p.mes_pico - 1])} vende ${nf(ip,1)} veces el promedio y ${MES_L[p.mes_flojo - 1]}, ${nf(iflo,1)}. Los meses de temporada alta son ${p.meses_fuertes.map(m => MES_L[m - 1]).join(", ")}.`;
   if(S.tmRep){
     const r = REP[S.tmRep], plazo = PRV[r.proveedor_id] ? PRV[r.proveedor_id].plazo_normal_dias : null;
     if(plazo !== null){ const mp = ((p.mes_pico - 1) - Math.ceil(plazo / 30) + 24) % 12;
@@ -1316,7 +1363,7 @@ function pintarTemporadas(){
   } else {
     const cuenta = new Array(12).fill(0); T.repuestos.forEach(x => { if(x.mes_pico) cuenta[x.mes_pico - 1]++; });
     const m = cuenta.indexOf(Math.max(...cuenta));
-    nota += ` Cada repuesto tiene su propio calendario: el mes más repetido como el más fuerte es ${MES_L[m]}, y solo en ${cuenta[m]} de los 30.`;
+    nota += ` Cada repuesto tiene su propio calendario: el mes que más veces aparece como el de mayor venta es ${MES_L[m]}, y solo en ${cuenta[m]} de los 30.`;
   }
   $("tm-nota").innerHTML = nota;
   pintarMapa(T);
@@ -1325,7 +1372,7 @@ function pintarMapa(T){
   const color = i => i === null || i <= 1 ? "" : `background:rgba(1,134,62,${Math.min(1, .12 + (i - 1) / 2 * .88).toFixed(2)})`;
   $("t-tm-mapa").innerHTML = `<thead><tr><th>Repuesto</th>${MES.map(m => `<th>${m}</th>`).join("")}</tr></thead><tbody>` +
     T.repuestos.map(x => `<tr tabindex="0" data-rep="${x.id}" data-sel="${x.id === S.tmRep}" aria-label="${x.id}: mes más fuerte ${x.mes_pico ? MES_L[x.mes_pico - 1] : "sin datos"}. Ver en el gráfico"><td><b>${x.id}</b></td>${x.indice.map((i,k) => `<td class="c${i !== null && i >= 1.6 ? " f" : ""}" style="${color(i)}" title="${capital(MES_L[k])}: ${i === null ? "sin dato" : nf(i,2) + " veces el promedio"}">${i === null ? "—" : nf(i,1)}</td>`).join("")}</tr>`).join("") + "</tbody>";
-  $("tm-pie").textContent = "Ventas REALES de carparts (Hyndman, Koehler, Ord y Snyder, 2008), 51 meses por repuesto. Los meses están re-fechados (SCRUM-55): enero de 1998 de carparts es agosto de 2022 aquí, así que el patrón es el de carparts corrido siete meses, no el de Santa Cruz. Un mes sin dato no se cuenta como cero.";
+  $("tm-pie").textContent = "Ventas de la base pública carparts (Hyndman, Koehler, Ord y Snyder, 2008), 51 meses por repuesto. Las fechas se trasladaron (historia SCRUM-55 del proyecto): enero de 1998 de la base original corresponde a agosto de 2022, así que el calendario es el de la base corrido siete meses, no el de Santa Cruz. Un mes sin dato no se cuenta como cero.";
 }
 function elegirTemporada(id){ S.tmRep = id; pintarTemporadas(); $("tm-rep").scrollIntoView({block:"center"}); }
 $("tm-rep").addEventListener("change", e => { S.tmRep = e.target.value; pintarTemporadas(); });
@@ -1343,19 +1390,19 @@ function pintarClientes(){
   const top5 = lista.slice(0,5).reduce((s,c) => s + c[campo], 0), mx = Math.max(...lista.map(c => c[campo]), 1);
   const mesesT = T.temporada.map(m => MES[m-1]).join(", "), pTemp = T.total.monto_bs > 0 ? T.total.monto_temp_bs / T.total.monto_bs * 100 : 0;
   $("cli-kpis").innerHTML = `
-    <div class="kpi"><div class="t">Clientes</div><div class="v">${T.clientes.length}</div><div class="d">con compras registradas</div><span class="ayuda">Todos SINTÉTICOS, repartidos sobre ventas reales.</span></div>
-    <div class="kpi"><div class="t">Los 5 que más compran</div><div class="v">${nf(tot ? top5 / tot * 100 : 0)}<small>%</small></div><div class="d">de lo comprado en ${txt}</div><span class="ayuda">Si es alto, perder uno de ellos se nota mucho.</span></div>
-    <div class="kpi"><div class="t">Compras en temporada</div><div class="v">${nf(pTemp)}<small>%</small></div><div class="d">meses: ${mesesT}</div><span class="ayuda">${T.temporada.length} meses de 12 concentran esta parte.</span></div>
-    <div class="kpi"><div class="t">Tipo que más compra</div><div class="v" style="font-size:22px">${esc(T.por_tipo[0].tipo)}</div><div class="d">${nf(T.por_tipo[0].monto_bs / T.total.monto_bs * 100)} % del total</div><span class="ayuda">Sumando todos los clientes de ese tipo.</span></div>`;
+    <div class="kpi"><div class="t">Clientes</div><div class="v">${T.clientes.length}</div><div class="d">con compras registradas</div></div>
+    <div class="kpi"><div class="t">Los 5 clientes principales${info("Los 5 clientes principales", "Parte de las compras del período que hacen los 5 clientes que más compran. Si el porcentaje es alto, las ventas dependen de pocos clientes.")}</div><div class="v">${nf(tot ? top5 / tot * 100 : 0)}<small>%</small></div><div class="d">de lo comprado en ${txt}</div><span class="ayuda">Si el porcentaje es alto, perder a uno de ellos afecta mucho las ventas.</span></div>
+    <div class="kpi"><div class="t">Compras en temporada alta${info("Compras en temporada alta", "Parte de todas las compras que se hizo en los meses de temporada alta.")}</div><div class="v">${nf(pTemp)}<small>%</small></div><div class="d">meses: ${mesesT}</div><span class="ayuda">${T.temporada.length} de los 12 meses concentran esta parte.</span></div>
+    <div class="kpi"><div class="t">Tipo de cliente que más compra</div><div class="v" style="font-size:22px">${esc(T.por_tipo[0].tipo)}</div><div class="d">${nf(T.por_tipo[0].monto_bs / T.total.monto_bs * 100)} % del total</div><span class="ayuda">Suma de todos los clientes de ese tipo.</span></div>`;
   $("cli-tit").innerHTML = `Clientes ordenados por compras en ${txt}`;
   $("cli-sub").textContent = `En bolivianos, a precio de lista con el dólar oficial de hoy. 51 meses de ventas (ago-2022 a oct-2026).`;
-  $("t-cli").innerHTML = `<thead><tr><th>#</th><th>Cliente</th><th>Compras<span class="ayuda">en el período elegido</span></th><th>Del total</th><th>En temporada<span class="ayuda">parte de sus compras</span></th><th>Qué lleva más<span class="ayuda">unidades en 51 meses</span></th></tr></thead><tbody>` +
+  $("t-cli").innerHTML = `<thead><tr><th>#</th><th>Cliente</th><th>Compras<span class="ayuda">en el período elegido</span></th><th>Parte del total</th><th>Compras en temporada alta${info("Compras en temporada alta", "Porcentaje de las compras de este cliente que se hizo en los meses de temporada alta.")}</th><th>Repuesto que más compra<span class="ayuda">unidades en 51 meses</span></th></tr></thead><tbody>` +
     lista.map((c,i) => `<tr><td>${i + 1}</td><td><b>${esc(c.nombre.replace(" (ficticio)", ""))}</b><span class="ayuda">${esc(c.tipo)} · ${esc(c.zona)}</span></td><td>${bs(c[campo])}<span class="barra" style="width:${Math.round(c[campo] / mx * 100)}%"></span></td><td>${tot ? nf(c[campo] / tot * 100, 1) + " %" : "—"}</td><td>${c.pct_temp === null ? "—" : nf(c.pct_temp) + " %"}</td><td class="lleva">${c.top.map(t => `${esc(nombreRep(t.id))} (${t.unidades})`).join("; ")}</td></tr>`).join("") + "</tbody>";
-  $("t-cli-tipo").innerHTML = `<thead><tr><th>#</th><th>Tipo</th><th>Compras</th><th>Del total</th><th>En temporada</th><th>Clientes</th></tr></thead><tbody>` +
+  $("t-cli-tipo").innerHTML = `<thead><tr><th>#</th><th>Tipo</th><th>Compras</th><th>Parte del total</th><th>En temporada alta</th><th>Clientes</th></tr></thead><tbody>` +
     T.por_tipo.map((t,i) => `<tr><td>${i + 1}</td><td><b>${esc(t.tipo)}</b></td><td>${bs(t.monto_bs)}</td><td>${nf(t.monto_bs / T.total.monto_bs * 100, 1)} %</td><td>${nf(t.monto_temp_bs / t.monto_bs * 100)} %</td><td style="text-align:left">${t.clientes}</td></tr>`).join("") + "</tbody>";
   const p = lista[0], masTemp = T.clientes.filter(c => c.monto_bs > 0).sort((a,b) => b.pct_temp - a.pct_temp)[0];
-  $("cli-nota").innerHTML = `<strong>Lo que descubre:</strong> en ${txt}, ${esc(p.nombre.replace(" (ficticio)", ""))} compra el ${nf(p[campo] / tot * 100, 1)} % y los cinco primeros, el ${nf(top5 / tot * 100)} %. ${esc(masTemp.nombre.replace(" (ficticio)", ""))} es el que más depende de la temporada: el ${nf(masTemp.pct_temp)} % de lo que compra cae en esos meses.`;
-  $("cli-pie").textContent = "Clientes SINTÉTICOS: carparts no dice a quién se vendió. Cada unidad vendida (dato REAL) se asignó a un cliente con una regla escrita y una semilla fija (SCRUM-76), así que el patrón por cliente lo pone la regla, no los datos. Temporada: meses que superan el promedio de los 30 repuestos (vista Temporadas). Cuando se carguen ventas y cotizaciones (SCRUM-73 y SCRUM-77), el tablero se recalcula con ellas.";
+  $("cli-nota").innerHTML = `<strong>Conclusión:</strong> en ${txt}, ${esc(p.nombre.replace(" (ficticio)", ""))} compra el ${nf(p[campo] / tot * 100, 1)} % y los cinco primeros, el ${nf(top5 / tot * 100)} %. ${esc(masTemp.nombre.replace(" (ficticio)", ""))} es el que más depende de la temporada: el ${nf(masTemp.pct_temp)} % de lo que compra cae en esos meses.`;
+  $("cli-pie").textContent = "Temporada alta: meses que superan el promedio de los 30 repuestos (pantalla Temporadas de venta). Las ventas por cliente se repartieron con una regla fija (historia SCRUM-76 del proyecto). Las cotizaciones que se marcan como venta en el portal se suman automáticamente.";
 }
 $("cli-per").addEventListener("click", e => { const b = e.target.closest("button[data-v]"); if(b){ S.cliPer = b.dataset.v; pintarClientes(); } });
 
@@ -1363,15 +1410,15 @@ $("cli-per").addEventListener("click", e => { const b = e.target.closest("button
 /* Objetivo general del trabajo: determinar las técnicas de análisis de datos que apoyan las decisiones de compra de
    MULTIPARTES. Cada pantalla del importador dice en una línea qué técnica usa y para qué decisión sirve. */
 const TECNICA = {
-  dashboard:["Estadística descriptiva: totales, ranking de clientes y repuestos, serie mensual y concentración (Pareto)","ver qué se vende, a quién y cuánto dinero entra antes de decidir qué comprar"],
-  predicciones:["Clasificación supervisada con regresión logística, validada con los últimos 12 meses","asegurar stock de los repuestos con más probabilidad de venderse el mes que viene"],
-  rotacion:["Análisis ABC (Pareto 80/95 sobre el valor vendido) cruzado con la rotación del stock","dar prioridad a lo importante que rota y frenar la compra de lo que se acumula"],
-  alertas:["Punto de pedido con stock de seguridad (política s, S) sobre el pronóstico de cada repuesto","saber qué pedir esta semana y en qué cantidad"],
-  simulador:["Simulación de Monte Carlo sobre el pronóstico y el plazo del proveedor","elegir cuánto pedir entre cuatro alternativas, con su riesgo"],
+  dashboard:["Estadística descriptiva: totales, clientes y repuestos ordenados por lo que compran o venden, ventas mes a mes y concentración de las ventas en pocos clientes (principio de Pareto)","saber qué se vende, a quién y cuánto se vende antes de decidir qué comprar"],
+  predicciones:["Clasificación supervisada con regresión logística: estima, a partir del historial de ventas, la probabilidad de que cada repuesto se venda; se validó con los últimos 12 meses","asegurar stock de los repuestos con más probabilidad de venderse el mes que viene"],
+  rotacion:["Análisis ABC: los repuestos se ordenan por valor vendido; los que suman el primer 80 % son clase A, hasta el 95 % clase B y el resto clase C. Se cruza con la rotación, es decir, con qué rapidez se vende el stock","dar prioridad a lo importante que se vende rápido y frenar la compra de lo que se acumula"],
+  alertas:["Punto de pedido con stock de seguridad: cuando el stock baja de un nivel (s) se pide hasta llegar a otro (S); los dos niveles salen del pronóstico de cada repuesto","saber qué pedir esta semana y en qué cantidad"],
+  simulador:["Simulación de Monte Carlo: el cálculo se repite en 1.500 escenarios generados al azar alrededor del pronóstico de venta, del precio del dólar y del plazo del proveedor","elegir cuánto pedir entre cuatro alternativas, conociendo el riesgo de cada una"],
   proveedores:["Comparación del costo puesto en Santa Cruz y del cumplimiento de plazos","elegir a qué proveedor comprar"],
-  plan:["Priorización por urgencia y clase dentro de un presupuesto","decidir qué comprar primero cuando el dinero no alcanza"],
-  temporadas:["Índice estacional: venta de cada mes frente al promedio del año","pedir con tiempo antes de los meses fuertes"],
-  clientes:["Ranking y concentración de compras por cliente (Pareto)","saber de qué clientes depende la venta"]};
+  plan:["Priorización por urgencia y por clase ABC dentro de un presupuesto","decidir qué comprar primero cuando el presupuesto no alcanza para todo"],
+  temporadas:["Índice estacional: venta de cada mes comparada con el promedio del año (1,0 es un mes normal)","pedir con anticipación a los meses de mayor venta"],
+  clientes:["Clientes ordenados por compras y concentración de las ventas (principio de Pareto: pocos clientes explican la mayor parte)","saber de qué clientes dependen las ventas"]};
 Object.entries(TECNICA).forEach(([v, [t, d]]) => { const h = document.querySelector(`#v-${v} .hero > div`);
   if(h) h.insertAdjacentHTML("beforeend", `<p class="tecnica"><span><b>Técnica:</b> ${t}.</span><span><b>Sirve para:</b> ${d}.</span></p>`); });
 const nomCli = n => String(n).replace(" (ficticio)", "");
@@ -1386,10 +1433,10 @@ function pintarDashboard(){
   const top = T.clientes[0], rep = T.repuestos[0], empate = T.repuestos.filter(r => r.unidades === rep.unidades);
   const var12 = T.prev12_bs > 0 ? (T.ult12_bs - T.prev12_bs) / T.prev12_bs * 100 : null;
   $("db-kpis").innerHTML = `
-    <div class="kpi"><div class="t">Dinero que entró</div><div class="v">${bs(T.total.monto_bs)}</div><div class="d">${nf(T.total.unidades)} unidades, ${mesL(T.meses[0])} a ${mesL(T.ultimo_mes)}</div><span class="ayuda">Unidades por precio de lista con el dólar oficial de hoy.</span></div>
-    <div class="kpi"><div class="t">Últimos 12 meses</div><div class="v">${bs(T.ult12_bs)}</div><div class="d">${var12 === null ? "sin año anterior para comparar" : (var12 >= 0 ? "+" : "−") + nf(Math.abs(var12)) + " % frente a los 12 anteriores"}</div><span class="ayuda">Hasta ${mesL(T.ultimo_mes)}, el último mes con datos.</span></div>
-    <div class="kpi"><div class="t">Repuesto que más salió</div><div class="v txt">${esc(nombreRep(rep.id))}</div><div class="d">${rep.id} · ${nf(rep.unidades)} unidades (${nf(rep.pct_unidades,1)} %)</div><span class="ayuda">${empate.length > 1 ? `Empata en unidades con ${empate.slice(1).map(r => r.id).join(", ")}; va primero por dinero.` : "Unidades vendidas desde " + mesL(T.meses[0]) + "."}</span></div>
-    <div class="kpi"><div class="t">Cliente que más compra</div><div class="v txt">${esc(nomCli(top.nombre))}</div><div class="d">${bs(top.monto_bs)} · ${nf(top.pct_total,1)} % del total</div><span class="ayuda">Los 5 primeros suman el ${nf(T.top5_pct)} %.</span></div>`;
+    <div class="kpi"><div class="t">Ventas totales${info("Ventas totales", `Unidades vendidas desde ${mesL(T.meses[0])} multiplicadas por el precio de lista de hoy, en bolivianos con el dólar oficial del Banco Central de Bolivia. Se usa un solo precio para poder comparar períodos.`)}</div><div class="v">${bs(T.total.monto_bs)}</div><div class="d">${nf(T.total.unidades)} unidades, de ${mesL(T.meses[0])} a ${mesL(T.ultimo_mes)}</div></div>
+    <div class="kpi"><div class="t">Ventas de los últimos 12 meses${info("Ventas de los últimos 12 meses", `Ventas en bolivianos de los 12 meses que terminan en ${mesL(T.ultimo_mes)}, el último mes con datos, comparadas con los 12 meses anteriores. Un porcentaje positivo indica que se vendió más.`)}</div><div class="v">${bs(T.ult12_bs)}</div><div class="d">${var12 === null ? "sin año anterior para comparar" : (var12 >= 0 ? "+" : "−") + nf(Math.abs(var12)) + " % respecto de los 12 meses anteriores"}</div></div>
+    <div class="kpi"><div class="t">Repuesto más vendido${info("Repuesto más vendido", `El repuesto con más unidades vendidas desde ${mesL(T.meses[0])}. Si dos repuestos empatan en unidades, va primero el que vendió más en bolivianos.`)}</div><div class="v txt">${esc(nombreRep(rep.id))}</div><div class="d">${rep.id} · ${nf(rep.unidades)} unidades (${nf(rep.pct_unidades,1)} %)</div><span class="ayuda">${empate.length > 1 ? `Empata en unidades con ${empate.slice(1).map(r => r.id).join(", ")}; va primero por el monto vendido.` : "Unidades vendidas desde " + mesL(T.meses[0]) + "."}</span></div>
+    <div class="kpi"><div class="t">Cliente que más compra${info("Cliente que más compra", "El cliente con más compras en bolivianos desde el inicio de los datos. Debajo, su parte del total.")}</div><div class="v txt">${esc(nomCli(top.nombre))}</div><div class="d">${bs(top.monto_bs)} · ${nf(top.pct_total,1)} % del total</div><span class="ayuda">Los 5 clientes que más compran suman el ${nf(T.top5_pct)} % de las ventas.</span></div>`;
   // Demanda por mes, con promedio móvil de 12 meses para ver la tendencia sin el ruido de cada mes.
   const dm = T.demanda_mes, W = Math.max(320, Math.round($("chart-db").clientWidth || 900)), H = 270, pl = 48, pb = 46, pr = 12;
   const mx = Math.max(...dm.map(x => x.unidades), 1) * 1.12, bw = (W - pl - pr) / dm.length;
@@ -1406,22 +1453,22 @@ function pintarDashboard(){
     ${etiq}
     <text class="axt" x="${(pl + W - pr) / 2}" y="${H-4}" text-anchor="middle">Mes</text>
     <text class="axt" transform="translate(12 ${(H - pb) / 2}) rotate(-90)" text-anchor="middle">Unidades vendidas</text></svg>`;
-  $("db-dem-sub").textContent = `Unidades vendidas de los 30 repuestos, de ${mesL(dm[0].mes)} a ${mesL(T.ultimo_mes)} (${dm.length} meses). Pase el cursor sobre una barra para ver el mes.`;
-  $("t-db-mes").innerHTML = "<thead><tr><th>Mes</th><th>Unidades</th><th>Dinero</th><th>Promedio móvil 12 meses</th></tr></thead><tbody>" +
+  $("db-dem-sub").textContent = `Unidades vendidas de los 30 repuestos, de ${mesL(dm[0].mes)} a ${mesL(T.ultimo_mes)} (${dm.length} meses). Las cifras de cada mes están en la tabla debajo del gráfico.`;
+  $("t-db-mes").innerHTML = "<thead><tr><th>Mes</th><th>Unidades</th><th>Dinero</th><th>Promedio de los últimos 12 meses</th></tr></thead><tbody>" +
     dm.map((x,i) => `<tr><td>${mesL(x.mes)}</td><td>${nf(x.unidades)}</td><td>${bs(x.monto_bs)}</td><td>${pm[i] === null ? "—" : nf(pm[i],1)}</td></tr>`).join("") + "</tbody>";
   const pmUlt = pm[pm.length - 1], pmPrev = pm.length > 12 ? pm[pm.length - 13] : null;
-  $("db-nota").innerHTML = `<strong>Lo que descubre:</strong> el mes con más ventas fue ${mesL(dm[pico].mes)}, con ${nf(dm[pico].unidades)} unidades. En promedio se venden ${nf(T.total.unidades / dm.length,1)} unidades por mes.` +
+  $("db-nota").innerHTML = `<strong>Conclusión:</strong> el mes con más ventas fue ${mesL(dm[pico].mes)}, con ${nf(dm[pico].unidades)} unidades. En promedio se venden ${nf(T.total.unidades / dm.length,1)} unidades por mes.` +
     (pmUlt !== null && pmPrev ? ` El promedio de los últimos 12 meses es ${nf(pmUlt,1)} por mes, ${pmUlt >= pmPrev ? "más" : "menos"} que los ${nf(pmPrev,1)} del año anterior: en unidades, la demanda ${Math.abs(pmUlt - pmPrev) / pmPrev < .05 ? "se mantiene" : pmUlt > pmPrev ? "sube" : "baja"}.` +
       (var12 !== null && (var12 >= 0) !== (pmUlt >= pmPrev) ? ` En dinero pasa lo contrario (${var12 >= 0 ? "+" : "−"}${nf(Math.abs(var12))} %), porque cambió la mezcla: se vendieron ${var12 >= 0 ? "menos unidades pero más caras" : "más unidades pero más baratas"}.` : "") : "");
   // Dinero por año
   const mxA = Math.max(...T.por_anio.map(a => a.monto_bs), 1);
-  $("db-anio-sub").textContent = `En bolivianos, a precio de lista con el dólar oficial de hoy. ${T.por_anio[0].anio} y ${T.por_anio[T.por_anio.length-1].anio} no tienen los 12 meses.`;
-  $("t-db-anio").innerHTML = `<thead><tr><th>Año</th><th>Dinero</th><th>Unidades</th><th>Meses<span class="ayuda">con datos</span></th></tr></thead><tbody>` +
+  $("db-anio-sub").textContent = `A precio de lista con el dólar oficial de hoy. ${T.por_anio[0].anio} y ${T.por_anio[T.por_anio.length-1].anio} no tienen los 12 meses completos.`;
+  $("t-db-anio").innerHTML = `<thead><tr><th>Año</th><th>Monto vendido</th><th>Unidades</th><th>Meses<span class="ayuda">con datos</span></th></tr></thead><tbody>` +
     T.por_anio.map(a => `<tr><td><b>${a.anio}</b></td><td>${bs(a.monto_bs)}<span class="barra" style="width:${Math.round(a.monto_bs / mxA * 100)}%"></span></td><td>${nf(a.unidades)}</td><td>${a.meses}</td></tr>`).join("") +
     `<tr><td><b>Total</b></td><td><b>${bs(T.total.monto_bs)}</b></td><td><b>${nf(T.total.unidades)}</b></td><td>${dm.length}</td></tr></tbody>`;
   // Repuestos
   const reps = S.dbRep ? T.repuestos : T.repuestos.slice(0, 10), mxR = Math.max(...T.repuestos.map(r => r.unidades), 1);
-  $("t-db-rep").innerHTML = `<thead><tr><th>#</th><th>Repuesto</th><th>Unidades</th><th>Del total</th><th>Dinero</th></tr></thead><tbody>` +
+  $("t-db-rep").innerHTML = `<thead><tr><th>#</th><th>Repuesto${info("Código y clase", "Debajo del nombre va el código del repuesto y su clase ABC: A son los que concentran el 80 % del valor vendido, B el 15 % siguiente y C el 5 % restante.")}</th><th>Unidades</th><th>Parte del total${info("Parte del total", "Porcentaje de todas las unidades vendidas que corresponde a este repuesto.")}</th><th>Monto vendido</th></tr></thead><tbody>` +
     reps.map((r,i) => `<tr><td>${i + 1}</td><td><b>${esc(nombreRep(r.id))}</b><span class="ayuda">${r.id} · clase ${REP[r.id] ? REP[r.id].clase_abc : "—"}</span></td><td>${nf(r.unidades)}<span class="barra" style="width:${Math.round(r.unidades / mxR * 100)}%"></span></td><td>${nf(r.pct_unidades,1)} %</td><td>${bs(r.monto_bs)}</td></tr>`).join("") + "</tbody>";
   $("b-db-rep").textContent = S.dbRep ? "Mostrar solo los 10 primeros" : `Mostrar los ${T.repuestos.length}`;
   $("b-db-rep").setAttribute("aria-expanded", String(S.dbRep));
@@ -1440,15 +1487,15 @@ function pintarDashboard(){
       ${v.map((x,i) => `<rect class="bd" x="${(Xq(i) + bq*.16).toFixed(1)}" y="${Yq(x).toFixed(1)}" width="${(bq*.68).toFixed(1)}" height="${Math.max(0, Hq - pbq - Yq(x)).toFixed(1)}" rx="2"><title>${T.trimestres[i]}: ${bs(x)}</title></rect>`).join("")}
       ${T.trimestres.map((t,i) => t.endsWith("T1") || i === 0 ? `<text x="${(Xq(i) + bq/2).toFixed(1)}" y="${Hq-26}" text-anchor="middle">${i === 0 && !t.endsWith("T1") ? t.replace("-", " ") : t.slice(0,4)}</text>` : "").join("")}
       <text class="axt" x="${(plq + Wq - prq) / 2}" y="${Hq-4}" text-anchor="middle">Trimestre</text>
-      <text class="axt" transform="translate(12 ${(Hq - pbq) / 2}) rotate(-90)" text-anchor="middle">Bs comprados</text></svg>`; }
+      <text class="axt" transform="translate(12 ${(Hq - pbq) / 2}) rotate(-90)" text-anchor="middle">Compras (Bs)</text></svg>`; }
   const tend = c => `<span class="ten ${c.tendencia === "sin compras" ? "sin" : c.tendencia}">${capital(c.tendencia)}${c.variacion_pct === null ? "" : " " + (c.variacion_pct >= 0 ? "+" : "−") + nf(Math.abs(c.variacion_pct)) + " %"}</span>`;
-  $("db-cli-sub").textContent = `El gráfico muestra las compras de un cliente por trimestre, de ${T.trimestres[0]} a ${T.trimestres[nT-1]}; la tabla, a todos. La tendencia compara los últimos 6 meses (hasta ${mesL(T.ultimo_mes)}) con los 6 anteriores: sube o baja si cambia 10 % o más.`;
-  $("t-db-cli").innerHTML = `<thead><tr><th>#</th><th>Cliente</th><th>Compras<span class="ayuda">desde ${mesL(T.meses[0])}</span></th><th>Del total</th><th>Últimos 6 meses<span class="ayuda">frente a los 6 anteriores</span></th><th style="text-align:left">Tendencia<span class="ayuda">últimos 6 meses</span></th><th>Última compra</th></tr></thead><tbody>` +
+  $("db-cli-sub").textContent = `El gráfico muestra las compras de un cliente en cada trimestre (período de tres meses), de ${T.trimestres[0]} a ${T.trimestres[nT-1]}. La tabla muestra a todos los clientes.`;
+  $("t-db-cli").innerHTML = `<thead><tr><th>#</th><th>Cliente</th><th>Compras<span class="ayuda">desde ${mesL(T.meses[0])}</span></th><th>Parte del total</th><th>Últimos 6 meses${info("Últimos 6 meses", `Compras en bolivianos de los 6 meses hasta ${mesL(T.ultimo_mes)}. Debajo, lo que compró en los 6 meses anteriores, para comparar.`)}</th><th style="text-align:left">Tendencia${info("Tendencia", "Compara los últimos 6 meses con los 6 anteriores. Dice «Sube» o «Baja» si el cambio es de 10 % o más, y «Estable» si es menor.")}</th><th>Última compra</th></tr></thead><tbody>` +
     clis.map((c,i) => `<tr><td>${i + 1}</td><td><b>${esc(nomCli(c.nombre))}</b><span class="ayuda">${nf(c.unidades)} unidades</span></td><td>${bs(c.monto_bs)}</td><td>${nf(c.pct_total,1)} %</td><td>${bs(c.ult6_bs)}<span class="ayuda">antes ${bs(c.prev6_bs)}</span></td><td class="trend">${tend(c)}</td><td>${mesL(c.ultima_compra)}</td></tr>`).join("") + "</tbody>";
   $("b-db-cli").textContent = S.dbCli ? "Mostrar solo los 10 primeros" : `Mostrar los ${T.clientes.length}`;
   $("b-db-cli").setAttribute("aria-expanded", String(S.dbCli));
   const cnt = k => T.clientes.filter(c => c.tendencia === k).length;
-  $("db-pie").textContent = `${cnt("sube")} clientes compran más que en los 6 meses anteriores, ${cnt("baja")} compran menos y ${cnt("estable")} se mantienen. Clientes SINTÉTICOS: carparts no dice a quién se vendió, así que cada unidad vendida (dato REAL) se asignó a un cliente con una regla escrita y una semilla fija (SCRUM-76). El dinero es unidades por precio de lista de hoy, porque carparts no trae precios históricos. En el portal, las cotizaciones marcadas como venta se suman solas.`;
+  $("db-pie").textContent = `${cnt("sube")} clientes compran más que en los 6 meses anteriores, ${cnt("baja")} compran menos y ${cnt("estable")} ${cnt("estable") === 1 ? "se mantiene" : "se mantienen"}. Las ventas por cliente se repartieron con una regla fija (historia SCRUM-76 del proyecto). Los montos son unidades por precio de lista de hoy, porque la base de ventas no trae precios históricos. Las cotizaciones que se marcan como venta en el portal se suman automáticamente.`;
 }
 $("b-db-rep").addEventListener("click", () => { S.dbRep = !S.dbRep; pintarDashboard(); });
 $("b-db-cli").addEventListener("click", () => { S.dbCli = !S.dbCli; pintarDashboard(); });
@@ -1462,12 +1509,12 @@ function pintarPredicciones(){
   const V = P.validacion, M = V.modelo, R = V.regla_mes_anterior, cY = P.corte_youden;
   const MY = Object.assign({auc: M.auc, brier: M.brier}, V.modelo_corte_youden); // AUC y Brier no dependen del corte
   const n = k => P.predicciones.filter(p => p.nivel === k).length;
-  $("pr-intro").textContent = `Para cada repuesto, la probabilidad de vender al menos una unidad en ${MES_L[+P.mes_predicho.slice(5,7) - 1]} de ${P.mes_predicho.slice(0,4)}. Como un clasificador de la materia: la clase es «se vende» o «no se vende», y el modelo dice qué tan probable es cada una.`;
+  $("pr-intro").textContent = `Para cada repuesto, la probabilidad de vender al menos una unidad en ${MES_L[+P.mes_predicho.slice(5,7) - 1]} de ${P.mes_predicho.slice(0,4)}. Es un modelo de clasificación: cada repuesto puede quedar en la clase «se vende» o «no se vende», y el modelo indica qué tan probable es cada una.`;
   $("pr-kpis").innerHTML = `
-    <div class="kpi"><div class="t">Probable</div><div class="v c-ok">${n("alta")}<small>repuestos</small></div><div class="d">50 % o más</div><span class="ayuda">El modelo dice «se vende».</span></div>
-    <div class="kpi"><div class="t">Posible</div><div class="v c-warn">${n("media")}<small>repuestos</small></div><div class="d">entre ${nf(cY * 100)} % y 50 %</div><span class="ayuda">Por encima de lo normal: en uno de cada cuatro meses hay venta.</span></div>
-    <div class="kpi"><div class="t">Poco probable</div><div class="v">${n("baja")}<small>repuestos</small></div><div class="d">menos de ${nf(cY * 100)} %</div><span class="ayuda">No conviene reponerlos solo por esta predicción.</span></div>
-    <div class="kpi"><div class="t">Qué tan bien separa</div><div class="v">${nf(M.auc,2)}<small>AUC</small></div><div class="d">en 12 meses que no vio · la regla simple da ${nf(R.auc,2)}</div><span class="ayuda">0,5 es azar y 1 es perfecto.</span></div>`;
+    <div class="kpi"><div class="t">Probable${info("Probable", "Repuestos con 50 % o más de probabilidad de venderse el mes que viene. Para el modelo, «se vende».")}</div><div class="v c-ok">${n("alta")}<small>repuestos</small></div><div class="d">50 % o más</div></div>
+    <div class="kpi"><div class="t">Posible${info("Posible", `Repuestos con probabilidad entre ${nf(cY * 100)} % y 50 %. Están por encima de lo habitual: en promedio, estos repuestos se venden uno de cada cuatro meses.`)}</div><div class="v c-warn">${n("media")}<small>repuestos</small></div><div class="d">entre ${nf(cY * 100)} % y 50 %</div></div>
+    <div class="kpi"><div class="t">Poco probable${info("Poco probable", `Repuestos con menos de ${nf(cY * 100)} % de probabilidad. No conviene reponerlos solo por esta predicción.`)}</div><div class="v">${n("baja")}<small>repuestos</small></div><div class="d">menos de ${nf(cY * 100)} %</div></div>
+    <div class="kpi"><div class="t">Capacidad de acierto (AUC)${info("AUC", "Área bajo la curva ROC: mide si el modelo da más probabilidad a los casos que sí se vendieron. 0,5 equivale al azar y 1 es perfecto. Se midió en 12 meses que el modelo no usó para aprender.")}</div><div class="v">${nf(M.auc,2)}<small>AUC</small></div><div class="d">en 12 meses de prueba · la regla de referencia da ${nf(R.auc,2)}</div><span class="ayuda">0,5 es azar y 1 es perfecto.</span></div>`;
   $("pr-tit").textContent = `Probabilidad de venta en ${MES_L[+P.mes_predicho.slice(5,7) - 1]} de ${P.mes_predicho.slice(0,4)}, por repuesto`;
   const al = seguro(alertas) || [], est = {}; al.forEach(a => est[a.id] = a);
   // Se cruza con Alertas de reposición: la predicción no contradice un «Pedir ya», le pone prioridad.
@@ -1475,29 +1522,29 @@ function pintarPredicciones(){
     if(s === 0) return p.nivel === "alta" ? "Pedir ya: probable y en el punto de pedido" : p.nivel === "media" ? "Pedir lo que indica Alertas" : "En el punto de pedido: pedir lo mínimo";
     if(s === 1) return p.nivel === "baja" ? "Vigilar en Alertas" : "Pedir pronto: se acerca al punto de pedido";
     return p.nivel === "alta" ? "Hay stock: vigilar" : p.nivel === "media" ? "Hay stock: sin acción" : "No reponer por ahora"; };
-  $("t-pr").innerHTML = `<thead><tr><th>#</th><th>Repuesto</th><th style="text-align:left">Probabilidad</th><th>Nivel</th><th>Vendió el mes anterior</th><th>Meses con venta<span class="ayuda">de los últimos 12</span></th><th>Stock hoy</th><th style="text-align:left">Qué hacer</th></tr></thead><tbody>` +
+  $("t-pr").innerHTML = `<thead><tr><th>#</th><th>Repuesto</th><th style="text-align:left">Probabilidad${info("Probabilidad", "Probabilidad de vender al menos una unidad el mes que viene, según el modelo. La línea fina de la barra marca el 50 %.")}</th><th>Nivel</th><th>Vendió el mes anterior</th><th>Meses con venta<span class="ayuda">de los últimos 12</span></th><th>Stock hoy</th><th style="text-align:left">Qué hacer${info("Qué hacer", "Recomendación que combina la probabilidad de venta con el estado del repuesto en Alertas de reposición.")}</th></tr></thead><tbody>` +
     P.predicciones.map((p,i) => { const r = REP[p.repuesto_id], x = p.variables;
-      return `<tr><td>${i + 1}</td><td><b>${esc(nombreRep(p.repuesto_id))}</b><span class="ayuda">${p.repuesto_id} · ${r ? r.tipo_demanda : ""}</span></td><td class="prob" style="text-align:left"><b>${nf(p.probabilidad * 100)} %</b><div class="pbar"><span class="${p.nivel}" style="width:${(p.probabilidad * 100).toFixed(1)}%"></span><i></i></div></td><td><span class="niv ${p.nivel}">${capital(p.nivel)}</span></td><td>${x.vendio_mes_anterior ? "Sí" : "No"}</td><td>${nf(x.frecuencia_12m * 12)}</td><td>${r ? nf(r.stock_al_2026_11_10) : "—"}</td><td style="text-align:left">${hacer(p)}</td></tr>`; }).join("") + "</tbody>";
+      return `<tr><td>${i + 1}</td><td><b>${esc(nombreRep(p.repuesto_id))}</b><span class="ayuda">${p.repuesto_id} · ${r ? PATRON[r.tipo_demanda] || r.tipo_demanda : ""}</span></td><td class="prob" style="text-align:left"><b>${nf(p.probabilidad * 100)} %</b><div class="pbar"><span class="${p.nivel}" style="width:${(p.probabilidad * 100).toFixed(1)}%"></span><i></i></div></td><td><span class="niv ${p.nivel}">${capital(p.nivel)}</span></td><td>${x.vendio_mes_anterior ? "Sí" : "No"}</td><td>${nf(x.frecuencia_12m * 12)}</td><td>${r ? nf(r.stock_al_2026_11_10) : "—"}</td><td style="text-align:left">${hacer(p)}</td></tr>`; }).join("") + "</tbody>";
   const top = P.predicciones[0];
-  $("pr-nota").innerHTML = `<strong>Lo que descubre:</strong> ${esc(nombreRep(top.repuesto_id))} (${top.repuesto_id}) es el más probable, con ${nf(top.probabilidad * 100)} %. Ningún repuesto pasa de ${nf(Math.ceil(top.probabilidad * 10) * 10)} %: son repuestos de venta intermitente, que en el historial se vendieron solo en ${nf(V.tasa_base_entreno * 100)} de cada 100 meses. Por eso el modelo sirve para ordenar prioridades, no para asegurar una venta.`;
+  $("pr-nota").innerHTML = `<strong>Conclusión:</strong> ${esc(nombreRep(top.repuesto_id))} (${top.repuesto_id}) es el más probable, con ${nf(top.probabilidad * 100)} %. Ningún repuesto pasa de ${nf(Math.ceil(top.probabilidad * 10) * 10)} %: son repuestos de venta ocasional, que en el historial se vendieron solo en ${nf(V.tasa_base_entreno * 100)} de cada 100 meses. Por eso el modelo sirve para ordenar prioridades, no para asegurar una venta.`;
   // Validación
-  $("pr-val-sub").textContent = `Se entrenó con ${nf(V.entreno.casos)} casos (repuesto y mes) de ${mesL(V.entreno.desde)} a ${mesL(V.entreno.hasta)} y se probó con ${nf(V.prueba.casos)} casos de ${mesL(V.prueba.desde)} a ${mesL(V.prueba.hasta)}, que el modelo no vio. En la prueba hubo venta en ${nf(V.prueba.positivos)} de ${nf(V.prueba.casos)} casos (${nf(V.prueba.positivos / V.prueba.casos * 100)} %).`;
+  $("pr-val-sub").textContent = `El modelo aprendió con ${nf(V.entreno.casos)} casos (cada caso es un repuesto en un mes), de ${mesL(V.entreno.desde)} a ${mesL(V.entreno.hasta)} y se probó con ${nf(V.prueba.casos)} casos de ${mesL(V.prueba.desde)} a ${mesL(V.prueba.hasta)}, que no había usado para aprender. En la prueba hubo venta en ${nf(V.prueba.positivos)} de ${nf(V.prueba.casos)} casos (${nf(V.prueba.positivos / V.prueba.casos * 100)} %).`;
   const filaM = (t, k, ayuda, d = 2, menor = false) => { const vals = [M[k], MY[k], R[k]], ok = vals.filter(v => v !== null && v !== undefined);
     const best = ok.length ? (menor ? Math.min(...ok) : Math.max(...ok)) : null;
     return `<tr><td><b>${t}</b><span class="ayuda">${ayuda}</span></td>${vals.map(v => `<td class="${v === best ? "mejor" : ""}">${v === null || v === undefined ? "—" : k === "auc" || k === "brier" ? nf(v, d) : nf(v * 100) + " %"}</td>`).join("")}</tr>`; };
-  $("t-pr-met").innerHTML = `<thead><tr><th>Métrica</th><th>Modelo<span class="ayuda">corte 50 %</span></th><th>Modelo<span class="ayuda">corte ${nf(cY * 100)} %</span></th><th>Regla simple<span class="ayuda">vendió el mes anterior</span></th></tr></thead><tbody>` +
+  $("t-pr-met").innerHTML = `<thead><tr><th>Medida</th><th>Modelo<span class="ayuda">desde 50 %</span></th><th>Modelo<span class="ayuda">desde ${nf(cY * 100)} %</span></th><th>Regla de referencia${info("Regla de referencia", "Predice venta si el repuesto se vendió el mes anterior. Sirve para comprobar si el modelo aporta algo más que esa regla sencilla.")}</th></tr></thead><tbody>` +
     filaM("Exactitud", "exactitud", "de todos los casos, cuántos acertó") +
     filaM("Precisión", "precision", "cuando dijo «se vende», cuántas veces se vendió") +
-    filaM("Sensibilidad", "sensibilidad", "de las ventas que hubo, cuántas anticipó") +
-    filaM("Especificidad", "especificidad", "de los meses sin venta, cuántos anticipó") +
+    filaM("Sensibilidad", "sensibilidad", "de las ventas que hubo, cuántas previó") +
+    filaM("Especificidad", "especificidad", "de los meses sin venta, cuántos previó") +
     filaM("AUC", "auc", "qué tan bien ordena: 0,5 es azar, 1 es perfecto") +
-    filaM("Puntaje de Brier", "brier", `error de la probabilidad; menor es mejor. Decir siempre ${nf(V.tasa_base_entreno * 100)} % da ${nf(V.brier_tasa_base, 3)}`, 3, true) + "</tbody>";
-  $("pr-met-pie").textContent = `En verde, el mejor de cada fila. Con corte 50 % el modelo acierta más en total, pero anticipa pocas ventas, porque las ventas son la clase minoritaria. El corte de ${nf(cY * 100)} % se eligió con los datos de entrenamiento (índice de Youden): anticipa más ventas a cambio de más falsas alarmas. AUC y Brier no dependen del corte.`;
-  $("pr-corte").innerHTML = [["50", "Corte 50 %"], ["y", `Corte ${nf(cY * 100)} %`], ["r", "Regla simple"]].map(([k,t]) => `<button class="chip" type="button" data-v="${k}" aria-pressed="${S.prCorte === k}">${t}</button>`).join("");
+    filaM("Puntaje de Brier", "brier", `error promedio entre la probabilidad dada y lo que pasó; menor es mejor. Decir siempre ${nf(V.tasa_base_entreno * 100)} % da ${nf(V.brier_tasa_base, 3)}`, 3, true) + "</tbody>";
+  $("pr-met-pie").textContent = `En verde, el mejor valor de cada fila. Desde 50 % el modelo acierta más en total, pero prevé pocas ventas, porque los meses con venta son minoría. El límite de ${nf(cY * 100)} % se eligió con los datos de aprendizaje, con el índice de Youden, que equilibra los aciertos de venta y de no venta: prevé más ventas a cambio de más ventas previstas que no ocurren. El AUC y el puntaje de Brier no dependen del límite elegido.`;
+  $("pr-corte").innerHTML = [["50", "Desde 50 %"], ["y", `Desde ${nf(cY * 100)} %`], ["r", "Regla de referencia"]].map(([k,t]) => `<button class="chip" type="button" data-v="${k}" aria-pressed="${S.prCorte === k}">${t}</button>`).join("");
   const C = S.prCorte === "50" ? M : S.prCorte === "y" ? MY : R;
-  $("pr-conf").innerHTML = `<table><thead><tr><th></th><th style="text-align:center">Dijo «se vende»</th><th style="text-align:center">Dijo «no se vende»</th></tr></thead><tbody>
-    <tr><td><b>Se vendió</b></td><td class="c ok">${C.vp}<small>acierto</small></td><td class="c mal">${C.fn}<small>venta no anticipada</small></td></tr>
-    <tr><td><b>No se vendió</b></td><td class="c mal">${C.fp}<small>falsa alarma</small></td><td class="c ok">${C.vn}<small>acierto</small></td></tr></tbody></table>`;
+  $("pr-conf").innerHTML = `<table><thead><tr><th></th><th style="text-align:center">Predijo «se vende»</th><th style="text-align:center">Predijo «no se vende»</th></tr></thead><tbody>
+    <tr><td><b>Se vendió</b></td><td class="c ok">${C.vp}<small>acierto</small></td><td class="c mal">${C.fn}<small>venta no prevista</small></td></tr>
+    <tr><td><b>No se vendió</b></td><td class="c mal">${C.fp}<small>venta prevista que no ocurrió</small></td><td class="c ok">${C.vn}<small>acierto</small></td></tr></tbody></table>`;
   // Calibración
   const cal = V.calibracion, Wc = Math.max(280, Math.round($("chart-pr-cal").clientWidth || 520)), Hc = 250, plc = 52, pbc = 46;
   const gw = (Wc - plc - 8) / cal.length, Yc = v => 10 + (1 - v) * (Hc - pbc - 10), mxc = 1;
@@ -1508,8 +1555,8 @@ function pintarPredicciones(){
         <rect x="${(x0 + gw*.14 + b + 2).toFixed(1)}" y="${Yc(c.vendidos).toFixed(1)}" width="${b.toFixed(1)}" height="${(Hc - pbc - Yc(c.vendidos)).toFixed(1)}" rx="2" fill="var(--brand)"><title>${nf(c.desde*100)}–${nf(c.hasta*100)} %: se vendió en ${nf(c.vendidos*100)} % de ${c.n} casos</title></rect>
         <text x="${(x0 + gw/2).toFixed(1)}" y="${Hc-26}" text-anchor="middle">${nf(c.desde*100)}–${nf(c.hasta*100)}</text>`; }).join("")}
     <text class="axt" x="${(plc + Wc - 8) / 2}" y="${Hc-4}" text-anchor="middle">Probabilidad que dio el modelo (tramo, %)</text>
-    <text class="axt" transform="translate(12 ${(Hc - pbc) / 2}) rotate(-90)" text-anchor="middle">% de casos</text></svg>`;
-  $("t-pr-cal").innerHTML = "<thead><tr><th>Tramo</th><th>Casos</th><th>Probabilidad que dio</th><th>Se vendió de verdad</th></tr></thead><tbody>" +
+    <text class="axt" transform="translate(12 ${(Hc - pbc) / 2}) rotate(-90)" text-anchor="middle">Porcentaje de casos (%)</text></svg>`;
+  $("t-pr-cal").innerHTML = "<thead><tr><th>Tramo</th><th>Casos</th><th>Probabilidad que dio</th><th>Realmente se vendió</th></tr></thead><tbody>" +
     cal.map(c => `<tr><td>${nf(c.desde*100)} a ${nf(c.hasta*100)} %</td><td>${c.n}</td><td>${nf(c.prob_media*100,1)} %</td><td>${nf(c.vendidos*100,1)} %</td></tr>`).join("") + "</tbody>";
   // Coeficientes
   const NOM = {}; P.variables.forEach(v => NOM[v.clave] = v.nombre);
@@ -1523,40 +1570,40 @@ function pintarPredicciones(){
     ${co.map((c,i) => `<text x="${lk - 8}" y="${Yk(i) + 15}" text-anchor="end" style="fill:var(--ink-2)">${esc(NOM[c.clave])}</text>
       <rect x="${Math.min(Xk(0), Xk(c.coef)).toFixed(1)}" y="${Yk(i) + 4}" width="${Math.max(1.5, Math.abs(Xk(c.coef) - Xk(0))).toFixed(1)}" height="16" rx="2" fill="${c.coef >= 0 ? "var(--brand)" : "var(--bad)"}"><title>${esc(NOM[c.clave])}: ${nf(c.coef,2)}</title></rect>
       <text x="${(c.coef >= 0 ? Xk(c.coef) + 5 : Xk(c.coef) - 5).toFixed(1)}" y="${Yk(i) + 16}" text-anchor="${c.coef >= 0 ? "start" : "end"}" style="font-weight:600;fill:var(--ink)">${c.coef >= 0 ? "+" : "−"}${nf(Math.abs(c.coef),2)}</text>`).join("")}
-    <text class="axt" x="${(lk + Wk - rk) / 2}" y="${Hk-4}" text-anchor="middle">Peso en la probabilidad de venta (desvíos estándar)</text></svg>`;
-  $("pr-pie").textContent = `Técnica: ${P.tecnica}, con penalización L2 (λ = ${nf(P.lambda_l2)}) y variables estandarizadas. Las variables salen solo de los meses anteriores al que se predice. El modelo final se volvió a entrenar con todos los meses hasta ${mesL(P.ultimo_mes_con_dato)}. ${P.origen_dato}. Cálculo: src/scrum-80/predecir_venta.py.`;
+    <text class="axt" x="${(lk + Wk - rk) / 2}" y="${Hk-4}" text-anchor="middle">Peso en la probabilidad de venta (en desvíos estándar)</text></svg>`;
+  $("pr-pie").textContent = `Detalle técnico: ${P.tecnica}, con penalización L2 (λ = ${nf(P.lambda_l2)}) y variables estandarizadas. Las variables salen solo de los meses anteriores al que se predice. El modelo final se volvió a entrenar con todos los meses hasta ${mesL(P.ultimo_mes_con_dato)}. Ventas de la base pública carparts (Hyndman y otros, 2008). Cálculo: src/scrum-80/predecir_venta.py.`;
 }
 $("pr-corte").addEventListener("click", e => { const b = e.target.closest("button[data-v]"); if(b){ S.prCorte = b.dataset.v; pintarPredicciones(); } });
 
 /* ==================== ROTACIÓN E IMPORTANCIA (SCRUM-81) ==================== */
 const ACCION = {A:{alta:["No puede faltar: reponer primero","p1"], media:["Reponer con control del stock","p2"], baja:["Revisar: vale mucho pero rota poco","p3"]},
   B:{alta:["Reponer normal","p2"], media:["Reponer normal","p2"], baja:["Comprar menos cantidad","p3"]},
-  C:{alta:["Pedidos chicos y frecuentes","p2"], media:["Stock mínimo","p3"], baja:["No reponer; liquidar lo que sobra","p4"]}};
+  C:{alta:["Pedidos pequeños y frecuentes","p2"], media:["Stock mínimo","p3"], baja:["No reponer; vender el excedente","p4"]}};
 function pintarRotacion(){
   const R = seguro(() => Motor.rotacion(DM(), tcHoy()), $("t-rt")); if(!R) return;
   const al = seguro(alertas) || [], est = {}; al.forEach(a => est[a.id] = a);
   const pedir = al.filter(a => a.est === 0).length, con = R.repuestos.filter(f => !f.sin_datos);
   const A = con.filter(f => f.clase_abc === "A"), pA = A.reduce((s,f) => s + f.valor12_bs, 0) / (R.valor12_total_bs || 1) * 100;
   $("rt-kpis").innerHTML = `
-    <div class="kpi"><div class="t">Clase A</div><div class="v">${A.length}<small>repuestos</small></div><div class="d">mueven el ${nf(pA)} % del dinero</div><span class="ayuda">De los últimos 12 meses: ${bs(R.valor12_total_bs)} en total.</span></div>
-    <div class="kpi"><div class="t">Desabastecimiento</div><div class="v c-bad">${pedir}<small>repuestos</small></div><div class="d"><a href="#alertas">«Pedir ya» en Alertas de reposición</a></div><span class="ayuda">Llegaron al punto de pedido.</span></div>
-    <div class="kpi"><div class="t">Acumulación</div><div class="v c-bad">${R.acumulacion}<small>repuestos</small></div><div class="d">${bs(R.valor_acumulado_bs)} inmovilizados</div><span class="ayuda">Stock de más: no conviene comprarles.</span></div>
-    <div class="kpi"><div class="t">Baja rotación</div><div class="v c-warn">${R.baja_rotacion}<small>repuestos</small></div><div class="d">su stock rota menos de una vez al año</div><span class="ayuda">Más de ${R.umbrales.rot_media_meses} meses de stock al ritmo actual.</span></div>`;
+    <div class="kpi"><div class="t">Clase A${info("Clase A", "Repuestos que, ordenados de mayor a menor monto vendido en los últimos 12 meses, suman el primer 80 % del total. Son los más importantes para las ventas.")}</div><div class="v">${A.length}<small>repuestos</small></div><div class="d">concentran el ${nf(pA)} % del valor vendido</div><span class="ayuda">De los últimos 12 meses: ${bs(R.valor12_total_bs)} en total.</span></div>
+    <div class="kpi"><div class="t">Desabastecimiento${info("Desabastecimiento", "Repuestos que ya llegaron al punto de pedido: si no se piden ahora, pueden faltar. Son los «Pedir ya» de Alertas de reposición.")}</div><div class="v c-bad">${pedir}<small>repuestos</small></div><div class="d"><a href="#alertas">«Pedir ya» en Alertas de reposición</a></div></div>
+    <div class="kpi"><div class="t">Acumulación${info("Acumulación", "Repuestos con más stock del necesario: superan el nivel máximo de reposición, tienen más de 24 meses de stock o no se vendieron en 12 meses. No conviene comprarlos.")}</div><div class="v c-bad">${R.acumulacion}<small>repuestos</small></div><div class="d">${bs(R.valor_acumulado_bs)} inmovilizados</div></div>
+    <div class="kpi"><div class="t">Baja rotación${info("Baja rotación", "Repuestos cuyo stock se vende menos de una vez al año. La rotación es la venta anual dividida por el stock.")}</div><div class="v c-warn">${R.baja_rotacion}<small>repuestos</small></div><div class="d">su stock se vende menos de una vez al año</div><span class="ayuda">Más de ${R.umbrales.rot_media_meses} meses de stock al ritmo actual.</span></div>`;
   const U = R.umbrales, col = {alta:`Alta<span class="ayuda">stock para ${U.rot_alta_meses} meses o menos</span>`, media:`Media<span class="ayuda">hasta ${U.rot_media_meses} meses</span>`, baja:`Baja<span class="ayuda">más de ${U.rot_media_meses} meses o sin ventas</span>`};
-  const fil = {A:`<b>A</b><span class="ayuda">hasta el 80 % del dinero</span>`, B:`<b>B</b><span class="ayuda">del 80 al 95 %</span>`, C:`<b>C</b><span class="ayuda">el 5 % restante</span>`};
-  $("t-rt-mat").innerHTML = `<thead><tr><th>Importancia \\ Rotación</th>${["alta","media","baja"].map(k => `<th>${col[k]}</th>`).join("")}</tr></thead><tbody>` +
+  const fil = {A:`<b>A</b><span class="ayuda">hasta el 80 % del valor vendido</span>`, B:`<b>B</b><span class="ayuda">del 80 al 95 %</span>`, C:`<b>C</b><span class="ayuda">el 5 % restante</span>`};
+  $("t-rt-mat").innerHTML = `<thead><tr><th>Clase \\ Rotación</th>${["alta","media","baja"].map(k => `<th>${col[k]}</th>`).join("")}</tr></thead><tbody>` +
     ["A","B","C"].map(a => `<tr><td>${fil[a]}</td>${["alta","media","baja"].map(k => { const [q, p] = ACCION[a][k], ids = con.filter(f => f.clase_abc === a && f.clase_rot === k).map(f => f.id);
       return `<td class="cel ${R.matriz[a][k] ? p : ""}" title="${ids.join(", ")}"><div class="n">${R.matriz[a][k]}</div><div class="q">${q}</div></td>`; }).join("")}</tr>`).join("") + "</tbody>";
   const aBaja = con.filter(f => f.clase_abc === "A" && f.clase_rot === "baja"), cBaja = R.matriz.C.baja;
-  $("rt-nota").innerHTML = `<strong>Lo que descubre:</strong> ${A.length} de ${con.length} repuestos mueven el ${nf(pA)} % del dinero: ahí va la atención de compras. ${R.matriz.A.alta} de ellos además rotan rápido y no pueden faltar.` +
+  $("rt-nota").innerHTML = `<strong>Conclusión:</strong> ${A.length} de ${con.length} repuestos concentran el ${nf(pA)} % del valor vendido: en ellos debe concentrarse la atención de compras. ${R.matriz.A.alta} de ellos además se venden rápido y no pueden faltar.` +
     (aBaja.length ? ` ${aBaja.map(f => esc(nombreRep(f.id)) + " (" + f.id + ")").join(", ")} es clase A pero rota poco: conviene revisar cuánto se le compra.` : "") +
     ` En el otro extremo, ${cBaja} repuestos de clase C rotan poco: son candidatos a no reponer.`;
-  $("t-rt").innerHTML = `<thead><tr><th>Repuesto</th><th>Clase ABC<span class="ayuda">por dinero, 12 meses</span></th><th>Dinero 12 meses<span class="ayuda">y % acumulado</span></th><th>Vendió<span class="ayuda">unidades, 12 meses</span></th><th>Stock<span class="ayuda">+ en camino</span></th><th>Cobertura<span class="ayuda">meses de stock</span></th><th>Rotación<span class="ayuda">veces al año</span></th><th>Sin vender<span class="ayuda">meses seguidos</span></th><th style="text-align:left">Alertas</th></tr></thead><tbody>` +
+  $("t-rt").innerHTML = `<thead><tr><th>Repuesto</th><th>Clase ABC${info("Clase ABC", "Según el monto vendido en los últimos 12 meses: A suma el primer 80 %, B hasta el 95 % y C el resto.")}</th><th>Monto vendido en 12 meses${info("Monto vendido en 12 meses", "Ventas en bolivianos de los últimos 12 meses. Debajo, el porcentaje acumulado al sumar los repuestos en este orden.")}</th><th>Unidades vendidas<span class="ayuda">últimos 12 meses</span></th><th>Stock<span class="ayuda">+ en camino</span></th><th>Cobertura${info("Cobertura", "Meses que dura el stock actual al ritmo de venta de los últimos 12 meses.")}</th><th>Rotación${info("Rotación", "Cuántas veces al año se vende el equivalente al stock actual. Menos de 1 es baja rotación.")}</th><th>Meses sin venta${info("Meses sin venta", "Meses seguidos, hasta el último mes con datos, en que el repuesto no se vendió.")}</th><th style="text-align:left">Alertas</th></tr></thead><tbody>` +
     R.repuestos.map(f => { if(f.sin_datos) return `<tr><td><b>${esc(nombreRep(f.id))}</b><span class="ayuda">${f.id}</span></td><td colspan="8" style="text-align:left"><span class="insignia na">Sin datos</span> ${esc(f.motivo)}</td></tr>`;
       const e = est[f.id], chips = (e && e.est === 0 ? '<span class="al-chip pedir"><a href="#alertas">Pedir ya</a></span>' : "") +
         (f.acumulacion ? `<span class="al-chip acum" title="${esc(f.motivos_acumulacion.join("; "))}">Acumulación</span>` : "") + (f.baja_rotacion ? '<span class="al-chip baja">Baja rotación</span>' : "");
       return `<tr><td><b>${esc(nombreRep(f.id))}</b><span class="ayuda">${f.id}${f.acumulacion ? " · " + esc(f.motivos_acumulacion.join("; ")) : ""}</span></td><td><b>${f.clase_abc}</b></td><td>${bs(f.valor12_bs)}<span class="ayuda">${nf(f.pct_acumulado,1)} %</span></td><td>${nf(f.u12)}</td><td>${nf(f.stock)}${f.transito ? ` <span class="ayuda" style="display:inline">+${nf(f.transito)}</span>` : ""}</td><td>${f.cobertura_meses === null ? "—" : nf(f.cobertura_meses,1)}</td><td>${f.rotacion_anual === null ? "—" : nf(f.rotacion_anual,1)}</td><td>${f.meses_sin_venta}</td><td style="text-align:left">${chips ? `<span class="chips">${chips}</span>` : "—"}</td></tr>`; }).join("") + "</tbody>";
-  $("rt-pie").textContent = `Clase ABC: se ordenan los repuestos por el dinero que movieron en los últimos 12 meses (unidades por precio de lista de hoy) y se corta en 80 % y 95 % del acumulado, con la misma regla de SCRUM-55. Es distinta de la clase ABC de los otros paneles, que es por unidades sobre las 2.674 series de carparts. Cobertura: stock de hoy dividido por la venta mensual de los últimos 12 meses. Acumulación: stock y tránsito sobre el nivel máximo, más de ${U.acum_meses} meses de stock, o sin ventas en 12 meses con stock. Ventas REALES de carparts; stock y precios SINTÉTICOS (SCRUM-55). Desabastecimiento: los «Pedir ya» de Alertas de reposición.`;
+  $("rt-pie").textContent = `Clase ABC: se ordenan los repuestos por el dinero que movieron en los últimos 12 meses (unidades por precio de lista de hoy) y se corta en 80 % y 95 % del acumulado, con la misma regla de la historia SCRUM-55 del proyecto. Es distinta de la clase ABC de las otras pantallas, que se calcula por unidades sobre las 2.674 series de la base carparts. Cobertura: stock de hoy dividido por la venta mensual de los últimos 12 meses. Acumulación: stock y tránsito sobre el nivel máximo, más de ${U.acum_meses} meses de stock, o sin ventas en 12 meses con stock. Desabastecimiento: los «Pedir ya» de Alertas de reposición.`;
 }
 
 /* ==================== CATÁLOGO (SCRUM-74) ==================== */
@@ -1570,7 +1617,7 @@ function pintarCatalogo(){
   if(document.activeElement !== $("catv-q")) $("catv-q").value = S.catQ;
   filtrarCatalogo();
   $("catv-cred").innerHTML = D.catalogo.fuentes.map(f => `<li><b>${esc(CATEGORIAS.find(c => D.catalogo.repuestos.some(r => r.categoria === c && r.imagen === f.archivo)) || f.archivo)}:</b> «${esc(f.titulo)}», ${esc(f.autor)}, ${esc(f.licencia)}, vía ${esc(f.via)}. <a href="${esc(f.pagina)}" target="_blank" rel="noopener">Ver original</a></li>`).join("");
-  $("catv-pie").textContent = "carparts solo trae un código por repuesto. El nombre, la categoría y la descripción son ILUSTRATIVOS: se asignaron por costo, de la pieza más barata a la más cara (SCRUM-74). Precio SINTÉTICO con el dólar del día; stock SINTÉTICO al 10-11-2026. Las fotos muestran la categoría, no la pieza exacta.";
+  $("catv-pie").textContent = "Precios con el dólar oficial del día; stock al 10-11-2026. Las fotos muestran la categoría del repuesto, no la pieza exacta (historia SCRUM-74 del proyecto).";
 }
 function filtrarCatalogo(){
   const q = S.catQ.trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
@@ -1614,14 +1661,14 @@ function cotizarAhora(){
   catch(e){ $("cot-err").textContent = "Escriba una cantidad entera de 1 o más."; $("cot-q").setAttribute("aria-invalid","true"); $("cot-res").innerHTML = ""; tramosTxt(null); return; }
   $("cot-err").textContent = ""; $("cot-q").removeAttribute("aria-invalid");
   tramosTxt(c.pct_tramo);
-  const dolar = `dólar oficial ${nf(OF.valor,2)} del ${fecha(OF.fecha)} (BCB)`;
+  const dolar = `dólar oficial de ${nf(OF.valor,2)} Bs del ${fecha(OF.fecha)} (Banco Central de Bolivia)`;
   const sig = c.siguiente_tramo ? `<p class="d">Si lleva ${nf(c.siguiente_tramo.faltan)} más (${nf(c.siguiente_tramo.desde)} en total), cada unidad sale ${c.siguiente_tramo.pct} % más barata que el precio de lista.</p>` : "";
   const stock = c.en_stock === null ? "No hay dato de stock: hay que confirmarlo." : c.por_pedir === 0 ? `Hay stock para entregar las ${nf(c.cantidad)} unidades.` : `Hay ${nf(c.en_stock)} en el almacén; las otras ${nf(c.por_pedir)} llegan en unos ${nf(c.plazo_dias)} días, el plazo del proveedor.`;
   $("cot-res").innerHTML = `<div class="scroll"><table class="cot-desg"><thead><tr><th>Concepto</th><th>Monto</th></tr></thead><tbody>
       <tr><td>Precio de lista por unidad</td><td>${bs2(c.precio_lista_bs)}</td></tr>
       <tr><td>Descuento por cantidad</td><td>${c.pct_aplicado ? nf(c.pct_aplicado, Number.isInteger(c.pct_aplicado) ? 0 : 2) + " %" : "sin descuento"}</td></tr>
       <tr><td>Precio por unidad</td><td>${bs2(c.precio_unitario_bs)}</td></tr>
-      <tr><td>Cantidad</td><td>${nf(c.cantidad)} u</td></tr>
+      <tr><td>Cantidad</td><td>${nf(c.cantidad)} unidades</td></tr>
       <tr><td>Subtotal a precio de lista</td><td>${bs2(c.subtotal_bs)}</td></tr>
       <tr><td>Descuento</td><td>${c.descuento_bs ? "− " + bs2(c.descuento_bs) : bs2(0)}</td></tr>
       <tr class="t"><td>Total</td><td>${bs2(c.total_bs)}</td></tr></tbody></table></div>
@@ -1629,7 +1676,7 @@ function cotizarAhora(){
       <p class="d">${bs2(c.precio_unitario_bs)} por unidad, con el ${dolar}.${avisoTc()}</p>${sig}<p class="d">${stock}</p>
       ${c.tope ? `<p class="d"><strong>El descuento se limitó a ${nf(c.pct_aplicado,2)} %</strong> para no vender por debajo del costo puesto.</p>` : ""}</div>`;
   $("cot-guardar").hidden = !PORTAL;
-  $("cot-pie").textContent = "Precio de venta SINTÉTICO: costo puesto en Santa Cruz más el margen de SCRUM-55, convertido con el dólar del día. Los tramos de descuento son de EJEMPLO. El descuento nunca baja el precio del costo puesto. " + (PORTAL ? "Al emitirla, la cotización se guarda con su número (SCRUM-73)." : "Abierta como archivo, la cotización no se guarda: se guarda en el portal (SCRUM-73).");
+  $("cot-pie").textContent = "Precio de venta: costo puesto en Santa Cruz más el margen definido en la historia SCRUM-55 del proyecto, convertido con el dólar oficial del día. El descuento nunca deja el precio por debajo del costo puesto. " + (PORTAL ? "Al emitirla, la cotización se guarda con su número." : "Abierta como archivo, la cotización no se guarda: solo se guarda en el portal.");
 }
 let tCot = null;
 $("cot-rep").addEventListener("change", e => { S.cotRep = e.target.value; cotizarAhora(); });
@@ -1746,11 +1793,11 @@ async function pintarCotizaciones(){
     const pct = d.total ? Math.round(d.no_convertidas / d.total * 100) : 0;
     $("cz-kpis").innerHTML = `
       <div class="kpi"><div class="t">Cotizaciones</div><div class="v">${nf(d.total)}</div><div class="d">emitidas en total</div><span class="ayuda">Cada una con su número correlativo.</span></div>
-      <div class="kpi"><div class="t">Se vendieron</div><div class="v c-ok">${nf(d.convertidas)}</div><div class="d">marcadas como venta</div><span class="ayuda">Pasan al tablero de clientes.</span></div>
-      <div class="kpi"><div class="t">Sin venta</div><div class="v c-warn">${nf(d.no_convertidas)}</div><div class="d">${pct} de cada 100 cotizaciones</div><span class="ayuda">Demanda que no se cerró: precio, plazo o stock.</span></div>
-      <div class="kpi"><div class="t">En esta lista</div><div class="v">${nf(d.filas.length)}</div><div class="d">con los filtros elegidos</div><span class="ayuda">Exportar CSV baja esta misma lista.</span></div>`;
+      <div class="kpi"><div class="t">Se vendieron</div><div class="v c-ok">${nf(d.convertidas)}</div><div class="d">marcadas como venta</div><span class="ayuda">Se suman a las ventas del Tablero y de Clientes.</span></div>
+      <div class="kpi"><div class="t">Sin venta${info("Sin venta", "Cotizaciones que no se marcaron como venta. Muestran demanda que no se concretó, por precio, plazo o falta de stock.")}</div><div class="v c-warn">${nf(d.no_convertidas)}</div><div class="d">${pct} de cada 100 cotizaciones</div></div>
+      <div class="kpi"><div class="t">En esta lista</div><div class="v">${nf(d.filas.length)}</div><div class="d">con los filtros elegidos</div><span class="ayuda">«Descargar en Excel» baja esta misma lista.</span></div>`;
     const cli = id => { const c = D.clientes.lista.find(x => x.cliente_id === id); return c ? c.nombre.replace(" (ficticio)", "") : ""; };
-    $("t-cz").innerHTML = `<thead><tr><th>N°</th><th style="text-align:left">Fecha</th><th style="text-align:left">Cliente</th><th style="text-align:left">Repuesto</th><th>Cantidad</th><th>Total</th><th>Venta</th></tr></thead><tbody>` +
+    $("t-cz").innerHTML = `<thead><tr><th>Número</th><th style="text-align:left">Fecha</th><th style="text-align:left">Cliente</th><th style="text-align:left">Repuesto</th><th>Cantidad</th><th>Total</th><th>Venta</th></tr></thead><tbody>` +
       (d.filas.length ? d.filas.map(f => `<tr><td>${f.numero}</td><td style="text-align:left">${fechaLocal(f.fecha)}</td><td style="text-align:left">${esc(cli(f.cliente_id) || f.cliente_nombre || "—")}</td><td style="text-align:left">${esc(nombreRep(f.repuesto_id))}</td><td>${nf(f.cantidad)}</td><td>${bs2(f.total_bs)}</td><td>${f.convertida ? '<span class="insignia si">Vendida</span>' : `<button class="btn2" type="button" data-venta="${f.numero}">Marcar venta</button>`}</td></tr>`).join("")
         : '<tr><td colspan="7" style="text-align:left">Todavía no hay cotizaciones con estos filtros.</td></tr>') + "</tbody>";
     $("cz-msg").textContent = "";
@@ -1792,14 +1839,14 @@ $("f-cli").addEventListener("submit", async e => { e.preventDefault(); const m =
 async function pintarMiProv(){
   $("t-mp").innerHTML = '<tbody><tr><td style="text-align:left">Cargando…</td></tr></tbody>';
   try { const d = await api("/api/proveedor"), al = d.repuestos;
-    $("mp-intro").textContent = `${nombreProv(d.proveedor)} · ${d.proveedor.origen} · ${d.proveedor.incoterm} · plazo normal ${d.proveedor.plazo_normal_dias} días.`;
+    $("mp-intro").textContent = `${nombreProv(d.proveedor)} · ${d.proveedor.origen} · condición de envío ${d.proveedor.incoterm} · plazo normal de ${d.proveedor.plazo_normal_dias} días.`;
     const pedir = al.filter(a => a.est < 2), monto = pedir.reduce((s,a) => s + a.costo_bs, 0);
     $("mp-kpis").innerHTML = `
       <div class="kpi"><div class="t">Sus repuestos</div><div class="v">${al.length}</div><div class="d">en MULTIPARTES</div><span class="ayuda">Solo los que usted provee.</span></div>
-      <div class="kpi"><div class="t">Por pedirle pronto</div><div class="v c-warn">${pedir.length}</div><div class="d">«Pedir ya» o «Vigilar»</div><span class="ayuda">Llegaron o llegarán al punto de pedido.</span></div>
-      <div class="kpi"><div class="t">Monto estimado</div><div class="v">${bs(monto)}</div><div class="d">costo puesto en Santa Cruz</div><span class="ayuda">Con el dólar oficial del día.</span></div>
-      <div class="kpi"><div class="t">Entregas a tiempo</div><div class="v">${d.proveedor.pct_entregas_a_tiempo}</div><div class="d">de cada 100 pedidos</div><span class="ayuda">Dato SINTÉTICO de su historial.</span></div>`;
-    $("t-mp").innerHTML = `<thead><tr><th style="text-align:left">Repuesto</th><th style="text-align:left">Estado</th><th>Stock</th><th>En camino</th><th>Punto de pedido</th><th>Cantidad que se pediría</th><th>Costo puesto</th></tr></thead><tbody>` +
+      <div class="kpi"><div class="t">Se le pedirán pronto${info("Se le pedirán pronto", "Repuestos suyos que ya llegaron al punto de pedido («Pedir ya») o que llegarán antes de que pueda entregar un pedido nuevo («Vigilar»).")}</div><div class="v c-warn">${pedir.length}</div><div class="d">«Pedir ya» o «Vigilar»</div></div>
+      <div class="kpi"><div class="t">Monto estimado${info("Monto estimado", "Costo puesto en Santa Cruz de lo que se le pediría, en bolivianos con el dólar oficial del día.")}</div><div class="v">${bs(monto)}</div><div class="d">costo puesto en Santa Cruz</div><span class="ayuda">Con el dólar oficial del día.</span></div>
+      <div class="kpi"><div class="t">Entregas a tiempo</div><div class="v">${d.proveedor.pct_entregas_a_tiempo}</div><div class="d">de cada 100 pedidos</div><span class="ayuda">Según su historial de entregas.</span></div>`;
+    $("t-mp").innerHTML = `<thead><tr><th style="text-align:left">Repuesto</th><th style="text-align:left">Estado</th><th>Stock</th><th>En camino</th><th>Punto de pedido</th><th>Cantidad que se le pediría</th><th>Costo puesto</th></tr></thead><tbody>` +
       al.map(a => `<tr><td style="text-align:left"><b>${esc(nombreRep(a.id))}</b><span class="ayuda">${a.id}</span></td><td style="text-align:left">${insignia(a.est)}</td><td>${nf(a.stock)}</td><td>${nf(a.en_camino)}</td><td>${nf(a.punto_pedido)}</td><td>${a.est < 2 ? nf(a.cantidad_sugerida) : "—"}</td><td>${a.est < 2 ? bs(a.costo_bs) : "—"}</td></tr>`).join("") + "</tbody>";
   } catch(err){ $("t-mp").innerHTML = `<tbody><tr><td style="text-align:left" class="err">${esc(err.message)}</td></tr></tbody>`; }
 }
