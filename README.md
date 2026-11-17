@@ -14,6 +14,60 @@ con doble clic y le dice al jefe de compras cuánto pedir y cuándo. Junta cinco
 análisis de sensibilidad con dólar de quiebre y validación con los últimos 12 meses. El detalle está en la sección
 [Simulador de compras](#simulador-de-compras-scrum-53-a-scrum-70).
 
+## Dónde está cada historia
+
+Índice para encontrar cada historia en el repositorio y en el portal publicado
+(<https://multipartes-univalle.pages.dev>). La tienda está en `/` y el área de la empresa en `/empresa`; ahí se entra
+con `importador` / `demo-importador` o `proveedor` / `demo-proveedor`. La columna «Pantalla» dice qué se ve en el
+portal; «—» significa que la historia no tiene pantalla en el portal y se lee en su informe.
+
+Muchas historias del simulador y del portal **no tienen carpeta propia**: viven en `src/simulador`, que reúne el
+motor de cálculo (`motor.js`, con su copia de prueba `motor_ref.py`) y la página del área de la empresa
+(`plantilla_app.html`). La columna «Dónde está» lo indica con la función o la vista de cada una.
+
+### Historias de la primera etapa (HU)
+
+| Historia | Jira | Dónde está | Pantalla |
+|---|---|---|---|
+| HU-29 | SCRUM-5 | `docs/hu-29` | — |
+| HU-02 | SCRUM-12 | `src/hu-02`, `reports/hu-02` | — |
+| HU-03 | SCRUM-16, SCRUM-51 | `src/hu-03`, `reports/hu-03`, `docs/hu-03` | — (panel aparte: `reports/hu-03`) |
+| HU-06 | — | `src/hu-06`, `docs/hu-06` | — |
+| HU-07 | SCRUM-20 | `src/hu-07`, `reports/hu-07` | — |
+| HU-09 | SCRUM-66 | `src/hu-09`, `docs/hu-09`; en el portal, `src/simulador` (`Motor.alertas`) | Empresa › Alertas de reposición |
+| HU-12 | — | `src/hu-12`, `reports/hu-12`, `docs/hu-12` | — (antecesora del Simulador de compra) |
+| HU-17 | SCRUM-9 | `src/hu-17` | — |
+| HU-18 | SCRUM-10 | `src/hu-18` | — |
+| HU-30 y HU-31 | SCRUM-6, SCRUM-7 | `src/hu-30-31`, `docs/hu-30-31` | — (los fletes y gastos de aduana de HU-31 entran en el costo puesto del simulador) |
+| HU-32 | SCRUM-8 | `src/hu-32`, `docs/hu-32` | — |
+| HU-33 | SCRUM-44 | `docs/hu-33` | — |
+| HU-34 | SCRUM-45, SCRUM-50 | `src/hu-34`, `reports/hu-34` | — |
+| HU-36 | SCRUM-47 | Pendiente de subir (resultado comentado en Jira) | — |
+
+### Simulador y portal (SCRUM-53 en adelante)
+
+| Historia | Dónde está | Pantalla |
+|---|---|---|
+| SCRUM-54 y SCRUM-71 | `src/scrum-54` (lee el dólar del BCB) y `.github/workflows/tco-diario.yml` (lo actualiza cada día) | Empresa › Simulador, sección 1; el dólar de todas las pantallas |
+| SCRUM-55 | `src/scrum-55` (ventas de carparts adaptadas, proveedores y stock), `docs/scrum-55` | Los datos de todas las pantallas |
+| SCRUM-53, SCRUM-56 a SCRUM-63 | `src/simulador/motor.js` (sin carpeta propia), `docs/simulador/MOTOR.md` | Empresa › Simulador de compra |
+| SCRUM-64 | `src/simulador` (`preparar_datos.py`, `generar_app.py`, `plantilla_app.html`), `docs/simulador/LEEME.md` | Toda el área de la empresa |
+| SCRUM-65 | `docs/scrum-65/GUIA_simulador.md` | — (guía) |
+| SCRUM-66 | `src/simulador/motor.js` (`alertas`), sin carpeta propia | Empresa › Alertas de reposición |
+| SCRUM-67 a SCRUM-70 | `src/simulador/plantilla_app.html` (vistas `proveedores` y `plan`), sin carpeta propia | Empresa › Comparar proveedores; Plan de compra con presupuesto |
+| SCRUM-72 | `src/simulador/motor.js` (`cotizar`), sin carpeta propia | Tienda › Cotizar; Empresa › Cotizar por cantidad |
+| SCRUM-73, SCRUM-77, SCRUM-78 | `src/portal` (`worker_api.js`, `armar_portal.py`), `docs/portal/LEEME.md` | Empresa › Cotizaciones guardadas; Registrar repuestos y clientes; vista del proveedor |
+| SCRUM-74 | `src/scrum-74` (catálogo), fotos en `data/raw/scrum-74` | Tienda › Catálogo; Empresa › Catálogo |
+| SCRUM-75 | `src/simulador/motor.js` (`temporadas`), sin carpeta propia | Empresa › Temporadas de venta |
+| SCRUM-76 | `src/scrum-76` (clientes), cálculo en `src/simulador/motor.js` | Empresa › Clientes que más compran |
+| SCRUM-78 (mejora v2) | `src/tienda` (`plantilla_tienda.html`, `generar_tienda.py`) | Tienda (la raíz del sitio) |
+| SCRUM-79 | `src/simulador/motor.js` (`dashboard`) y la vista `dashboard` de `plantilla_app.html`, sin carpeta propia | Empresa › Tablero de ventas |
+| SCRUM-80 | `src/scrum-80/predecir_venta.py` (modelo), vista `predicciones` de `plantilla_app.html` | Empresa › Predicción de ventas |
+| SCRUM-81 | `src/simulador/motor.js` (`rotacion`) y la vista `rotacion`, sin carpeta propia | Empresa › Importancia y rotación (ABC) |
+| SCRUM-82 | `src/simulador/plantilla_app.html` y `src/tienda/plantilla_tienda.html` (textos e íconos «i»), sin carpeta propia | Todas las pantallas |
+
+Las pruebas de todas están en `tests/` (`python3 -m unittest discover -s tests`).
+
 ## De dónde salen los datos
 
 - **FICTICIOS:** movimientos de inventario, stock, catálogo, ventas y compras. MULTIPARTES facilitó una muestra inicial
