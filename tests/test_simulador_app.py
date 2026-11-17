@@ -17,7 +17,7 @@ sys.path.insert(0, str(SRC))
 import preparar_datos as pd  # noqa: E402
 import generar_app as ga  # noqa: E402
 
-CLAVES = {"generado", "corte", "tc", "repuestos", "proveedores", "ventas", "clasificacion", "parametros"}
+CLAVES = {"generado", "corte", "tc", "repuestos", "proveedores", "ventas", "clasificacion", "catalogo", "clientes", "prediccion", "parametros"}
 
 # Textos que no pueden aparecer en la app (ver contrato y pedido de claudia-mineria del 12-nov-2026).
 PROHIBIDOS = [
@@ -99,10 +99,36 @@ class ArmadoApp(unittest.TestCase):
         self.assertIn("data:image/jpeg;base64,", h)
         self.assertEqual(h.lower().count("</script>"), 3)  # datos, motor y código de la app
 
-    def test_seis_vistas_sin_mis_decisiones(self):
-        for v in ["alertas", "simulador", "proveedores", "plan", "backtest", "clasificacion"]:
+    def test_vistas_sin_mis_decisiones(self):
+        for v in ["dashboard", "predicciones", "rotacion", "alertas", "simulador", "proveedores", "plan", "temporadas", "clientes",
+                  "catalogo", "cotizar"]:
             self.assertIn(f'id="v-{v}"', self.html)
         self.assertNotIn("Mis decisiones", self.html)
+
+    def test_quitado_el_16_11(self):
+        # Pedido de Fio y Sam (16-11-2026): sin «¿Qué hubiera pasado?», sin «Clasificación de repuestos» y sin selector de dólar.
+        for x in ['id="v-backtest"', 'id="v-clasificacion"', '"#backtest"', '"#clasificacion"', 'id="tcsel"', 'id="f-otro"',
+                  "Dólar para calcular", "tcModo", "dólar elegido"]:
+            self.assertNotIn(x, self.html)
+
+    def test_textos_y_ayuda_del_17_11(self):
+        # SCRUM-82, decisión de Sam (17-11-2026): ninguna marca de dato simulado en pantalla, salvo una nota única al pie
+        # del menú (y de la tienda), e ícono «i» con su explicación. Se leen las plantillas sin sus comentarios, porque
+        # la app generada trae los datos con su campo origen_dato, que sí dice SINTÉTICO.
+        nota = "Ventas: base pública carparts. Clientes, proveedores, precios y stock: datos de demostración."
+        marcas = re.compile(r"SINTÉTIC|ILUSTRATIV|\bsimulad[oa]s?\b|TRAMOS DE EJEMPLO|historia nueva", re.I)
+        for ruta in (RAIZ / "src/simulador/plantilla_app.html", RAIZ / "src/tienda/plantilla_tienda.html"):
+            txt = ruta.read_text(encoding="utf-8")
+            visible = re.sub(r"<!--.*?-->|/\*.*?\*/|^\s*//.*$", "", txt, flags=re.S | re.M)
+            self.assertIn(nota, visible, ruta.name)
+            self.assertEqual([m.group(0) for m in marcas.finditer(visible)], [], ruta.name)
+            self.assertIn('class="info"', txt, ruta.name)
+            self.assertIn('querySelectorAll("[data-i]")', txt, ruta.name)
+        # control: el patrón sí detecta una marca cuando está
+        self.assertTrue(marcas.search("Precio SINTÉTICO"))
+        # el ícono es un botón real (teclado y toque), con nombre accesible, y hay muchos en la app
+        self.assertGreaterEqual(self.html.count("${info(") + self.html.count("data-i=\""), 60)
+        self.assertIn('aria-label="Qué es: ${esc(tema)}"', self.html)
 
     def test_sin_textos_prohibidos(self):
         for patron, flags in PROHIBIDOS:

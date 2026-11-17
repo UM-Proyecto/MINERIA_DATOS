@@ -586,3 +586,339 @@ def pasado(datos, politica):
         total["ganancia_bs"] += (ingreso - st["compras"] - cped * st["pedidos"] - cap_sum * tasa_cap / 30
                                  + valor_final - valor_inicial)
     return total
+
+
+# ------------------------------------------------------------------ temporadas (SCRUM-75)
+
+def perfil_mensual(serie):
+    """Venta promedio por mes del año (ver motor.js: perfilMensual). Un mes no válido no entra a su promedio."""
+    suma, obs = [0] * 12, [0] * 12
+    for mes, u in serie:
+        u = dato_valido(u)
+        if u is None:
+            continue
+        try:
+            m = int(str(mes)[5:7]) - 1
+        except ValueError:
+            continue
+        if not 0 <= m < 12:
+            continue
+        suma[m] += u
+        obs[m] += 1
+    prom, acum, con_dato = [], 0, 0
+    for i in range(12):
+        prom.append(suma[i] / obs[i] if obs[i] else None)
+        if obs[i]:
+            acum += prom[i]
+            con_dato += 1
+    media = acum / con_dato if con_dato else None
+    indice, fuertes, pico, flojo = [], [], None, None
+    for i in range(12):
+        indice.append(None if prom[i] is None or not media else prom[i] / media)
+        if prom[i] is None:
+            continue
+        if media is not None and prom[i] > media + EPS:
+            fuertes.append(i + 1)
+        if pico is None or prom[i] > prom[pico - 1] + EPS:
+            pico = i + 1
+        if flojo is None or prom[i] < prom[flojo - 1] - EPS:
+            flojo = i + 1
+    return {"promedio_mes": prom, "observaciones": obs, "media": media, "indice": indice,
+            "meses_fuertes": fuertes, "mes_pico": pico, "mes_flojo": flojo}
+
+
+def temporadas(datos):
+    por_mes, claves, repuestos = {}, [], []
+    for r in datos["repuestos"]:
+        rid = r["repuesto_id"]
+        serie = datos["ventas"].get(rid, [])
+        for mes, u in serie:
+            u = dato_valido(u)
+            if u is None:
+                continue
+            if mes not in por_mes:
+                por_mes[mes] = 0
+                claves.append(mes)
+            por_mes[mes] += u
+        p = perfil_mensual(serie)
+        p["id"] = rid
+        repuestos.append(p)
+    claves.sort()
+    return {"repuestos": repuestos, "total": perfil_mensual([[k, por_mes[k]] for k in claves])}
+
+
+# ------------------------------------------------------------------ cotización (SCRUM-72)
+
+TRAMOS_EJEMPLO = [{"desde": 10, "pct": 5}, {"desde": 50, "pct": 10}]
+
+
+def cotizar(datos, rep_id, cantidad, tc, tramos=None):
+    """Precio de una cantidad con descuento por volumen (ver motor.js: cotizar)."""
+    rep = buscar_repuesto(datos, rep_id)
+    try:
+        q = float(cantidad)
+    except (TypeError, ValueError):
+        q = float("nan")
+    if q != q or q in (float("inf"), float("-inf")) or q < 1 or math.floor(q) != q:
+        raise ValueError("La cantidad debe ser un número entero de 1 o más")
+    q = int(q)
+    tc = num(tc)
+    if tc != tc or tc in (float("inf"), float("-inf")) or tc <= 0:
+        raise ValueError("El dólar debe ser un número mayor que cero")
+    t = sorted(tramos or TRAMOS_EJEMPLO, key=lambda x: x["desde"])
+    prov = buscar_proveedor(datos, rep["proveedor_id"])
+    costo = costo_puesto(rep, prov, tc)["total_bs"]
+    lista = redondear(num(rep["precio_venta_usd"]) * tc, 2)
+    pct, siguiente = 0, None
+    for x in t:
+        if q >= x["desde"]:
+            pct = x["pct"]
+        elif siguiente is None:
+            siguiente = {"desde": x["desde"], "pct": x["pct"], "faltan": x["desde"] - q}
+    max_pct = max(0, (1 - costo / lista) * 100) if lista > 0 else 0
+    tope = pct > max_pct + EPS
+    unitario = costo if tope else redondear(lista * (1 - pct / 100), 2)
+    subtotal, total = redondear(lista * q, 2), redondear(unitario * q, 2)
+    stock = dato_valido(rep.get("stock_al_2026_11_10"))
+    en_stock = None if stock is None else min(stock, q)
+    return {
+        "id": rep["repuesto_id"], "cantidad": q, "tc": tc, "precio_lista_bs": lista, "costo_puesto_bs": costo,
+        "pct_tramo": pct, "pct_aplicado": redondear(max_pct, 2) if tope else pct, "tope": tope,
+        "precio_unitario_bs": unitario, "subtotal_bs": subtotal, "descuento_bs": redondear(subtotal - total, 2),
+        "total_bs": total, "siguiente_tramo": siguiente, "stock": stock, "en_stock": en_stock,
+        "por_pedir": None if en_stock is None else q - en_stock, "plazo_dias": num(prov["plazo_normal_dias"])}
+
+
+# ------------------------------------------------------------------ clientes (SCRUM-76)
+
+def tablero_clientes(datos, tc):
+    """Tablero de clientes SINTÉTICOS (ver motor.js: tableroClientes)."""
+    tc = num(tc)
+    temporada = temporadas(datos)["total"]["meses_fuertes"]
+    en_temp = set(temporada)
+    precio = {r["repuesto_id"]: redondear(num(r["precio_venta_usd"]) * tc, 2) for r in datos["repuestos"]}
+    C, orden = {}, []
+    for c in datos["clientes"]["lista"]:
+        C[c["cliente_id"]] = {"id": c["cliente_id"], "nombre": c["nombre"], "tipo": c["tipo"], "zona": c["zona"],
+                              "unidades": 0, "monto_bs": 0, "unid_temp": 0, "unid_fuera": 0,
+                              "monto_temp_bs": 0, "monto_fuera_bs": 0, "_rep": {}}
+        orden.append(c["cliente_id"])
+    total = {"unidades": 0, "monto_bs": 0, "monto_temp_bs": 0, "monto_fuera_bs": 0}
+    for mes, rep, cli, u in datos["clientes"]["ventas"]:
+        c, u = C.get(cli), dato_valido(u)
+        if c is None or u is None or rep not in precio:
+            continue
+        monto = u * precio[rep]
+        try:
+            t = int(str(mes)[5:7]) in en_temp
+        except ValueError:
+            t = False
+        c["unidades"] += u
+        c["monto_bs"] += monto
+        if t:
+            c["unid_temp"] += u
+            c["monto_temp_bs"] += monto
+            total["monto_temp_bs"] += monto
+        else:
+            c["unid_fuera"] += u
+            c["monto_fuera_bs"] += monto
+            total["monto_fuera_bs"] += monto
+        c["_rep"][rep] = c["_rep"].get(rep, 0) + u
+        total["unidades"] += u
+        total["monto_bs"] += monto
+    lista = []
+    for cid in orden:
+        c = C[cid]
+        c["pct_temp"] = c["monto_temp_bs"] / c["monto_bs"] * 100 if c["monto_bs"] > 0 else None
+        c["pct_total"] = c["monto_bs"] / total["monto_bs"] * 100 if total["monto_bs"] > 0 else None
+        c["top"] = [{"id": r, "unidades": n} for r, n in sorted(c["_rep"].items(), key=lambda x: (-x[1], x[0]))][:3]
+        del c["_rep"]
+        lista.append(c)
+    lista.sort(key=lambda c: (-c["monto_bs"], c["id"]))
+    tipos, orden_tipos = {}, []
+    for c in lista:
+        if c["tipo"] not in tipos:
+            tipos[c["tipo"]] = {"tipo": c["tipo"], "clientes": 0, "monto_bs": 0, "monto_temp_bs": 0}
+            orden_tipos.append(c["tipo"])
+        tipos[c["tipo"]]["clientes"] += 1
+        tipos[c["tipo"]]["monto_bs"] += c["monto_bs"]
+        tipos[c["tipo"]]["monto_temp_bs"] += c["monto_temp_bs"]
+    por_tipo = sorted((tipos[t] for t in orden_tipos), key=lambda x: (-x["monto_bs"], x["tipo"]))
+    return {"temporada": temporada, "clientes": lista, "por_tipo": por_tipo, "total": total}
+
+
+# ------------------------------------------------------------------ dashboard (SCRUM-79)
+
+def mes_menos(mes, k):
+    a, m = int(str(mes)[:4]), int(str(mes)[5:7]) - 1 - k
+    a += m // 12
+    m %= 12
+    return f"{a}-{m + 1:02d}"
+
+
+def trimestre(mes):
+    return f"{str(mes)[:4]}-T{(int(str(mes)[5:7]) - 1) // 3 + 1}"
+
+
+def dashboard(datos, tc):
+    """Dashboard de ventas (ver motor.js: dashboard). Todo sale de las compras por cliente."""
+    import re
+    tc = num(tc)
+    precio = {r["repuesto_id"]: redondear(num(r["precio_venta_usd"]) * tc, 2) for r in datos["repuestos"]}
+    nombre = {c["cliente_id"]: c["nombre"] for c in datos["clientes"]["lista"]}
+    filas = []
+    for v in datos["clientes"]["ventas"]:
+        u, mes = dato_valido(v[3]), str(v[0])
+        if u is None or v[1] not in precio or v[2] not in nombre or not re.fullmatch(r"\d{4}-\d{2}", mes):
+            continue
+        filas.append({"mes": mes, "rep": v[1], "cli": v[2], "u": u, "bs": u * precio[v[1]]})
+    total = {"unidades": 0, "monto_bs": 0}
+    if not filas:
+        return {"meses": [], "demanda_mes": [], "por_anio": [], "total": total, "repuestos": [], "clientes": [],
+                "trimestres": [], "ultimo_mes": None, "ult12_bs": 0, "prev12_bs": 0, "top5_pct": None}
+    meses = sorted(f["mes"] for f in filas)
+    desde, ultimo = meses[0], meses[-1]
+    lista, k = [], 0
+    while True:
+        m = mes_menos(ultimo, k)
+        lista.insert(0, m)
+        if m == desde:
+            break
+        k += 1
+    dm = {m: {"mes": m, "unidades": 0, "monto_bs": 0} for m in lista}
+    trims = []
+    for m in lista:
+        if not trims or trims[-1] != trimestre(m):
+            trims.append(trimestre(m))
+    r6, p6, r12, p12 = mes_menos(ultimo, 5), mes_menos(ultimo, 11), mes_menos(ultimo, 11), mes_menos(ultimo, 23)
+    ult12 = prev12 = 0
+    anios, reps, clis = {}, {}, {}
+    for f in filas:
+        total["unidades"] += f["u"]
+        total["monto_bs"] += f["bs"]
+        dm[f["mes"]]["unidades"] += f["u"]
+        dm[f["mes"]]["monto_bs"] += f["bs"]
+        a = anios.setdefault(f["mes"][:4], {"anio": f["mes"][:4], "unidades": 0, "monto_bs": 0, "meses": set()})
+        a["unidades"] += f["u"]
+        a["monto_bs"] += f["bs"]
+        a["meses"].add(f["mes"])
+        r = reps.setdefault(f["rep"], {"id": f["rep"], "unidades": 0, "monto_bs": 0})
+        r["unidades"] += f["u"]
+        r["monto_bs"] += f["bs"]
+        c = clis.setdefault(f["cli"], {"id": f["cli"], "nombre": nombre[f["cli"]], "unidades": 0, "monto_bs": 0,
+                                       "ult6_bs": 0, "prev6_bs": 0, "ultima_compra": f["mes"], "_t": {}})
+        c["unidades"] += f["u"]
+        c["monto_bs"] += f["bs"]
+        c["_t"][trimestre(f["mes"])] = c["_t"].get(trimestre(f["mes"]), 0) + f["bs"]
+        c["ultima_compra"] = max(c["ultima_compra"], f["mes"])
+        if f["mes"] >= r6:
+            c["ult6_bs"] += f["bs"]
+        elif f["mes"] >= p6:
+            c["prev6_bs"] += f["bs"]
+        if f["mes"] >= r12:
+            ult12 += f["bs"]
+        elif f["mes"] >= p12:
+            prev12 += f["bs"]
+    por_anio = [{"anio": a, "unidades": x["unidades"], "monto_bs": x["monto_bs"], "meses": len(x["meses"])}
+                for a, x in sorted(anios.items())]
+    for r in reps.values():
+        r["pct_unidades"] = r["unidades"] / total["unidades"] * 100
+    repuestos = sorted(reps.values(), key=lambda r: (-r["unidades"], -r["monto_bs"], r["id"]))
+    clientes = []
+    for c in clis.values():
+        c["trimestres"] = [c["_t"].get(t, 0) for t in trims]
+        c["pct_total"] = c["monto_bs"] / total["monto_bs"] * 100
+        c["variacion_pct"] = (c["ult6_bs"] - c["prev6_bs"]) / c["prev6_bs"] * 100 if c["prev6_bs"] > 0 else None
+        if c["ult6_bs"] == 0 and c["prev6_bs"] == 0:
+            c["tendencia"] = "sin compras"
+        elif c["prev6_bs"] == 0:
+            c["tendencia"] = "nuevo"
+        else:
+            c["tendencia"] = "sube" if c["variacion_pct"] >= 10 else "baja" if c["variacion_pct"] <= -10 else "estable"
+        del c["_t"]
+        clientes.append(c)
+    clientes.sort(key=lambda c: (-c["monto_bs"], c["id"]))
+    top5 = sum(c["monto_bs"] for c in clientes[:5])
+    return {"meses": lista, "demanda_mes": [dm[m] for m in lista], "por_anio": por_anio, "total": total,
+            "repuestos": repuestos, "clientes": clientes, "trimestres": trims, "ultimo_mes": ultimo,
+            "ult12_bs": ult12, "prev12_bs": prev12, "top5_pct": top5 / total["monto_bs"] * 100 if total["monto_bs"] > 0 else None}
+
+
+# ------------------------------------------------------------------ rotación e importancia (SCRUM-81)
+
+ROT_ALTA_MESES = 3
+ROT_MEDIA_MESES = 12
+ACUM_MESES = 24
+ABC_CORTES = [0.80, 0.95]
+
+
+def rotacion(datos, tc):
+    """ABC por valor de los últimos 12 meses cruzado con la rotación (ver motor.js: rotacion)."""
+    tc = num(tc)
+    filas = []
+    for r in datos["repuestos"]:
+        rid = r["repuesto_id"]
+        v = [dato_valido(x[1] if isinstance(x, (list, tuple)) else x) for x in datos["ventas"].get(rid, [])]
+        stock = dato_valido(r.get("stock_al_2026_11_10"))
+        transito = dato_valido(r.get("en_transito_al_2026_11_10")) or 0
+        smax = dato_valido(r.get("nivel_maximo_S"))
+        pv = redondear(num(r["precio_venta_usd"]) * tc, 2)
+        cp = num(r["costo_puesto_usd"]) * tc
+        validos = [x for x in v if x is not None]
+        if len(validos) < 12 or stock is None:
+            filas.append({"id": rid, "sin_datos": True,
+                          "motivo": "no tiene 12 meses de ventas" if len(validos) < 12 else "no tiene stock registrado",
+                          "u12": None, "valor12_bs": 0, "stock": stock, "transito": transito, "nivel_maximo": smax})
+            continue
+        u12 = sum(ultimos(validos, 12))
+        sin = 0
+        for x in reversed(validos):
+            if x != 0:
+                break
+            sin += 1
+        cob = stock / (u12 / 12) if u12 > 0 else None
+        rot = u12 / stock if stock > 0 else None
+        if u12 == 0:
+            clase = "baja"
+        elif cob <= ROT_ALTA_MESES + EPS:
+            clase = "alta"
+        elif cob <= ROT_MEDIA_MESES + EPS:
+            clase = "media"
+        else:
+            clase = "baja"
+        motivos = []
+        if smax is not None and stock + transito > smax:
+            motivos.append("stock y tránsito superan el nivel máximo")
+        if cob is not None and cob > ACUM_MESES + EPS:
+            motivos.append(f"stock para más de {ACUM_MESES} meses")
+        if u12 == 0 and stock > 0:
+            motivos.append("sin ventas en 12 meses y con stock")
+        filas.append({"id": rid, "sin_datos": False, "u12": u12, "valor12_bs": u12 * pv, "stock": stock,
+                      "transito": transito, "nivel_maximo": smax, "cobertura_meses": cob, "rotacion_anual": rot,
+                      "meses_sin_venta": sin, "clase_rot": clase,
+                      "baja_rotacion": u12 == 0 or (rot is not None and rot < 1 - EPS),
+                      "acumulacion": len(motivos) > 0, "motivos_acumulacion": motivos, "valor_stock_bs": stock * cp})
+    total = sum(f["valor12_bs"] for f in filas)
+    acum = 0
+    for f in sorted(filas, key=lambda f: (-f["valor12_bs"], f["id"])):
+        if f["sin_datos"]:
+            f["clase_abc"] = None
+            continue
+        previo = acum / total if total > 0 else 1
+        f["clase_abc"] = "A" if previo < ABC_CORTES[0] - EPS else "B" if previo < ABC_CORTES[1] - EPS else "C"
+        f["pct_valor"] = f["valor12_bs"] / total * 100 if total > 0 else 0
+        acum += f["valor12_bs"]
+        f["pct_acumulado"] = acum / total * 100 if total > 0 else 0
+    matriz = {a: {"alta": 0, "media": 0, "baja": 0} for a in "ABC"}
+    for f in filas:
+        if not f["sin_datos"]:
+            matriz[f["clase_abc"]][f["clase_rot"]] += 1
+    orden = {"A": 0, "B": 1, "C": 2}
+    filas.sort(key=lambda f: (f["sin_datos"], orden.get(f["clase_abc"], 0), -f["valor12_bs"], f["id"]))
+    con = [f for f in filas if not f["sin_datos"]]
+    return {"repuestos": filas, "matriz": matriz, "valor12_total_bs": total,
+            "acumulacion": sum(1 for f in con if f["acumulacion"]),
+            "baja_rotacion": sum(1 for f in con if f["baja_rotacion"]),
+            "valor_acumulado_bs": sum(f["valor_stock_bs"] for f in con if f["acumulacion"]),
+            "umbrales": {"rot_alta_meses": ROT_ALTA_MESES, "rot_media_meses": ROT_MEDIA_MESES,
+                         "acum_meses": ACUM_MESES, "abc": ABC_CORTES}}

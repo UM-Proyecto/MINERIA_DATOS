@@ -21,7 +21,8 @@ análisis de sensibilidad con dólar de quiebre y validación con los últimos 1
   con la misma estructura. Cada archivo indica si es de prueba.
 - **PÚBLICOS y reales, del simulador:** las ventas mensuales de repuestos de auto del conjunto carparts (Hyndman,
   Koehler, Ord y Snyder, 2008), con las fechas adaptadas a 2022-2026, y el tipo de cambio oficial diario del BCB desde el
-  27-06-2026. Proveedores, costos, precios y stock del simulador son SINTÉTICOS y así están marcados.
+  27-06-2026. Clientes, proveedores, costos, precios y stock del simulador son SINTÉTICOS; en pantalla lo dice una nota
+  fija al pie del menú y de la tienda (decisión de Sam del 17-11-2026, SCRUM-82).
 - **PÚBLICOS y reales:** los fletes de importación (INE de Bolivia, cotizaciones de un agente de carga y el índice SCFI de
   Shanghái) y el tipo de cambio oficial del Banco Central de Bolivia.
 - **MIXTOS:** los costos de importación de HU-31 y la comparación del tipo de cambio de HU-32 combinan las fuentes
@@ -74,7 +75,7 @@ Todas las historias son de Samuel. Cada una tiene sus criterios de aceptación e
 | [SCRUM-55](https://fsandoval09.atlassian.net/browse/SCRUM-55) | Adapta las ventas reales de carparts a 30 repuestos de MULTIPARTES, con proveedores y stock SINTÉTICOS | [`src/scrum-55`](src/scrum-55) | [`docs/scrum-55`](docs/scrum-55/LEEME.md) |
 | [SCRUM-53](https://fsandoval09.atlassian.net/browse/SCRUM-53), [SCRUM-56](https://fsandoval09.atlassian.net/browse/SCRUM-56) a [SCRUM-63](https://fsandoval09.atlassian.net/browse/SCRUM-63) | Motor: costo puesto con Incoterm y flete, dólar a 90 días, venta, atraso del proveedor, riesgo de quedarse sin stock, capital inmovilizado, cuatro alternativas con puntaje, dólar de quiebre y qué supuesto pesa más | [`src/simulador/motor.js`](src/simulador/motor.js) y su referencia [`motor_ref.py`](src/simulador/motor_ref.py) | [`docs/simulador/MOTOR.md`](docs/simulador/MOTOR.md) |
 | [SCRUM-64](https://fsandoval09.atlassian.net/browse/SCRUM-64) | La app, con la explicación de cada campo | [`src/simulador`](src/simulador) | [`docs/simulador/LEEME.md`](docs/simulador/LEEME.md) |
-| [SCRUM-66](https://fsandoval09.atlassian.net/browse/SCRUM-66) a [SCRUM-70](https://fsandoval09.atlassian.net/browse/SCRUM-70) | Alertas de reposición, comparar proveedores, clasificación de repuestos, ¿qué hubiera pasado? y plan con presupuesto | [`src/simulador`](src/simulador) | [`docs/simulador/LEEME.md`](docs/simulador/LEEME.md) |
+| [SCRUM-66](https://fsandoval09.atlassian.net/browse/SCRUM-66) a [SCRUM-70](https://fsandoval09.atlassian.net/browse/SCRUM-70) | Alertas de reposición, comparar proveedores y plan con presupuesto (las vistas de clasificación y «¿qué hubiera pasado?» se quitaron el 16-11-2026) | [`src/simulador`](src/simulador) | [`docs/simulador/LEEME.md`](docs/simulador/LEEME.md) |
 | [SCRUM-65](https://fsandoval09.atlassian.net/browse/SCRUM-65) | Guía del simulador y preguntas del docente | — | [`docs/scrum-65/GUIA_simulador.md`](docs/scrum-65/GUIA_simulador.md) |
 
 Para regenerar todo desde los datos:
@@ -89,6 +90,22 @@ python3 -m unittest discover -s tests
 
 El motor está escrito en JavaScript para que corra dentro de la página, y tiene una copia en Python que solo sirve para
 probarlo: las dos versiones deben dar el mismo resultado en 20 casos fijos.
+
+## Portal y funciones para el cliente (SCRUM-71 a SCRUM-78)
+
+Salen de los requisitos que Fiorella trajo el 13-11-2026, y las historias están a su nombre. El portal funciona como
+fuente de datos de demanda para la decisión de compra: cada cotización guardada registra lo que pidió un cliente,
+aunque no haya comprado.
+
+| Jira | Qué hace | Código | Documento |
+|---|---|---|---|
+| [SCRUM-71](https://fsandoval09.atlassian.net/browse/SCRUM-71) | El dólar oficial del BCB se actualiza solo cada día (GitHub Actions) | [`.github/workflows/tco-diario.yml`](.github/workflows/tco-diario.yml) | [`docs/scrum-54`](docs/scrum-54/LEEME.md) |
+| [SCRUM-72](https://fsandoval09.atlassian.net/browse/SCRUM-72) | Cotizar por cantidad con descuento por volumen (tramos de EJEMPLO) | [`src/simulador`](src/simulador) | [`docs/simulador/LEEME.md`](docs/simulador/LEEME.md) |
+| [SCRUM-75](https://fsandoval09.atlassian.net/browse/SCRUM-75) | Temporadas: venta promedio por mes del año, con las ventas reales | [`src/simulador`](src/simulador) | [`docs/simulador/LEEME.md`](docs/simulador/LEEME.md) |
+| [SCRUM-74](https://fsandoval09.atlassian.net/browse/SCRUM-74) | Catálogo con foto, nombres ILUSTRATIVOS y fotos con licencia libre | [`src/scrum-74`](src/scrum-74) | [`data/raw/scrum-74/fuentes_imagenes.csv`](data/raw/scrum-74/fuentes_imagenes.csv) |
+| [SCRUM-76](https://fsandoval09.atlassian.net/browse/SCRUM-76) | Clientes que más compran, en temporada y fuera de ella (clientes SINTÉTICOS) | [`src/scrum-76`](src/scrum-76) | [`docs/simulador/LEEME.md`](docs/simulador/LEEME.md) |
+| [SCRUM-73](https://fsandoval09.atlassian.net/browse/SCRUM-73), [SCRUM-77](https://fsandoval09.atlassian.net/browse/SCRUM-77) y [SCRUM-78](https://fsandoval09.atlassian.net/browse/SCRUM-78) | Portal con roles: cotizaciones guardadas, carga de repuestos y clientes, vista del proveedor | [`src/portal`](src/portal) | [`docs/portal/LEEME.md`](docs/portal/LEEME.md) |
+| Mejora v2 (14-11-2026) | Tienda pública en `/`, como mejora del sitio actual de MULTIPARTES, y área de la empresa aparte en `/empresa` | [`src/tienda`](src/tienda) | [`docs/portal/LEEME.md`](docs/portal/LEEME.md) |
 
 ## Estructura
 

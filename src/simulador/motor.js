@@ -591,10 +591,283 @@ var Motor = (function () {
     return total;
   }
 
+  // ---------------------------------------------------------------- temporadas (SCRUM-75)
+
+  // Venta promedio por mes del año. Los meses son los de la serie re-fechada de SCRUM-55 (enero de 1998 de carparts
+  // es agosto de 2022), así que muestran el patrón de carparts corrido siete meses, no las temporadas de Santa Cruz.
+  // Un mes vacío o no válido no cuenta como cero: no entra al promedio de su mes.
+  function perfilMensual(serie) {
+    var suma = [], obs = [], i;
+    for (i = 0; i < 12; i++) { suma.push(0); obs.push(0); }
+    for (i = 0; i < serie.length; i++) {
+      var u = datoValido(serie[i][1]);
+      if (u === null) continue;
+      var m = Number(String(serie[i][0]).slice(5, 7)) - 1;
+      if (!(m >= 0 && m < 12)) continue;
+      suma[m] += u;
+      obs[m] += 1;
+    }
+    var prom = [], acum = 0, conDato = 0;
+    for (i = 0; i < 12; i++) {
+      prom.push(obs[i] ? suma[i] / obs[i] : null);
+      if (obs[i]) { acum += prom[i]; conDato++; }
+    }
+    var media = conDato ? acum / conDato : null;
+    var indice = [], fuertes = [], pico = null, flojo = null;
+    for (i = 0; i < 12; i++) {
+      indice.push(prom[i] === null || !media ? null : prom[i] / media);
+      if (prom[i] === null) continue;
+      if (media !== null && prom[i] > media + EPS) fuertes.push(i + 1);
+      if (pico === null || prom[i] > prom[pico - 1] + EPS) pico = i + 1;
+      if (flojo === null || prom[i] < prom[flojo - 1] - EPS) flojo = i + 1;
+    }
+    return { promedio_mes: prom, observaciones: obs, media: media, indice: indice, meses_fuertes: fuertes,
+             mes_pico: pico, mes_flojo: flojo };
+  }
+
+  function temporadas(datos) {
+    var ids = datos.repuestos.map(function (r) { return r.repuesto_id; });
+    var porMes = {}, claves = [];
+    var repuestos = ids.map(function (id) {
+      var serie = datos.ventas[id] || [];
+      for (var i = 0; i < serie.length; i++) {
+        var u = datoValido(serie[i][1]);
+        if (u === null) continue;
+        if (!(serie[i][0] in porMes)) { porMes[serie[i][0]] = 0; claves.push(serie[i][0]); }
+        porMes[serie[i][0]] += u;
+      }
+      var p = perfilMensual(serie);
+      p.id = id;
+      return p;
+    });
+    claves.sort();
+    var total = perfilMensual(claves.map(function (k) { return [k, porMes[k]]; }));
+    return { repuestos: repuestos, total: total };
+  }
+
+  // ---------------------------------------------------------------- cotización (SCRUM-72)
+
+  // Tramos de EJEMPLO decididos por Sam el 13-11-2026: 5 % desde 10 unidades y 10 % desde 50.
+  var TRAMOS_EJEMPLO = [{ desde: 10, pct: 5 }, { desde: 50, pct: 10 }];
+
+  function cotizar(datos, repId, cantidad, tc, tramos) {
+    var rep = buscarRepuesto(datos, repId);
+    var q = Number(cantidad);
+    if (!isFinite(q) || q < 1 || Math.floor(q) !== q) throw new Error("La cantidad debe ser un número entero de 1 o más");
+    tc = num(tc);
+    if (!isFinite(tc) || tc <= 0) throw new Error("El dólar debe ser un número mayor que cero");
+    var t = (tramos || TRAMOS_EJEMPLO).slice().sort(function (a, b) { return a.desde - b.desde; });
+    var prov = buscarProveedor(datos, rep.proveedor_id);
+    var costo = costoPuesto(rep, prov, tc).total_bs;
+    var lista = redondear(num(rep.precio_venta_usd) * tc, 2);
+    var pct = 0, siguiente = null;
+    for (var i = 0; i < t.length; i++) {
+      if (q >= t[i].desde) pct = t[i].pct;
+      else if (siguiente === null) siguiente = { desde: t[i].desde, pct: t[i].pct, faltan: t[i].desde - q };
+    }
+    // El descuento nunca deja el precio por debajo del costo puesto.
+    var maxPct = lista > 0 ? Math.max(0, (1 - costo / lista) * 100) : 0;
+    var tope = pct > maxPct + EPS;
+    var unitario = tope ? costo : redondear(lista * (1 - pct / 100), 2);
+    var subtotal = redondear(lista * q, 2), total = redondear(unitario * q, 2);
+    var stock = datoValido(rep.stock_al_2026_11_10);
+    var enStock = stock === null ? null : Math.min(stock, q);
+    return {
+      id: rep.repuesto_id, cantidad: q, tc: tc, precio_lista_bs: lista, costo_puesto_bs: costo,
+      pct_tramo: pct, pct_aplicado: tope ? redondear(maxPct, 2) : pct, tope: tope,
+      precio_unitario_bs: unitario, subtotal_bs: subtotal, descuento_bs: redondear(subtotal - total, 2), total_bs: total,
+      siguiente_tramo: siguiente, stock: stock, en_stock: enStock,
+      por_pedir: enStock === null ? null : q - enStock, plazo_dias: num(prov.plazo_normal_dias)
+    };
+  }
+
+  // ---------------------------------------------------------------- clientes (SCRUM-76)
+
+  // Tablero de clientes SINTÉTICOS. Temporada = meses fuertes de los 30 repuestos juntos (temporadas().total).
+  // Monto = unidades × precio de lista con el dólar que se le pasa (en la app, el oficial del día), igual que el cotizador.
+  function tableroClientes(datos, tc) {
+    tc = num(tc);
+    var temporada = temporadas(datos).total.meses_fuertes, enTemp = {};
+    temporada.forEach(function (m) { enTemp[m] = true; });
+    var precio = {};
+    datos.repuestos.forEach(function (r) { precio[r.repuesto_id] = redondear(num(r.precio_venta_usd) * tc, 2); });
+    var C = {}, orden = [];
+    datos.clientes.lista.forEach(function (c) {
+      C[c.cliente_id] = { id: c.cliente_id, nombre: c.nombre, tipo: c.tipo, zona: c.zona, unidades: 0, monto_bs: 0,
+        unid_temp: 0, unid_fuera: 0, monto_temp_bs: 0, monto_fuera_bs: 0, _rep: {} };
+      orden.push(c.cliente_id);
+    });
+    var total = { unidades: 0, monto_bs: 0, monto_temp_bs: 0, monto_fuera_bs: 0 };
+    datos.clientes.ventas.forEach(function (v) {
+      var c = C[v[2]], u = datoValido(v[3]);
+      if (!c || u === null || !(v[1] in precio)) return;
+      var monto = u * precio[v[1]], t = enTemp[Number(String(v[0]).slice(5, 7))] === true;
+      c.unidades += u; c.monto_bs += monto;
+      if (t) { c.unid_temp += u; c.monto_temp_bs += monto; total.monto_temp_bs += monto; }
+      else { c.unid_fuera += u; c.monto_fuera_bs += monto; total.monto_fuera_bs += monto; }
+      c._rep[v[1]] = (c._rep[v[1]] || 0) + u;
+      total.unidades += u; total.monto_bs += monto;
+    });
+    var lista = orden.map(function (id) {
+      var c = C[id];
+      c.pct_temp = c.monto_bs > 0 ? c.monto_temp_bs / c.monto_bs * 100 : null;
+      c.pct_total = total.monto_bs > 0 ? c.monto_bs / total.monto_bs * 100 : null;
+      c.top = Object.keys(c._rep).map(function (r) { return { id: r, unidades: c._rep[r] }; })
+        .sort(function (a, b) { return b.unidades - a.unidades || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0); }).slice(0, 3);
+      delete c._rep;
+      return c;
+    });
+    lista.sort(function (a, b) { return b.monto_bs - a.monto_bs || (a.id < b.id ? -1 : 1); });
+    var tipos = {}, ordenTipos = [];
+    lista.forEach(function (c) {
+      if (!(c.tipo in tipos)) { tipos[c.tipo] = { tipo: c.tipo, clientes: 0, monto_bs: 0, monto_temp_bs: 0 }; ordenTipos.push(c.tipo); }
+      tipos[c.tipo].clientes += 1; tipos[c.tipo].monto_bs += c.monto_bs; tipos[c.tipo].monto_temp_bs += c.monto_temp_bs;
+    });
+    var porTipo = ordenTipos.map(function (t) { return tipos[t]; })
+      .sort(function (a, b) { return b.monto_bs - a.monto_bs || (a.tipo < b.tipo ? -1 : 1); });
+    return { temporada: temporada, clientes: lista, por_tipo: porTipo, total: total };
+  }
+
+  // ---------------------------------------------------------------- dashboard (SCRUM-79)
+
+  function mesMenos(mes, k) {
+    var a = Number(String(mes).slice(0, 4)), m = Number(String(mes).slice(5, 7)) - 1 - k;
+    a += Math.floor(m / 12); m = ((m % 12) + 12) % 12;
+    return a + "-" + dos(m + 1);
+  }
+  function trimestre(mes) { return String(mes).slice(0, 4) + "-T" + (Math.floor((Number(String(mes).slice(5, 7)) - 1) / 3) + 1); }
+  function porClave(a, b) { return a < b ? -1 : a > b ? 1 : 0; }
+
+  // Todo sale de las compras por cliente (datos.clientes.ventas): suman lo mismo que las ventas reales por repuesto y,
+  // en el portal, incluyen las cotizaciones marcadas como venta. Dinero = unidades × precio de lista con el dólar
+  // oficial del día, igual que el cotizador y el tablero de clientes (carparts no trae precios históricos).
+  function dashboard(datos, tc) {
+    tc = num(tc);
+    var precio = {};
+    datos.repuestos.forEach(function (r) { precio[r.repuesto_id] = redondear(num(r.precio_venta_usd) * tc, 2); });
+    var nombre = {};
+    datos.clientes.lista.forEach(function (c) { nombre[c.cliente_id] = c.nombre; });
+    var filas = [];
+    datos.clientes.ventas.forEach(function (v) {
+      var u = datoValido(v[3]), mes = String(v[0]);
+      if (u === null || !(v[1] in precio) || !(v[2] in nombre) || !/^\d{4}-\d{2}$/.test(mes)) return;
+      filas.push({ mes: mes, rep: v[1], cli: v[2], u: u, bs: u * precio[v[1]] });
+    });
+    var total = { unidades: 0, monto_bs: 0 };
+    if (!filas.length) return { meses: [], demanda_mes: [], por_anio: [], total: total, repuestos: [], clientes: [], trimestres: [],
+      ultimo_mes: null, ult12_bs: 0, prev12_bs: 0, top5_pct: null };
+    var meses = filas.map(function (f) { return f.mes; }).sort(porClave);
+    var desde = meses[0], ultimo = meses[meses.length - 1];
+    var lista = [];
+    for (var k = 0; ; k++) { var m = mesMenos(ultimo, k); lista.unshift(m); if (m === desde) break; }
+    var dm = {}, anios = {}, reps = {}, clis = {}, trims = [];
+    lista.forEach(function (m) { dm[m] = { mes: m, unidades: 0, monto_bs: 0 }; var t = trimestre(m); if (trims[trims.length - 1] !== t) trims.push(t); });
+    var r6 = mesMenos(ultimo, 5), p6 = mesMenos(ultimo, 11), r12 = mesMenos(ultimo, 11), p12 = mesMenos(ultimo, 23);
+    var ult12 = 0, prev12 = 0;
+    filas.forEach(function (f) {
+      total.unidades += f.u; total.monto_bs += f.bs;
+      dm[f.mes].unidades += f.u; dm[f.mes].monto_bs += f.bs;
+      var a = f.mes.slice(0, 4);
+      if (!anios[a]) anios[a] = { anio: a, unidades: 0, monto_bs: 0, meses: {} };
+      anios[a].unidades += f.u; anios[a].monto_bs += f.bs; anios[a].meses[f.mes] = true;
+      if (!reps[f.rep]) reps[f.rep] = { id: f.rep, unidades: 0, monto_bs: 0 };
+      reps[f.rep].unidades += f.u; reps[f.rep].monto_bs += f.bs;
+      if (!clis[f.cli]) clis[f.cli] = { id: f.cli, nombre: nombre[f.cli], unidades: 0, monto_bs: 0, ult6_bs: 0, prev6_bs: 0, ultima_compra: f.mes, _t: {} };
+      var c = clis[f.cli];
+      c.unidades += f.u; c.monto_bs += f.bs; c._t[trimestre(f.mes)] = (c._t[trimestre(f.mes)] || 0) + f.bs;
+      if (f.mes > c.ultima_compra) c.ultima_compra = f.mes;
+      if (f.mes >= r6) c.ult6_bs += f.bs; else if (f.mes >= p6) c.prev6_bs += f.bs;
+      if (f.mes >= r12) ult12 += f.bs; else if (f.mes >= p12) prev12 += f.bs;
+    });
+    var porAnio = Object.keys(anios).sort(porClave).map(function (a) {
+      var x = anios[a]; return { anio: a, unidades: x.unidades, monto_bs: x.monto_bs, meses: Object.keys(x.meses).length };
+    });
+    var repuestos = Object.keys(reps).map(function (k) { var x = reps[k]; x.pct_unidades = x.unidades / total.unidades * 100; return x; })
+      .sort(function (a, b) { return b.unidades - a.unidades || b.monto_bs - a.monto_bs || porClave(a.id, b.id); });
+    var clientes = Object.keys(clis).map(function (k) {
+      var c = clis[k];
+      c.trimestres = trims.map(function (t) { return c._t[t] || 0; });
+      c.pct_total = c.monto_bs / total.monto_bs * 100;
+      c.variacion_pct = c.prev6_bs > 0 ? (c.ult6_bs - c.prev6_bs) / c.prev6_bs * 100 : null;
+      c.tendencia = c.ult6_bs === 0 && c.prev6_bs === 0 ? "sin compras" : c.prev6_bs === 0 ? "nuevo" :
+        c.variacion_pct >= 10 ? "sube" : c.variacion_pct <= -10 ? "baja" : "estable";
+      delete c._t;
+      return c;
+    }).sort(function (a, b) { return b.monto_bs - a.monto_bs || porClave(a.id, b.id); });
+    var top5 = clientes.slice(0, 5).reduce(function (s, c) { return s + c.monto_bs; }, 0);
+    return {
+      meses: lista, demanda_mes: lista.map(function (m) { return dm[m]; }), por_anio: porAnio, total: total,
+      repuestos: repuestos, clientes: clientes, trimestres: trims, ultimo_mes: ultimo,
+      ult12_bs: ult12, prev12_bs: prev12, top5_pct: total.monto_bs > 0 ? top5 / total.monto_bs * 100 : null
+    };
+  }
+
+  // ---------------------------------------------------------------- rotación e importancia (SCRUM-81)
+
+  var ROT_ALTA_MESES = 3, ROT_MEDIA_MESES = 12, ACUM_MESES = 24, ABC_CORTES = [0.80, 0.95];
+
+  // ABC por valor vendido en los últimos 12 meses (Pareto 80/95, por el acumulado ANTERIOR, como SCRUM-55) cruzado
+  // con la rotación: cobertura = meses que dura el stock de hoy al ritmo de los últimos 12 meses.
+  function rotacion(datos, tc) {
+    tc = num(tc);
+    var filas = datos.repuestos.map(function (r) {
+      var id = r.repuesto_id, serie = datos.ventas[id] || [], v = [], k;
+      for (k = 0; k < serie.length; k++) v.push(datoValido(Array.isArray(serie[k]) ? serie[k][1] : serie[k]));
+      var stock = datoValido(r.stock_al_2026_11_10), transito = datoValido(r.en_transito_al_2026_11_10) || 0;
+      var smax = datoValido(r.nivel_maximo_S), pv = redondear(num(r.precio_venta_usd) * tc, 2), cp = num(r.costo_puesto_usd) * tc;
+      var validos = v.filter(function (x) { return x !== null; });
+      if (validos.length < 12 || stock === null) {
+        return { id: id, sin_datos: true, motivo: validos.length < 12 ? "no tiene 12 meses de ventas" : "no tiene stock registrado",
+          u12: null, valor12_bs: 0, stock: stock, transito: transito, nivel_maximo: smax };
+      }
+      var u12 = ultimos(validos, 12).reduce(function (s, x) { return s + x; }, 0), sin = 0;
+      for (k = validos.length - 1; k >= 0 && validos[k] === 0; k--) sin++;
+      var cob = u12 > 0 ? stock / (u12 / 12) : null, rot = stock > 0 ? u12 / stock : null;
+      var clase = u12 === 0 ? "baja" : cob <= ROT_ALTA_MESES + EPS ? "alta" : cob <= ROT_MEDIA_MESES + EPS ? "media" : "baja";
+      var motivosAcum = [];
+      if (smax !== null && stock + transito > smax) motivosAcum.push("stock y tránsito superan el nivel máximo");
+      if (cob !== null && cob > ACUM_MESES + EPS) motivosAcum.push("stock para más de " + ACUM_MESES + " meses");
+      if (u12 === 0 && stock > 0) motivosAcum.push("sin ventas en 12 meses y con stock");
+      return {
+        id: id, sin_datos: false, u12: u12, valor12_bs: u12 * pv, stock: stock, transito: transito, nivel_maximo: smax,
+        cobertura_meses: cob, rotacion_anual: rot, meses_sin_venta: sin, clase_rot: clase,
+        baja_rotacion: u12 === 0 || (rot !== null && rot < 1 - EPS), acumulacion: motivosAcum.length > 0, motivos_acumulacion: motivosAcum,
+        valor_stock_bs: stock * cp
+      };
+    });
+    var total = filas.reduce(function (s, f) { return s + f.valor12_bs; }, 0), acum = 0;
+    filas.slice().sort(function (a, b) { return b.valor12_bs - a.valor12_bs || porClave(a.id, b.id); }).forEach(function (f) {
+      if (f.sin_datos) { f.clase_abc = null; return; }
+      var previo = total > 0 ? acum / total : 1;
+      f.clase_abc = previo < ABC_CORTES[0] - EPS ? "A" : previo < ABC_CORTES[1] - EPS ? "B" : "C";
+      f.pct_valor = total > 0 ? f.valor12_bs / total * 100 : 0;
+      acum += f.valor12_bs;
+      f.pct_acumulado = total > 0 ? acum / total * 100 : 0;
+    });
+    var matriz = {};
+    ["A", "B", "C"].forEach(function (a) { matriz[a] = { alta: 0, media: 0, baja: 0 }; });
+    filas.forEach(function (f) { if (!f.sin_datos) matriz[f.clase_abc][f.clase_rot] += 1; });
+    var orden = { A: 0, B: 1, C: 2 };
+    filas.sort(function (a, b) {
+      if (a.sin_datos !== b.sin_datos) return a.sin_datos ? 1 : -1;
+      return (orden[a.clase_abc] || 0) - (orden[b.clase_abc] || 0) || b.valor12_bs - a.valor12_bs || porClave(a.id, b.id);
+    });
+    var conDatos = filas.filter(function (f) { return !f.sin_datos; });
+    return {
+      repuestos: filas, matriz: matriz, valor12_total_bs: total,
+      acumulacion: conDatos.filter(function (f) { return f.acumulacion; }).length,
+      baja_rotacion: conDatos.filter(function (f) { return f.baja_rotacion; }).length,
+      valor_acumulado_bs: conDatos.filter(function (f) { return f.acumulacion; }).reduce(function (s, f) { return s + f.valor_stock_bs; }, 0),
+      umbrales: { rot_alta_meses: ROT_ALTA_MESES, rot_media_meses: ROT_MEDIA_MESES, acum_meses: ACUM_MESES, abc: ABC_CORTES }
+    };
+  }
+
   return {
     costoPuesto: costoPuesto, pronostico: pronostico, simular: simular, quiebreDolar: quiebreDolar,
     sensibilidad: sensibilidad, alertas: alertas, planPresupuesto: planPresupuesto,
-    compararProveedores: compararProveedores, pasado: pasado,
+    compararProveedores: compararProveedores, pasado: pasado, temporadas: temporadas, cotizar: cotizar, tableroClientes: tableroClientes,
+    dashboard: dashboard, rotacion: rotacion,
+    TRAMOS_EJEMPLO: TRAMOS_EJEMPLO,
     _interno: { mulberry32: mulberry32, normalIH: normalIH, expSerie: expSerie, redondear: redondear, volatilidadDiaria: volatilidadDiaria }
   };
 })();

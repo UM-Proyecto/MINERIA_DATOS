@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
+<title>MULTIPARTES · Prototipo de tienda en línea (Univalle)</title>
+<!--
+  Tienda pública del portal de MULTIPARTES (SCRUM-72 a SCRUM-74 y SCRUM-78): propuesta de mejora del sitio
+  www.multipartes.com.bo, aprobada por Sam el 14-11-2026. Textos, sucursales, rubros, fotos y marca son los del
+  sitio actual (data/raw/tienda/). Lo agregado: catálogo con precio y stock, cotizador y acceso a la empresa.
+  Es un PROTOTIPO académico: la franja de arriba lo dice siempre, los precios son de prueba y la página pide no ser
+  indexada. generar_tienda.py pone los datos y el motor en sus dos marcas.
+-->
+<style>
+:root{--g:#01863e;--gd:#016726;--gs:#e3f2e8;--ink:#161922;--gr:#5a5f66;--line:#e3e6e2;--ws:#fbf1d9;--warn:#8a5d00;--bad:#b42318;--ok:#1d7a52}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:120px;-webkit-text-size-adjust:100%}
+body{margin:0;font:15px/1.6 Poppins,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);background:#fafafa}
+a{color:inherit;text-decoration:none}button,input,select{font:inherit;color:inherit}button{cursor:pointer}
+:focus-visible{outline:2px solid var(--g);outline-offset:3px}
+img{max-width:100%}
+.w{max-width:1180px;margin:0 auto;padding:0 32px}
+.proto{background:#000;color:#f1f3f5;font-size:12.5px;line-height:1.45;padding:8px 0;position:sticky;top:0;z-index:20}
+.proto b{color:#ffd166}.proto a{text-decoration:underline}
+header{background:var(--g);position:sticky;top:36px;z-index:15}
+.nav{display:flex;align-items:stretch;min-height:70px}
+.lg{background:var(--gd);display:flex;align-items:center;padding:0 18px}.lg img{height:52px;width:auto;display:block}
+.menu{display:flex;margin:0 0 0 auto;padding:0;list-style:none;align-items:stretch}
+.menu a{color:#fff;font-weight:600;font-size:13.5px;letter-spacing:.3px;padding:0 15px;min-height:70px;display:flex;align-items:center;border-left:1px solid #ffffff22}
+.menu a:hover,.menu a[aria-current=true]{background:#ffffff1a}
+.menu .emp{font-size:12.5px;font-weight:500}
+.burg{display:none;margin-left:auto;background:none;border:0;color:#fff;font-size:28px;width:56px;min-height:60px}
+.revisar{display:inline-block;font:700 9.5px/1 system-ui;letter-spacing:.5px;background:var(--ws);color:var(--warn);border-radius:99px;padding:3px 7px;vertical-align:middle;margin-left:6px;cursor:help}
+.hero{background:linear-gradient(120deg,#0d1226 0,#16203f 55%,#0b3a22 100%);color:#fff;padding:60px 0 66px}
+.hg{display:grid;grid-template-columns:1.1fr .9fr;gap:44px;align-items:center}
+.ey{font-size:12px;letter-spacing:2.5px;text-transform:uppercase;color:#9be7c0;font-weight:700}
+.hero h1{font-size:46px;line-height:1.1;margin:10px 0 14px;font-weight:800;text-transform:uppercase}
+.hero p{color:#cfd6e3;max-width:560px;font-size:16.5px;margin:0 0 24px}
+.cta{display:flex;gap:12px;flex-wrap:wrap}
+.b1,.bo,.wa{display:inline-flex;align-items:center;min-height:48px;padding:0 22px;border-radius:4px;font-weight:700;font-size:13px;letter-spacing:.5px;text-transform:uppercase}
+.b1{background:var(--g);color:#fff}.bo{border:1.5px solid #fff}.wa{background:#25d366;color:#06321a;text-transform:none;font-size:14px}
+.tc{margin-top:24px;font-size:13px;color:#cfd6e3;display:flex;gap:8px;align-items:flex-start}.tc b{color:#fff}.dot{width:8px;height:8px;border-radius:50%;background:#25d366;flex:none;margin-top:6px}
+.qc{background:#fff;color:var(--ink);border-radius:6px;padding:24px;box-shadow:0 18px 50px #0006;border-top:4px solid var(--g)}
+.qc h2{margin:0;font-size:17px;text-transform:uppercase}.qc .s{color:var(--gr);font-size:12.5px;margin-bottom:6px}
+label{display:block;font-size:12.5px;font-weight:600;margin:12px 0 5px}
+select,input[type=number],input[type=text],input[type=search]{width:100%;height:46px;border:1px solid #c9cdc9;border-radius:4px;background:#fff;padding:0 12px}
+.tot{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;background:var(--gs);border-radius:4px;padding:12px 14px;margin-top:14px}
+.tot b{font-size:24px;color:var(--gd);display:block;line-height:1.2}.tot small{font-size:12px;color:var(--gr)}
+.bt{display:block;width:100%;text-align:center;background:var(--g);color:#fff;border:0;min-height:48px;font-weight:700;margin-top:12px;border-radius:4px;text-transform:uppercase;font-size:13px}
+.bt:disabled{opacity:.55;cursor:default}
+.msg{font-size:13px;margin-top:8px;min-height:20px}.msg.ok{color:var(--ok)}.msg.mal{color:var(--bad)}
+.marcas{background:#fff;padding:28px 0;border-bottom:1px solid var(--line)}
+.ml{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px 22px;font-weight:800;letter-spacing:1.5px;color:#8e949a;font-size:15px;margin:0;padding:0;list-style:none}
+section{padding:64px 0}
+.ti{display:flex;align-items:flex-end;gap:16px;margin-bottom:26px}.ti .n{font-size:64px;line-height:.8;font-weight:800;color:var(--g)}
+.ti h2{margin:0;font-size:28px;text-transform:uppercase;line-height:1.1}.ti p{margin:6px 0 0;color:var(--gr);font-size:14px}
+.por{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}.por h3{margin:0 0 8px;font-size:15px}
+.por h3:after{content:"";display:block;width:28px;height:2px;background:var(--g);margin-top:8px}.por p{margin:0;color:var(--gr);font-size:13.5px}
+.dk{background:linear-gradient(180deg,#141518,#2b2d31);color:#fff}.dk .ti p{color:#c2c7cd}
+.rus{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.ru{display:block;background:none;border:0;padding:0;text-align:left;color:#fff}
+.ru img{width:100%;aspect-ratio:16/10;object-fit:cover;display:block}
+.ru span{display:block;padding:10px 2px}.ru b{display:block;font-size:14.5px}.ru em{font-style:normal;font-size:12.5px;color:#9be7c0;font-weight:600}.ru em.g{color:#c2c7cd;font-weight:400}
+.pdf{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px}.pdf a{padding:12px 20px;font-weight:700;font-size:12.5px;text-transform:uppercase;border-radius:2px;min-height:48px}
+.pdf a:first-child{background:#6b6e72;color:#fff}.pdf a:last-child{background:var(--g);color:#fff}.pdf small{display:block;font-weight:400;text-transform:none;opacity:.85}
+.fil{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:8px}
+.cnt{font-size:13px;color:var(--gr);margin:6px 0 16px}
+.fichas{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.fi{background:#fff;border:1px solid var(--line);border-radius:6px;overflow:hidden;display:flex;flex-direction:column}
+.fi img,.fi .sinfoto{width:100%;aspect-ratio:4/3;object-fit:contain;background:#f0f1ef;display:block}
+.fi .sinfoto{display:flex;align-items:center;justify-content:center;color:var(--gr);font-size:12px}
+.fb{padding:14px;display:flex;flex-direction:column;gap:4px;flex:1}
+.k{font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--gr);font-weight:600}
+.fi h3{margin:0 0 4px;font-size:14.5px;line-height:1.3}.fi .d{font-size:12.5px;color:var(--gr);margin:0}
+.pr{font-size:19px;font-weight:700;color:var(--gd);margin-top:auto;padding-top:6px}.pr small{font-size:12px;color:var(--gr);font-weight:400}
+.st{display:inline-block;align-self:flex-start;font-size:11.5px;border-radius:99px;padding:2px 9px}.st.si{background:#e1f1e8;color:var(--ok)}.st.no{background:var(--ws);color:var(--warn)}
+.b2{display:block;width:100%;text-align:center;border:1px solid #c9cdc9;background:#fff;border-radius:4px;min-height:44px;font-weight:600;font-size:13px;margin-top:8px}
+.gris{background:#f1f2f0}
+.pasos{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.pa{background:#fff;border:1px solid var(--line);border-radius:6px;padding:20px}.pa b{display:inline-flex;width:30px;height:30px;border-radius:50%;background:var(--g);color:#fff;align-items:center;justify-content:center;margin-bottom:8px}
+.pa h3{margin:0 0 4px;font-size:15px}.pa p{margin:0;color:var(--gr);font-size:13.5px}
+.tr-t{font-size:12.5px;font-weight:600;margin-top:18px}
+.tr{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+/* Ícono «i» (SCRUM-82): el mismo componente del área de la empresa; clic, toque o teclado, y cursor si hay mouse. */
+.info{position:relative;display:inline-grid;place-items:center;width:17px;height:17px;margin:0 0 0 6px;padding:0;vertical-align:-3px;border:1.5px solid var(--gr);border-radius:50%;background:transparent;color:var(--gr);font:italic 700 11px/1 Georgia,"Times New Roman",serif;cursor:help}
+.info::after{content:"";position:absolute;inset:-8px}
+.info:hover,.info[aria-expanded="true"]{border-color:var(--g);background:var(--g);color:#fff}
+#info-pop{position:fixed;z-index:60;max-width:min(320px,calc(100vw - 24px));background:#1b1f24;color:#fff;border-radius:8px;padding:10px 12px;font:400 12.5px/1.5 Poppins,system-ui,sans-serif;box-shadow:0 6px 24px rgba(0,0,0,.22)}
+#info-pop[hidden]{display:none}#info-pop b{display:block;font-weight:600;margin-bottom:3px}
+.leg .nota-datos{display:block;margin-top:6px}.tr span{border:1px solid #c9cdc9;border-radius:99px;padding:6px 14px;font-size:13px;background:#fff}
+.tr .on{background:var(--gs);border-color:var(--g);color:var(--gd);font-weight:600}.tr .ej{background:var(--ws);color:var(--warn);border:0;font-weight:700}
+.cot{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:26px;background:#fff;border:1px solid var(--line);border-radius:6px;padding:24px}
+.cot table{width:100%;border-collapse:collapse;font-size:14px}.cot td{padding:8px 4px;border-bottom:1px solid var(--line)}.cot td:last-child{text-align:right;font-variant-numeric:tabular-nums}
+.cot tr.t td{font-weight:700;border-bottom:0;font-size:16px}
+.cot .nota{font-size:13px;color:var(--gr);margin:10px 0 0}
+.nos{display:grid;grid-template-columns:1.2fr .8fr;gap:40px}.nos p{color:#3c4148;margin:0 0 14px}.nos h3{margin:0 0 6px;font-size:15px;text-transform:uppercase;color:var(--gd)}
+.dist{display:flex;flex-wrap:wrap;gap:10px;margin:0;padding:0;list-style:none}.dist li{border:1px solid var(--line);background:#fff;border-radius:4px;padding:10px 16px;font-weight:700;color:#4a4f55;letter-spacing:.5px}
+.nota2{font-size:12.5px;color:var(--gr);margin-top:12px}
+.sucs{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.su{background:#fff;border:1px solid var(--line);border-left:3px solid var(--g);border-radius:4px;padding:14px}
+.su h3{margin:0;font-size:14px}.su .dir{display:block;font-size:12.5px;color:var(--gr);margin:2px 0 6px}.su a{display:block;font-size:13px;font-weight:600;color:var(--gd)}.su .co{font-weight:400;color:var(--gr);font-size:12px;word-break:break-all}
+.hor{margin-top:16px;font-size:14px}.hor b{color:var(--gd)}
+.empb{background:#0d1226;color:#e9ecef}.empb .ti h2{color:#fff}.empb .ti p{color:#c2c7cd}.empb .ti .n{color:#9be7c0}
+.eg{display:grid;grid-template-columns:1fr 1fr;gap:20px}.ec{border:1px solid #ffffff2e;border-radius:6px;padding:22px}
+.ec h3{margin:0 0 6px;color:#fff;font-size:16px}.ec p{margin:0 0 14px;font-size:14px;color:#c4cad0}
+.ec a{display:inline-flex;align-items:center;min-height:44px;background:#fff;color:#0d1226;padding:0 16px;font-weight:700;font-size:12.5px;border-radius:4px;text-transform:uppercase}
+footer{background:#111;color:#c4c4c4;font-size:12.5px;padding:24px 0 90px}
+.fg{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}.fg nav{display:flex;gap:14px;flex-wrap:wrap}.fg a{text-decoration:underline}
+.leg{margin-top:12px;border-top:1px solid #333;padding-top:10px;color:#a6a6a6}
+.wafab{position:fixed;right:20px;bottom:20px;width:58px;height:58px;border-radius:50%;background:#25d366;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px #0004;z-index:30}
+.wafab svg{width:30px;height:30px;fill:#fff}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (max-width:1080px){.menu a{padding:0 10px;font-size:12.5px}.fichas{grid-template-columns:repeat(3,1fr)}.sucs{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:760px){
+  html{scroll-padding-top:110px}
+  .w{padding:0 16px}.proto{font-size:11.5px}
+  header{top:52px}.nav{min-height:60px;flex-wrap:wrap}.lg img{height:40px}
+  .burg{display:block}.menu{display:none;flex-basis:100%;flex-direction:column;background:var(--gd)}
+  .menu.abierto{display:flex}.menu a{min-height:48px;border-left:0;border-top:1px solid #ffffff22;padding:0 16px;font-size:14px}
+  .hero{padding:30px 0 40px}.hg{grid-template-columns:1fr;gap:24px}.hero h1{font-size:28px}.hero p{font-size:15px}
+  section{padding:40px 0}.ti .n{font-size:44px}.ti h2{font-size:21px}
+  .por,.pasos,.eg,.nos,.cot,.fil{grid-template-columns:1fr}.rus{grid-template-columns:1fr 1fr;gap:12px}.ru b{font-size:13px}
+  .fichas{grid-template-columns:1fr 1fr;gap:10px}.fb{padding:10px}.fi h3{font-size:13px}.fi .d{display:none}.pr{font-size:16px}
+  .sucs{grid-template-columns:1fr}.ml{justify-content:flex-start;font-size:13px}.cot{padding:16px}
+}
+</style>
+</head>
+<body>
+<div class="proto" role="note"><div class="w"><b>PROTOTIPO ACADÉMICO</b> (Minería de Datos, Univalle). No es el sitio oficial de MULTIPARTES. Sitio oficial: <a href="https://www.multipartes.com.bo/" rel="noopener">www.multipartes.com.bo</a>.</div></div>
+<header><div class="w nav">
+  <a class="lg" href="#inicio" aria-label="MULTIPARTES, inicio"><img id="logo" alt="MULTIPARTES Santa Cruz" width="300" height="111"></a>
+  <button class="burg" id="burg" type="button" aria-expanded="false" aria-controls="menu" aria-label="Abrir el menú">☰</button>
+  <ul class="menu" id="menu">
+    <li><a href="#inicio">INICIO</a></li><li><a href="#nosotros">NOSOTROS</a></li><li><a href="#repuestos">REPUESTOS</a></li>
+    <li><a href="#catalogo">CATÁLOGO</a></li><li><a href="#cotizar">COTIZAR</a></li><li><a href="#contacto">CONTACTO</a></li>
+    <li><a class="emp" id="a-emp" href="/empresa">Acceso empresa</a></li>
+  </ul>
+</div></header>
+
+<main>
+<div class="hero" id="inicio"><div class="w hg">
+  <div>
+    <div class="ey">La empresa multimarcas · desde 1980</div>
+    <h1>Repuestos y accesorios para su vehículo</h1>
+    <p>Más de 40 años en Santa Cruz, con casa matriz en la Av. Cristo Redentor y sucursales en distintos puntos de la ciudad. Ahora también puede ver precios en bolivianos y cotizar en línea.</p>
+    <div class="cta"><a class="b1" href="#catalogo">Ver catálogo</a><a class="bo" href="#cotizar">Cotizar</a><a class="wa" id="wa-hero" rel="noopener" target="_blank"></a></div>
+    <div class="tc"><span class="dot" aria-hidden="true"></span><span id="tc-txt"></span></div>
+  </div>
+  <div class="qc" aria-labelledby="qc-h"><h2 id="qc-h">Cotización rápida</h2><div class="s">Sin cuenta. Queda guardada con un número.</div>
+    <label for="qr-rep" data-i="Repuesto|Elija el repuesto que quiere cotizar. El precio se calcula en bolivianos con el dólar oficial del día.">Repuesto</label><select id="qr-rep"></select>
+    <label for="qr-q" data-i="Cantidad|Número de unidades, de 1 en adelante. Desde 10 unidades se aplica un descuento por cantidad.">Cantidad</label><input id="qr-q" type="number" min="1" step="1" inputmode="numeric" value="10">
+    <div class="tot" aria-live="polite"><div><small id="qr-lab"></small><b id="qr-tot"></b></div><small id="qr-det" style="text-align:right"></small></div>
+    <button class="bt" type="button" id="qr-emitir">Emitir cotización</button><p class="msg" id="qr-msg" aria-live="polite"></p>
+  </div>
+</div></div>
+
+<div class="marcas" aria-label="Marcas de vehículos"><div class="w"><ul class="ml" id="marcas"></ul></div></div>
+
+<section id="por-que"><div class="w"><div class="ti"><span class="n" aria-hidden="true">01</span><div><h2>¿Por qué elegirnos?</h2></div></div><div class="por" id="por"></div></div></section>
+
+<section class="dk" id="repuestos"><div class="w"><div class="ti"><span class="n" aria-hidden="true">02</span><div><h2>Ofrecemos repuestos</h2><p>Los rubros con productos en línea llevan al catálogo con precios; los demás se consultan por WhatsApp.</p></div></div>
+  <div class="rus" id="rubros"></div><div class="pdf" id="pdfs"></div></div></section>
+
+<section id="catalogo"><div class="w"><div class="ti"><span class="n" aria-hidden="true">03</span><div><h2>Catálogo con precios</h2><p>Precio por unidad en bolivianos con el dólar oficial de hoy, y cuánto hay en almacén.</p></div></div>
+  <div class="fil"><div><label for="ca-q">Buscar</label><input id="ca-q" type="search" autocomplete="off" placeholder="Nombre, rubro o código"></div>
+    <div><label for="ca-r">Rubro</label><select id="ca-r"></select></div></div>
+  <p class="cnt" id="ca-n" aria-live="polite"></p><div class="fichas" id="fichas"></div>
+  <p class="nota2">Las fotos muestran la familia del repuesto, no la pieza exacta, y tienen licencia libre.</p></div></section>
+
+<section class="gris" id="cotizar"><div class="w"><div class="ti"><span class="n" aria-hidden="true">04</span><div><h2>Cotice en tres pasos</h2><p>Sin llamar ni esperar respuesta. Para pedidos grandes, igual puede escribirnos por WhatsApp.</p></div></div>
+  <div class="pasos"><div class="pa"><b>1</b><h3>Elija el repuesto</h3><p>Desde el catálogo o el buscador, con foto y disponibilidad.</p></div>
+    <div class="pa"><b>2</b><h3>Escriba la cantidad</h3><p>El precio se calcula en bolivianos con el dólar oficial del Banco Central de Bolivia del día.</p></div>
+    <div class="pa"><b>3</b><h3>Emita la cotización</h3><p>Queda guardada con un número para pedirla en la sucursal.</p></div></div>
+  <div class="tr-t" data-i="Descuento por cantidad|Porcentaje que se descuenta del precio de lista según la cantidad pedida. El tramo resaltado es el que corresponde a su pedido.">Descuento por cantidad</div><div class="tr" id="tramos"></div>
+  <div class="cot">
+    <div><label for="co-rep" data-i="Repuesto|Elija el repuesto que quiere cotizar. En el catálogo puede ver su foto, para qué sirve y cuántas unidades hay en almacén.">Repuesto</label><select id="co-rep"></select>
+      <label for="co-q" data-i="Cantidad|Número de unidades del pedido, de 1 en adelante. Si hay menos en almacén, el resto llega en el plazo del proveedor.">Cantidad</label><input id="co-q" type="number" min="1" step="1" inputmode="numeric" value="10">
+      <label for="co-nom" data-i="Su nombre o empresa|Dato opcional que queda guardado con la cotización, para encontrarla cuando la presente en la sucursal.">Su nombre o empresa (opcional)</label><input id="co-nom" type="text" maxlength="80" autocomplete="organization">
+      <button class="bt" type="button" id="co-emitir">Emitir cotización</button><p class="msg" id="co-msg" aria-live="polite"></p></div>
+    <div aria-live="polite"><table id="co-tabla"></table><p class="nota" id="co-nota"></p></div>
+  </div></div></section>
+
+<section id="nosotros"><div class="w"><div class="ti"><span class="n" aria-hidden="true">05</span><div><h2>Quiénes somos</h2></div></div>
+  <div class="nos"><div><p id="nos-1"></p><p id="nos-2"></p></div><div><h3>Misión</h3><p id="mision"></p><h3>Visión</h3><p id="vision"></p></div></div></div></section>
+
+<section class="gris" id="distribuidores"><div class="w"><div class="ti"><span class="n" aria-hidden="true">06</span><div><h2>Distribuidores para Bolivia</h2></div></div>
+  <ul class="dist" id="dist"></ul><p class="nota2" id="dist-nota"></p></div></section>
+
+<section id="contacto"><div class="w"><div class="ti"><span class="n" aria-hidden="true">07</span><div><h2>Sucursales y horarios <span class="revisar" id="suc-rev" tabindex="0">Por confirmar</span></h2><p id="suc-nota"></p></div></div>
+  <div class="sucs" id="sucs"></div><p class="hor" id="hor"></p></div></section>
+
+<section class="empb" id="empresa"><div class="w"><div class="ti"><span class="n" aria-hidden="true">08</span><div><h2>Acceso empresa</h2><p>Área separada de la tienda. Se ingresa con usuario y clave.</p></div></div>
+  <div class="eg"><div class="ec"><h3>Personal de MULTIPARTES</h3><p>Ventas, predicciones, alertas de reposición, simulador de compra, cotizaciones y registro de datos.</p><a href="/empresa#entrar">Entrar</a></div>
+    <div class="ec"><h3>Proveedores</h3><p>Sus repuestos en MULTIPARTES, qué se les pedirá pronto y su puntualidad de entrega.</p><a href="/empresa#entrar">Entrar</a></div></div></div></section>
+</main>
+
+<footer><div class="w"><div class="fg"><span>© 2025 Multipartes · Santa Cruz de la Sierra</span><nav id="redes" aria-label="Redes sociales"></nav></div>
+  <div class="leg">Prototipo del proyecto de Minería de Datos (Univalle) como propuesta de mejora de www.multipartes.com.bo. Textos, sucursales, rubros, fotos de rubros y logotipo: del sitio de MULTIPARTES. Dólar: oficial del Banco Central de Bolivia.<br><span class="nota-datos">Ventas: base pública carparts. Clientes, proveedores, precios y stock: datos de demostración.</span></div></div></footer>
+<a class="wafab" id="wa-fab" rel="noopener" target="_blank" aria-label="Escribir por WhatsApp a ventas"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2c-1.5 0-3-.4-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2c0 1.3.9 2.5 1 2.7.1.2 1.8 2.8 4.4 3.9 1.6.7 2.3.8 3.1.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.6-.3z"/></svg></a>
+
+<script type="application/json" id="datos">__TIENDA__</script>
+<script>
+__MOTOR__
+</script>
+<script>
+(function(){
+"use strict";
+const T = JSON.parse(document.getElementById("datos").textContent);
+const $ = id => document.getElementById(id);
+const PORTAL = !!window.PORTAL;
+const C = T.contenido;
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function nf(n, d){ d = d === undefined ? 2 : d; if(n === null || n === undefined || !isFinite(n)) return "—";
+  const neg = n < 0, s = Math.abs(n).toFixed(d), p = s.split("."); return (neg ? "−" : "") + p[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".") + (p[1] ? "," + p[1] : ""); }
+const bs = n => "Bs " + nf(n);
+const MES = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+const fecha = f => { const [y,m,d] = f.split("-"); return +d + "-" + MES[+m-1] + "-" + y; };
+const TC = {valor: T.tc.valor, fecha: T.tc.fecha};
+
+/* Rubros del sitio y a cuál pertenece cada repuesto del catálogo. */
+const RUBRO_DE = T.rubro_de_categoria;
+const rubroDe = c => RUBRO_DE[c.categoria] || (C.rubros.some(r => r[0] === c.categoria) ? c.categoria : "Otros artículos");
+const D = {repuestos: T.repuestos.slice(), proveedores: T.proveedores};
+const CAT = {}; T.catalogo.forEach(c => CAT[c.repuesto_id] = c);
+const REP = {}; D.repuestos.forEach(r => REP[r.repuesto_id] = r);
+const nombre = id => CAT[id] ? CAT[id].nombre : id;
+
+/* ---- contenido fijo del sitio ---- */
+$("logo").src = T.imagenes["logo_multipartes.jpg"];
+const WA = C.whatsapp_portada;
+$("wa-hero").href = $("wa-fab").href = WA.enlace;
+$("wa-hero").innerHTML = `WhatsApp ventas · ${esc(WA.numero)} <span class="revisar" title="${esc(WA.a_revisar)}" tabindex="0">Por confirmar</span>`;
+$("marcas").innerHTML = C.marcas_vehiculos.map(m => `<li>${esc(m)}</li>`).join("");
+$("por").innerHTML = C.por_que.map(p => `<div><h3>${esc(p[0])}</h3><p>${esc(p[1])}</p></div>`).join("");
+$("pdfs").innerHTML = C.catalogos_pdf.map(p => `<a href="${esc(p[1])}" target="_blank" rel="noopener">${esc(p[0])}<small>catálogo PDF del sitio actual</small></a>`).join("");
+$("nos-1").textContent = C.quienes_somos; $("nos-2").textContent = C.oficina;
+$("mision").textContent = C.mision; $("vision").textContent = C.vision;
+$("dist").innerHTML = C.distribuidores.map(m => `<li>${esc(m)}${C.distribuidores_a_revisar.includes(m) ? '<span class="revisar" tabindex="0" title="Nombre leído de un archivo del sitio: a confirmar">?</span>' : ""}</li>`).join("");
+$("dist-nota").textContent = C.distribuidores_nota;
+$("suc-rev").title = C.sucursales_a_revisar; $("suc-nota").textContent = C.sucursales_a_revisar;
+$("sucs").innerHTML = C.sucursales.map(s => `<div class="su"><h3>${esc(s.nombre)}</h3><span class="dir">${esc(s.direccion)}</span>${s.ventas.map(v => `<a href="tel:+591${v.replace(/\s/g,"")}">Ventas: ${esc(v)}</a>`).join("")}<span class="co">${esc(s.correo)}</span></div>`).join("");
+$("hor").innerHTML = `<b>Horario de atención:</b> ${C.horario.map(esc).join(" · ")}`;
+$("redes").innerHTML = C.redes.map(r => `<a href="${esc(r[1])}" target="_blank" rel="noopener">${esc(r[0])}</a>`).join("");
+
+/* ---- menú en el celular ---- */
+$("burg").addEventListener("click", () => { const m = $("menu"), a = !m.classList.contains("abierto"); m.classList.toggle("abierto", a); $("burg").setAttribute("aria-expanded", String(a)); });
+$("menu").addEventListener("click", e => { if(e.target.closest("a")){ $("menu").classList.remove("abierto"); $("burg").setAttribute("aria-expanded","false"); } });
+if(!PORTAL) $("a-emp").title = "El acceso de la empresa funciona en el portal publicado.";
+
+/* ---- dólar ---- */
+function pintarTc(){ $("tc-txt").innerHTML = `Precios con el dólar oficial del Banco Central de Bolivia: <b>Bs ${nf(TC.valor)}</b> · vigente el ${fecha(TC.fecha)}`; }
+
+/* ---- rubros ---- */
+let filtroRubro = "";
+function pintarRubros(){
+  const cuenta = {}; T.catalogo.forEach(c => { const r = rubroDe(c); cuenta[r] = (cuenta[r] || 0) + 1; });
+  $("rubros").innerHTML = C.rubros.map(([n, f]) => cuenta[n]
+    ? `<button class="ru" type="button" data-rubro="${esc(n)}"><img src="${T.imagenes[f]}" alt="" loading="lazy" width="520" height="325"><span><b>${esc(n)}</b><em>${cuenta[n]} con precio en línea →</em></span></button>`
+    : `<a class="ru" href="${esc(WA.enlace)}" target="_blank" rel="noopener"><img src="${T.imagenes[f]}" alt="" loading="lazy" width="520" height="325"><span><b>${esc(n)}</b><em class="g">Consultar por WhatsApp</em></span></a>`).join("");
+  $("ca-r").innerHTML = '<option value="">Todos</option>' + C.rubros.filter(([n]) => cuenta[n]).map(([n]) => `<option>${esc(n)}</option>`).join("");
+  $("ca-r").value = filtroRubro;
+}
+$("rubros").addEventListener("click", e => { const b = e.target.closest("button[data-rubro]"); if(!b) return; filtroRubro = b.dataset.rubro; $("ca-r").value = filtroRubro; pintarCatalogo(); location.hash = "#catalogo"; });
+
+/* ---- catálogo ---- */
+const norm = t => String(t).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+function precioLista(id){ try { return Motor.cotizar(D, id, 1, TC.valor).precio_lista_bs; } catch(e){ return null; } }
+function pintarCatalogo(){
+  const q = norm($("ca-q").value.trim());
+  const lista = T.catalogo.filter(c => (!filtroRubro || rubroDe(c) === filtroRubro) && (!q || norm(c.nombre + " " + c.categoria + " " + rubroDe(c) + " " + c.repuesto_id).includes(q)));
+  $("ca-n").textContent = lista.length === T.catalogo.length ? `Los ${lista.length} productos.` : lista.length ? `${lista.length} de ${T.catalogo.length} productos.` : "Ningún producto coincide. Pruebe con otra palabra o consulte por WhatsApp.";
+  $("fichas").innerHTML = lista.map(c => { const r = REP[c.repuesto_id], st = r.stock_al_2026_11_10, pv = D.proveedores.find(p => p.proveedor_id === r.proveedor_id) || {};
+    return `<article class="fi">${c.imagen && T.imagenes[c.imagen] ? `<img src="${T.imagenes[c.imagen]}" alt="" loading="lazy" width="480" height="360">` : '<div class="sinfoto">Sin foto todavía</div>'}
+      <div class="fb"><span class="k">${esc(rubroDe(c))}</span><h3>${esc(c.nombre)}</h3><p class="d">${esc(c.descripcion || "")}</p>
+      <div class="pr">${bs(precioLista(c.repuesto_id))}<small> por unidad</small></div>
+      ${st > 0 ? `<span class="st si">En almacén: ${nf(st,0)}</span>` : `<span class="st no">Bajo pedido: unos ${nf(pv.plazo_normal_dias,0)} días</span>`}
+      <button class="b2" type="button" data-cot="${c.repuesto_id}">Cotizar</button></div></article>`; }).join("");
+}
+let tCa = null;
+$("ca-q").addEventListener("input", () => { clearTimeout(tCa); tCa = setTimeout(pintarCatalogo, 120); });
+$("ca-r").addEventListener("change", e => { filtroRubro = e.target.value; pintarCatalogo(); });
+$("fichas").addEventListener("click", e => { const b = e.target.closest("button[data-cot]"); if(!b) return; S.rep = b.dataset.cot; pintarCot(); location.hash = "#cotizar"; $("co-q").focus({preventScroll:true}); });
+
+/* ---- cotizador: el de la portada y el de la sección van sincronizados ---- */
+const S = {rep: "REP-0001", q: "10"};
+function opciones(){ return T.catalogo.map(c => `<option value="${c.repuesto_id}">${esc(c.nombre)}</option>`).join(""); }
+function pintarTramos(activo){
+  const t = Motor.TRAMOS_EJEMPLO.slice().sort((a,b) => a.desde - b.desde), f = [{desde:1, hasta:t[0].desde - 1, pct:0}];
+  t.forEach((x,i) => f.push({desde:x.desde, hasta:i + 1 < t.length ? t[i+1].desde - 1 : null, pct:x.pct}));
+  $("tramos").innerHTML = f.map(x => `<span class="${x.pct === activo ? "on" : ""}">${x.hasta === null ? x.desde + " o más" : x.desde + " a " + x.hasta} unidades: ${x.pct ? x.pct + " % menos" : "precio de lista"}</span>`).join("");
+}
+function cotizar(){ const q = String(S.q).trim(); return Motor.cotizar(D, S.rep, q === "" ? NaN : Number(q), TC.valor); }
+function pintarCot(){
+  ["qr-rep","co-rep"].forEach(id => { if($(id).value !== S.rep) $(id).value = S.rep; });
+  ["qr-q","co-q"].forEach(id => { if(document.activeElement !== $(id)) $(id).value = S.q; });
+  let c;
+  try { c = cotizar(); } catch(e){
+    $("qr-lab").textContent = "Revise la cantidad"; $("qr-tot").textContent = "—"; $("qr-det").textContent = "";
+    $("co-tabla").innerHTML = '<tr><td>Escriba una cantidad entera de 1 o más.</td></tr>'; $("co-nota").textContent = ""; pintarTramos(null); return; }
+  $("qr-lab").textContent = c.pct_aplicado ? `Total con ${nf(c.pct_aplicado, Number.isInteger(c.pct_aplicado) ? 0 : 2)} % por cantidad` : "Total";
+  $("qr-tot").textContent = bs(c.total_bs);
+  $("qr-det").innerHTML = `${bs(c.precio_unitario_bs)} por unidad<br>${c.en_stock === c.cantidad ? nf(c.stock,0) + " en almacén" : nf(c.en_stock,0) + " en almacén"}`;
+  $("co-tabla").innerHTML = `<tr><td>Precio de lista por unidad</td><td>${bs(c.precio_lista_bs)}</td></tr>
+    <tr><td>Descuento por cantidad</td><td>${c.pct_aplicado ? nf(c.pct_aplicado, Number.isInteger(c.pct_aplicado) ? 0 : 2) + " %" : "sin descuento"}</td></tr>
+    <tr><td>Precio por unidad</td><td>${bs(c.precio_unitario_bs)}</td></tr><tr><td>Cantidad</td><td>${nf(c.cantidad,0)}</td></tr>
+    <tr><td>Subtotal a precio de lista</td><td>${bs(c.subtotal_bs)}</td></tr><tr><td>Descuento</td><td>${c.descuento_bs ? "− " + bs(c.descuento_bs) : bs(0)}</td></tr>
+    <tr class="t"><td>Total</td><td>${bs(c.total_bs)}</td></tr>`;
+  const sig = c.siguiente_tramo ? `Si lleva ${nf(c.siguiente_tramo.faltan,0)} más (${nf(c.siguiente_tramo.desde,0)} en total), cada unidad sale ${c.siguiente_tramo.pct} % más barata. ` : "";
+  const st = c.por_pedir === 0 ? `Hay stock para las ${nf(c.cantidad,0)} unidades.` : `Hay ${nf(c.en_stock,0)} en almacén; las otras ${nf(c.por_pedir,0)} llegan en unos ${nf(c.plazo_dias,0)} días.`;
+  $("co-nota").textContent = sig + st + ` Dólar oficial: ${nf(TC.valor)} Bs del ${fecha(TC.fecha)}.`;
+  pintarTramos(c.pct_tramo);
+}
+["qr-rep","co-rep"].forEach(id => $(id).addEventListener("change", e => { S.rep = e.target.value; pintarCot(); }));
+["qr-q","co-q"].forEach(id => $(id).addEventListener("input", e => { S.q = e.target.value; pintarCot(); }));
+async function emitir(msg, boton, nombreCliente){
+  const m = $(msg); m.className = "msg";
+  if(!PORTAL){ m.className = "msg mal"; m.textContent = "Abierta como archivo, la cotización no se guarda. En el portal publicado sí."; return; }
+  let c; try { c = cotizar(); } catch(e){ m.className = "msg mal"; m.textContent = "Revise la cantidad."; return; }
+  $(boton).disabled = true; m.textContent = "Guardando…";
+  try {
+    const r = await fetch("/api/cotizaciones", {method:"POST", headers:{"content-type":"application/json"}, body: JSON.stringify({repuesto_id:S.rep, cantidad:c.cantidad, cliente_nombre:nombreCliente || null})});
+    const d = await r.json().catch(() => ({}));
+    if(!r.ok) throw new Error(d.error || "El servidor respondió " + r.status);
+    m.className = "msg ok"; m.textContent = `Cotización N° ${d.numero} guardada: ${nf(d.cantidad,0)} unidades de ${nombre(d.id)}, total ${bs(d.total_bs)}. Indique ese número en la sucursal.`;
+  } catch(err){ m.className = "msg mal"; m.textContent = "No se guardó: " + err.message; }
+  finally { $(boton).disabled = false; }
+}
+$("qr-emitir").addEventListener("click", () => emitir("qr-msg", "qr-emitir", null));
+$("co-emitir").addEventListener("click", () => emitir("co-msg", "co-emitir", $("co-nom").value));
+
+/* ---- menú activo según la sección visible ---- */
+if("IntersectionObserver" in window){
+  const enlaces = [...document.querySelectorAll("#menu a[href^='#']")];
+  const io = new IntersectionObserver(es => es.forEach(x => { if(x.isIntersecting){ enlaces.forEach(a => a.setAttribute("aria-current", String(a.getAttribute("href") === "#" + x.target.id))); } }), {rootMargin:"-45% 0px -50% 0px"});
+  ["inicio","repuestos","catalogo","cotizar","nosotros","contacto"].forEach(id => io.observe($(id)));
+}
+
+/* ---- ícono «i» (SCRUM-82): un elemento con data-i="Tema|Explicación" recibe su botón; un solo globo para la página.
+   Clic, toque o Enter lo fija; con mouse también se abre al pasar. Se cierra con Escape, tocando fuera o al desplazar. ---- */
+const info = (tema, txt) => `<button type="button" class="info" aria-label="Qué es: ${esc(tema)}" aria-expanded="false" data-tema="${esc(tema)}" data-info="${esc(txt)}">i</button>`;
+document.querySelectorAll("[data-i]").forEach(el => { const [t, x] = el.dataset.i.split("|"); el.insertAdjacentHTML("beforeend", info(t, x)); });
+const infoPop = document.createElement("div");
+infoPop.id = "info-pop"; infoPop.setAttribute("role", "tooltip"); infoPop.hidden = true; document.body.appendChild(infoPop);
+let infoAbierto = null, infoFijo = false;
+function infoMostrar(b, fijo){
+  if(infoAbierto && infoAbierto !== b) infoAbierto.setAttribute("aria-expanded", "false");
+  infoAbierto = b; infoFijo = fijo;
+  infoPop.innerHTML = `<b>${esc(b.dataset.tema)}</b>${esc(b.dataset.info)}`;
+  infoPop.hidden = false; b.setAttribute("aria-expanded", "true"); b.setAttribute("aria-describedby", "info-pop");
+  const r = b.getBoundingClientRect(), w = infoPop.offsetWidth, h = infoPop.offsetHeight;
+  infoPop.style.left = Math.min(Math.max(12, r.left + r.width / 2 - w / 2), innerWidth - w - 12) + "px";
+  infoPop.style.top = Math.max(8, r.bottom + 8 + h > innerHeight - 8 ? r.top - 8 - h : r.bottom + 8) + "px";
+}
+function infoCerrar(){
+  if(!infoAbierto) return;
+  infoAbierto.setAttribute("aria-expanded", "false"); infoAbierto.removeAttribute("aria-describedby");
+  infoAbierto = null; infoFijo = false; infoPop.hidden = true;
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest(".info");
+  if(b){ e.preventDefault(); e.stopPropagation(); (infoAbierto === b && infoFijo) ? infoCerrar() : infoMostrar(b, true); return; }
+  if(!e.target.closest("#info-pop")) infoCerrar();
+}, true);
+const hayMouse = matchMedia("(hover:hover) and (pointer:fine)").matches;
+document.addEventListener("mouseover", e => { const b = hayMouse && e.target.closest(".info"); if(b && !infoFijo) infoMostrar(b, false); });
+document.addEventListener("mouseout", e => { const b = e.target.closest(".info"); if(b && b === infoAbierto && !infoFijo) infoCerrar(); });
+document.addEventListener("keydown", e => { if(e.key === "Escape" && infoAbierto){ const b = infoAbierto; infoCerrar(); b.focus(); } });
+window.addEventListener("scroll", infoCerrar, {passive:true, capture:true});
+window.addEventListener("resize", infoCerrar);
+
+/* ---- arranque. En el portal se suman el dólar del día y los repuestos cargados por el importador. ---- */
+function pintarTodo(){ $("qr-rep").innerHTML = $("co-rep").innerHTML = opciones(); pintarTc(); pintarRubros(); pintarCatalogo(); pintarCot(); }
+pintarTodo();
+if(PORTAL){
+  Promise.all([fetch("/api/tc").then(r => r.ok ? r.json() : null).catch(() => null), fetch("/api/repuestos").then(r => r.ok ? r.json() : []).catch(() => [])]).then(([tc, nuevos]) => {
+    if(tc && tc.fecha >= TC.fecha){ TC.valor = tc.valor; TC.fecha = tc.fecha; }
+    (nuevos || []).forEach(n => { if(REP[n.repuesto_id]) return;
+      const r = {repuesto_id:n.repuesto_id, proveedor_id:n.proveedor_id, precio_venta_usd:n.precio_venta_usd, costo_unitario_usd:n.costo_unitario_usd, stock_al_2026_11_10:n.stock};
+      D.repuestos.push(r); REP[r.repuesto_id] = r;
+      const img = (T.catalogo.find(c => c.categoria.toLowerCase() === String(n.categoria).toLowerCase() && c.imagen) || {}).imagen || null;
+      const c = {repuesto_id:n.repuesto_id, nombre:n.nombre, categoria:n.categoria, descripcion:n.descripcion, imagen:img}; T.catalogo.push(c); CAT[c.repuesto_id] = c; });
+    pintarTodo();
+  });
+}
+})();
+</script>
+</body>
+</html>
