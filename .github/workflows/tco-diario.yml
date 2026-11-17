@@ -60,6 +60,7 @@ jobs:
           python3 src/simulador/preparar_datos.py
           python3 src/simulador/generar_app.py
           python3 src/tienda/generar_tienda.py   # la tienda también lleva el dólar del día incrustado
+          python3 src/guia/generar_guia.py       # la guía de estudio cita cifras en bolivianos con el dólar del día
           python3 src/hu-09/generar_alertas.py
 
       - name: Pruebas
@@ -72,6 +73,7 @@ jobs:
           ULTIMO=$(tail -n 1 data/processed/scrum-54/tco_bcb_diario.csv | cut -d, -f1,2 | tr ',' ' ')
           git add data/processed/scrum-54 data/raw/scrum-54 data/processed/simulador/datos_app.json \
                   reports/simulador/MULTIPARTES_Simulador_Compras.html reports/tienda/MULTIPARTES_Tienda.html \
+                  docs/GUIA_ESTUDIO_PORTAL.md \
                   data/processed/hu-09 reports/hu-09
           git -c user.name="github-actions[bot]" \
               -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
