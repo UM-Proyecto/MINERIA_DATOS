@@ -26,6 +26,7 @@ IMG_SITIO = BASE / "data/raw/tienda/imagenes"
 IMG_CATALOGO = BASE / "data/raw/scrum-74/imagenes"
 DATOS = BASE / "data/processed/simulador/datos_app.json"
 MOTOR = BASE / "src/simulador/motor.js"
+COTDOC = BASE / "src/portal/cotizacion_doc.js"  # cotización imprimible y correo simulado (SCRUM-83), va después del motor
 SALIDA = BASE / "reports/tienda/MULTIPARTES_Tienda.html"
 
 # Categoría ILUSTRATIVA del catálogo (SCRUM-74) → rubro del sitio de MULTIPARTES.
@@ -86,7 +87,7 @@ def generar(salida=SALIDA):
     if "module.exports = Motor" not in motor:
         raise SystemExit("motor.js no tiene la forma esperada")
     t = seguro_en_script(json.dumps(datos_tienda(), ensure_ascii=False, separators=(",", ":")))
-    html = plantilla.replace("__TIENDA__", t).replace("__MOTOR__", seguro_en_script(motor))
+    html = plantilla.replace("__TIENDA__", t).replace("__MOTOR__", seguro_en_script(motor + "\n" + COTDOC.read_text(encoding="utf-8")))
     salida.parent.mkdir(parents=True, exist_ok=True)
     salida.write_text(html, encoding="utf-8")
     return html

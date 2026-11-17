@@ -46,7 +46,7 @@ header{background:var(--g);position:sticky;top:36px;z-index:15}
 .qc{background:#fff;color:var(--ink);border-radius:6px;padding:24px;box-shadow:0 18px 50px #0006;border-top:4px solid var(--g)}
 .qc h2{margin:0;font-size:17px;text-transform:uppercase}.qc .s{color:var(--gr);font-size:12.5px;margin-bottom:6px}
 label{display:block;font-size:12.5px;font-weight:600;margin:12px 0 5px}
-select,input[type=number],input[type=text],input[type=search]{width:100%;height:46px;border:1px solid #c9cdc9;border-radius:4px;background:#fff;padding:0 12px}
+select,input[type=number],input[type=text],input[type=search],input[type=email]{width:100%;height:46px;border:1px solid #c9cdc9;border-radius:4px;background:#fff;padding:0 12px}
 .tot{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;background:var(--gs);border-radius:4px;padding:12px 14px;margin-top:14px}
 .tot b{font-size:24px;color:var(--gd);display:block;line-height:1.2}.tot small{font-size:12px;color:var(--gr)}
 .bt{display:block;width:100%;text-align:center;background:var(--g);color:#fff;border:0;min-height:48px;font-weight:700;margin-top:12px;border-radius:4px;text-transform:uppercase;font-size:13px}
@@ -90,12 +90,25 @@ section{padding:64px 0}
 .info:hover,.info[aria-expanded="true"]{border-color:var(--g);background:var(--g);color:#fff}
 #info-pop{position:fixed;z-index:60;max-width:min(320px,calc(100vw - 24px));background:#1b1f24;color:#fff;border-radius:8px;padding:10px 12px;font:400 12.5px/1.5 Poppins,system-ui,sans-serif;box-shadow:0 6px 24px rgba(0,0,0,.22)}
 #info-pop[hidden]{display:none}#info-pop b{display:block;font-weight:600;margin-bottom:3px}
-.leg .nota-datos{display:block;margin-top:6px}.tr span{border:1px solid #c9cdc9;border-radius:99px;padding:6px 14px;font-size:13px;background:#fff}
+.leg .nota-datos{display:block;margin-top:6px}
+.nota-fuente{text-decoration:underline;text-underline-offset:2px;white-space:nowrap}.tr span{border:1px solid #c9cdc9;border-radius:99px;padding:6px 14px;font-size:13px;background:#fff}
 .tr .on{background:var(--gs);border-color:var(--g);color:var(--gd);font-weight:600}.tr .ej{background:var(--ws);color:var(--warn);border:0;font-weight:700}
 .cot{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:26px;background:#fff;border:1px solid var(--line);border-radius:6px;padding:24px}
 .cot table{width:100%;border-collapse:collapse;font-size:14px}.cot td{padding:8px 4px;border-bottom:1px solid var(--line)}.cot td:last-child{text-align:right;font-variant-numeric:tabular-nums}
 .cot tr.t td{font-weight:700;border-bottom:0;font-size:16px}
 .cot .nota{font-size:13px;color:var(--gr);margin:10px 0 0}
+.err-in{color:var(--bad);font-size:12.5px;min-height:18px;margin-top:4px}
+input:invalid[aria-invalid="true"]{border-color:var(--bad)}
+/* Correo enviado (SCRUM-83): confirmación y vista del correo simulado con su adjunto. */
+.enviado{margin-top:22px;background:#fff;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.enviado .ok-h{display:flex;gap:12px;align-items:flex-start;padding:18px 22px;background:var(--gs);color:var(--gd)}
+.enviado .ok-h svg{flex:none;width:26px;height:26px}
+.enviado .ok-h h3{margin:0;font-size:17px}.enviado .ok-h p{margin:2px 0 0;font-size:13.5px;color:var(--ink)}
+.mail{padding:18px 22px}.mail .sim{display:inline-block;font-size:11.5px;font-weight:600;background:var(--ws);color:var(--warn);border-radius:99px;padding:3px 10px;margin-bottom:10px}
+.mail dl{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin:0 0 12px;font-size:13.5px}.mail dt{color:var(--gr)}.mail dd{margin:0;word-break:break-word}
+.mail pre{white-space:pre-wrap;font:inherit;font-size:13.5px;line-height:1.6;background:#f6f7f5;border:1px solid var(--line);border-radius:6px;padding:14px 16px;margin:0}
+.adj{display:inline-flex;align-items:center;gap:10px;margin-top:12px;border:1px solid var(--line);border-radius:6px;padding:10px 14px;background:#fff;font-size:13.5px;font-weight:600;color:var(--gd)}
+.adj svg{width:22px;height:22px;flex:none}.adj:hover{border-color:var(--g)}
 .nos{display:grid;grid-template-columns:1.2fr .8fr;gap:40px}.nos p{color:#3c4148;margin:0 0 14px}.nos h3{margin:0 0 6px;font-size:15px;text-transform:uppercase;color:var(--gd)}
 .dist{display:flex;flex-wrap:wrap;gap:10px;margin:0;padding:0;list-style:none}.dist li{border:1px solid var(--line);background:#fff;border-radius:4px;padding:10px 16px;font-weight:700;color:#4a4f55;letter-spacing:.5px}
 .nota2{font-size:12.5px;color:var(--gr);margin-top:12px}
@@ -149,11 +162,11 @@ footer{background:#111;color:#c4c4c4;font-size:12.5px;padding:24px 0 90px}
     <div class="cta"><a class="b1" href="#catalogo">Ver catálogo</a><a class="bo" href="#cotizar">Cotizar</a><a class="wa" id="wa-hero" rel="noopener" target="_blank"></a></div>
     <div class="tc"><span class="dot" aria-hidden="true"></span><span id="tc-txt"></span></div>
   </div>
-  <div class="qc" aria-labelledby="qc-h"><h2 id="qc-h">Cotización rápida</h2><div class="s">Sin cuenta. Queda guardada con un número.</div>
+  <div class="qc" aria-labelledby="qc-h"><h2 id="qc-h">Cotización rápida</h2><div class="s">Sin cuenta. Se la enviamos por correo con un número.</div>
     <label for="qr-rep" data-i="Repuesto|Elija el repuesto que quiere cotizar. El precio se calcula en bolivianos con el dólar oficial del día.">Repuesto</label><select id="qr-rep"></select>
     <label for="qr-q" data-i="Cantidad|Número de unidades, de 1 en adelante. Desde 10 unidades se aplica un descuento por cantidad.">Cantidad</label><input id="qr-q" type="number" min="1" step="1" inputmode="numeric" value="10">
     <div class="tot" aria-live="polite"><div><small id="qr-lab"></small><b id="qr-tot"></b></div><small id="qr-det" style="text-align:right"></small></div>
-    <button class="bt" type="button" id="qr-emitir">Emitir cotización</button><p class="msg" id="qr-msg" aria-live="polite"></p>
+    <button class="bt" type="button" id="qr-emitir">Continuar: enviar por correo</button><p class="msg" id="qr-msg" aria-live="polite"></p>
   </div>
 </div></div>
 
@@ -173,15 +186,17 @@ footer{background:#111;color:#c4c4c4;font-size:12.5px;padding:24px 0 90px}
 <section class="gris" id="cotizar"><div class="w"><div class="ti"><span class="n" aria-hidden="true">04</span><div><h2>Cotice en tres pasos</h2><p>Sin llamar ni esperar respuesta. Para pedidos grandes, igual puede escribirnos por WhatsApp.</p></div></div>
   <div class="pasos"><div class="pa"><b>1</b><h3>Elija el repuesto</h3><p>Desde el catálogo o el buscador, con foto y disponibilidad.</p></div>
     <div class="pa"><b>2</b><h3>Escriba la cantidad</h3><p>El precio se calcula en bolivianos con el dólar oficial del Banco Central de Bolivia del día.</p></div>
-    <div class="pa"><b>3</b><h3>Emita la cotización</h3><p>Queda guardada con un número para pedirla en la sucursal.</p></div></div>
+    <div class="pa"><b>3</b><h3>Recíbala por correo</h3><p>Le llega con un número y en PDF, para presentarla en la sucursal.</p></div></div>
   <div class="tr-t" data-i="Descuento por cantidad|Porcentaje que se descuenta del precio de lista según la cantidad pedida. El tramo resaltado es el que corresponde a su pedido.">Descuento por cantidad</div><div class="tr" id="tramos"></div>
   <div class="cot">
     <div><label for="co-rep" data-i="Repuesto|Elija el repuesto que quiere cotizar. En el catálogo puede ver su foto, para qué sirve y cuántas unidades hay en almacén.">Repuesto</label><select id="co-rep"></select>
       <label for="co-q" data-i="Cantidad|Número de unidades del pedido, de 1 en adelante. Si hay menos en almacén, el resto llega en el plazo del proveedor.">Cantidad</label><input id="co-q" type="number" min="1" step="1" inputmode="numeric" value="10">
-      <label for="co-nom" data-i="Su nombre o empresa|Dato opcional que queda guardado con la cotización, para encontrarla cuando la presente en la sucursal.">Su nombre o empresa (opcional)</label><input id="co-nom" type="text" maxlength="80" autocomplete="organization">
-      <button class="bt" type="button" id="co-emitir">Emitir cotización</button><p class="msg" id="co-msg" aria-live="polite"></p></div>
+      <label for="co-nom" data-i="Su nombre o empresa|Dato opcional que figura en la cotización, para encontrarla cuando la presente en la sucursal.">Su nombre o empresa (opcional)</label><input id="co-nom" type="text" maxlength="80" autocomplete="organization">
+      <label for="co-correo" data-i="Correo electrónico|Dirección a la que se envía la cotización en PDF. Se guarda junto a la cotización para que MULTIPARTES pueda responderle.">Correo electrónico</label><input id="co-correo" type="email" maxlength="120" autocomplete="email" inputmode="email" placeholder="nombre@empresa.com" required aria-describedby="co-correo-err"><div class="err-in" id="co-correo-err" aria-live="polite"></div>
+      <button class="bt" type="button" id="co-emitir">Enviar cotización por correo</button><p class="msg" id="co-msg" aria-live="polite"></p></div>
     <div aria-live="polite"><table id="co-tabla"></table><p class="nota" id="co-nota"></p></div>
-  </div></div></section>
+  </div>
+  <div class="enviado" id="co-enviado" hidden tabindex="-1" aria-labelledby="env-h"></div></div></section>
 
 <section id="nosotros"><div class="w"><div class="ti"><span class="n" aria-hidden="true">05</span><div><h2>Quiénes somos</h2></div></div>
   <div class="nos"><div><p id="nos-1"></p><p id="nos-2"></p></div><div><h3>Misión</h3><p id="mision"></p><h3>Visión</h3><p id="vision"></p></div></div></div></section>
@@ -198,7 +213,7 @@ footer{background:#111;color:#c4c4c4;font-size:12.5px;padding:24px 0 90px}
 </main>
 
 <footer><div class="w"><div class="fg"><span>© 2025 Multipartes · Santa Cruz de la Sierra</span><nav id="redes" aria-label="Redes sociales"></nav></div>
-  <div class="leg">Prototipo del proyecto de Minería de Datos (Univalle) como propuesta de mejora de www.multipartes.com.bo. Textos, sucursales, rubros, fotos de rubros y logotipo: del sitio de MULTIPARTES. Dólar: oficial del Banco Central de Bolivia.<br><span class="nota-datos">Ventas: base pública carparts. Clientes, proveedores, precios y stock: datos de demostración.</span></div></div></footer>
+  <div class="leg">Prototipo del proyecto de Minería de Datos (Univalle) como propuesta de mejora de www.multipartes.com.bo. Textos, sucursales, rubros, fotos de rubros y logotipo: del sitio de MULTIPARTES. Dólar: oficial del Banco Central de Bolivia.<br><span class="nota-datos">Ventas: base pública carparts. Clientes, proveedores, precios y stock: datos de demostración. <a class="nota-fuente" href="https://robjhyndman.com/expsmooth/" target="_blank" rel="noopener" title="Hyndman, Koehler, Ord y Snyder (2008), conjunto carparts">Ver la base de datos</a></span></div></div></footer>
 <a class="wafab" id="wa-fab" rel="noopener" target="_blank" aria-label="Escribir por WhatsApp a ventas"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2c-1.5 0-3-.4-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2c0 1.3.9 2.5 1 2.7.1.2 1.8 2.8 4.4 3.9 1.6.7 2.3.8 3.1.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.6-.3z"/></svg></a>
 
 <script type="application/json" id="datos">__TIENDA__</script>
@@ -315,21 +330,51 @@ function pintarCot(){
 }
 ["qr-rep","co-rep"].forEach(id => $(id).addEventListener("change", e => { S.rep = e.target.value; pintarCot(); }));
 ["qr-q","co-q"].forEach(id => $(id).addEventListener("input", e => { S.q = e.target.value; pintarCot(); }));
-async function emitir(msg, boton, nombreCliente){
-  const m = $(msg); m.className = "msg";
-  if(!PORTAL){ m.className = "msg mal"; m.textContent = "Abierta como archivo, la cotización no se guarda. En el portal publicado sí."; return; }
+/* SCRUM-83: la cotización se envía por correo. El envío es SIMULADO: el servidor guarda la dirección y la hora, y en
+   pantalla se muestra el correo que se habría mandado, con la cotización en PDF como adjunto. */
+const OP_DOC = () => ({logo: T.imagenes["logo_multipartes.jpg"], tramos: Motor.TRAMOS_EJEMPLO, validez_dias: 7});
+let ultimaCot = null;
+function validarCorreo(){
+  const v = $("co-correo").value.trim(), ok = CotizacionDoc.correoValido(v);
+  $("co-correo").setAttribute("aria-invalid", String(!ok));
+  $("co-correo-err").textContent = ok ? "" : v ? "Revise el correo: debe tener la forma nombre@empresa.com." : "Escriba el correo al que quiere recibir la cotización.";
+  return ok ? v : null;
+}
+$("co-correo").addEventListener("blur", () => { if($("co-correo").value) validarCorreo(); });
+$("co-correo").addEventListener("input", () => { if($("co-correo").getAttribute("aria-invalid") === "true") validarCorreo(); });
+const ICO_OK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m7.5 12.5 3 3 6-6.5"/></svg>';
+const ICO_PDF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M8.5 16.5h7M8.5 13h7"/></svg>';
+function mostrarEnviado(d){
+  const q = Object.assign({}, d, {repuesto_id: d.id, repuesto_nombre: nombre(d.id)}), mail = CotizacionDoc.correo(q, OP_DOC());
+  ultimaCot = q;
+  const el = $("co-enviado");
+  el.innerHTML = `<div class="ok-h">${ICO_OK}<div><h3 id="env-h">Cotización N° ${String(d.numero).padStart(6, "0")} enviada a ${esc(d.correo)}</h3>
+      <p>Total ${bs(d.total_bs)}. Presente ese número en cualquiera de nuestras sucursales. En este prototipo el correo no sale de verdad: abajo puede ver cómo llegaría y abrir la cotización en PDF.</p></div></div>
+    <div class="mail"><span class="sim">Envío de demostración en este prototipo: así se vería el correo</span>
+      <dl><dt>Para</dt><dd>${esc(mail.para)}</dd><dt>De</dt><dd>MULTIPARTES · Cotizaciones en línea</dd><dt>Asunto</dt><dd>${esc(mail.asunto)}</dd></dl>
+      <pre>${esc(mail.cuerpo)}</pre>
+      <button type="button" class="adj" id="co-adj">${ICO_PDF}<span>${esc(mail.adjunto)}</span></button></div>`;
+  el.hidden = false; el.focus({preventScroll: true}); el.scrollIntoView({behavior: "smooth", block: "start"});
+}
+document.addEventListener("click", e => { if(e.target.closest("#co-adj") && ultimaCot) CotizacionDoc.abrir(CotizacionDoc.documento(ultimaCot, OP_DOC())); });
+async function emitir(){
+  const m = $("co-msg"); m.className = "msg"; m.textContent = "";
   let c; try { c = cotizar(); } catch(e){ m.className = "msg mal"; m.textContent = "Revise la cantidad."; return; }
-  $(boton).disabled = true; m.textContent = "Guardando…";
+  const correo = validarCorreo(); if(!correo){ $("co-correo").focus(); return; }
+  if(!PORTAL){ m.className = "msg mal"; m.textContent = "Abierta como archivo, la cotización no se envía. En el portal publicado sí."; return; }
+  $("co-emitir").disabled = true; m.textContent = "Enviando…";
   try {
-    const r = await fetch("/api/cotizaciones", {method:"POST", headers:{"content-type":"application/json"}, body: JSON.stringify({repuesto_id:S.rep, cantidad:c.cantidad, cliente_nombre:nombreCliente || null})});
+    const r = await fetch("/api/cotizaciones", {method:"POST", headers:{"content-type":"application/json"}, body: JSON.stringify({repuesto_id:S.rep, cantidad:c.cantidad, cliente_nombre:$("co-nom").value || null, correo:correo})});
     const d = await r.json().catch(() => ({}));
     if(!r.ok) throw new Error(d.error || "El servidor respondió " + r.status);
-    m.className = "msg ok"; m.textContent = `Cotización N° ${d.numero} guardada: ${nf(d.cantidad,0)} unidades de ${nombre(d.id)}, total ${bs(d.total_bs)}. Indique ese número en la sucursal.`;
-  } catch(err){ m.className = "msg mal"; m.textContent = "No se guardó: " + err.message; }
-  finally { $(boton).disabled = false; }
+    m.className = "msg ok"; m.textContent = `Enviada: cotización N° ${String(d.numero).padStart(6, "0")}.`;
+    mostrarEnviado(d);
+  } catch(err){ m.className = "msg mal"; m.textContent = "No se pudo enviar: " + err.message; }
+  finally { $("co-emitir").disabled = false; }
 }
-$("qr-emitir").addEventListener("click", () => emitir("qr-msg", "qr-emitir", null));
-$("co-emitir").addEventListener("click", () => emitir("co-msg", "co-emitir", $("co-nom").value));
+// La cotización rápida lleva al formulario completo con el repuesto y la cantidad elegidos, y pide el correo ahí.
+$("qr-emitir").addEventListener("click", () => { $("cotizar").scrollIntoView({behavior: "smooth"}); setTimeout(() => $("co-correo").focus({preventScroll: true}), 450); });
+$("co-emitir").addEventListener("click", emitir);
 
 /* ---- menú activo según la sección visible ---- */
 if("IntersectionObserver" in window){

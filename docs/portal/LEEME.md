@@ -65,7 +65,9 @@ tarea diaria de SCRUM-71 actualiza; si no lo puede leer, usa el valor que trae i
 
 Tres tablas, que se crean solas en el primer pedido:
 - `cotizaciones`: número correlativo, fecha (UTC), cliente, repuesto, cantidad, dólar y su fecha, precio de lista,
-  descuento, total, y si se convirtió en venta;
+  descuento, total, si se convirtió en venta, y el correo al que se «envió» con su hora (`correo`, `correo_enviado`,
+  SCRUM-83). Estas dos columnas se agregaron después de publicar el portal: la primera vez que el servidor arranca
+  con una base vieja, revisa `PRAGMA table_info` y las agrega con `ALTER TABLE … ADD COLUMN`, sin tocar las filas.
 - `clientes`: los dados de alta en el portal (`CLI-N001`, …);
 - `repuestos`: los cargados en el portal (`REP-N001`, …).
 
@@ -86,6 +88,39 @@ con el motivo) y el plan, pero no en las vistas que necesitan historial: simulad
 | `GET` y `POST /api/clientes` | Importador | Lista y alta de clientes |
 | `POST /api/repuestos` | Importador | Carga de un repuesto |
 | `GET /api/proveedor` | Proveedor | Sus repuestos con el estado de reposición |
+
+### Cotización por correo y cotización imprimible (SCRUM-83)
+
+En la tienda, la cotización pide un correo. El navegador y el servidor validan que tenga la forma `nombre@dominio.xx`:
+el campo vacío o un correo mal escrito no se envía, y la pantalla dice por qué.
+
+Al enviar, **no sale ningún correo**: el envío es de demostración. El servidor guarda la dirección y la hora junto a
+la cotización. La pantalla confirma «Cotización N° … enviada a …» y muestra cómo llegaría el correo: para, de,
+asunto, cuerpo y el adjunto `Cotizacion_MULTIPARTES_NNNNNN.pdf`. Una etiqueta y una frase dicen que es una
+demostración, para que nadie espere un correo de verdad.
+
+El adjunto es la cotización imprimible. La arma `src/portal/cotizacion_doc.js`, el mismo código en la tienda y en el
+área de la empresa (los dos generadores lo incrustan después del motor). Lleva:
+
+- el logotipo de MULTIPARTES, blanco sobre su verde #016726;
+- la franja de prototipo académico;
+- número, fecha y validez de 7 días;
+- el cliente y su correo;
+- el repuesto con precio de lista, descuento, precio por unidad e importe;
+- subtotal, descuento y total;
+- el dólar oficial con su fecha y los tramos de descuento, con el aplicado resaltado;
+- las condiciones y la nota sobre el origen de los datos.
+
+Se abre en una pestaña y se imprime o se guarda en PDF con el diálogo del navegador. No calcula precios: presenta
+los que guardó el servidor.
+
+En Cotizaciones guardadas, la columna «Enviada a» muestra el correo y la hora, y «Ver PDF» abre la misma cotización.
+
+### Origen de los datos
+
+La nota al pie del menú y de la tienda enlaza la base de datos de ventas: carparts, de Hyndman, Koehler, Ord y
+Snyder (2008), en <https://robjhyndman.com/expsmooth/>. Qué es cada dato y de dónde sale está en
+`docs/GUIA_ESTUDIO_PORTAL.md` y en `docs/scrum-55/LEEME.md`.
 
 ## Probarlo en la computadora
 
