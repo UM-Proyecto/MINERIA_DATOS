@@ -48,7 +48,7 @@ async function pedir(w, env, nombre, metodo, ruta, cuerpo, token, crudo) {
 
 const SEC = "x".repeat(40);
 const w = await cargar(), env = { DB: d1(), SECRETO: SEC };
-const marcas = x => ({ portal: String(x).includes("window.PORTAL=1"), tienda: String(x).includes("PROTOTIPO ACADÉMICO"), empresa: String(x).includes('id="v-entrar"') });
+const marcas = x => ({ portal: String(x).includes("window.PORTAL=1"), tienda: String(x).includes('<div class="proto" role="note">'), empresa: String(x).includes('id="v-entrar"') });
 await pedir(w, env, "html", "GET", "/");
 salida.html.cuerpo = marcas(salida.html.cuerpo);
 await pedir(w, env, "empresa", "GET", "/empresa");
@@ -67,6 +67,24 @@ await pedir(w, env, "cot_cli_mal", "POST", "/api/cotizaciones", { repuesto_id: "
 await pedir(w, env, "cot_json_mal", "POST", "/api/cotizaciones", "{no es json");
 await pedir(w, env, "cot_grande", "POST", "/api/cotizaciones", { repuesto_id: "REP-0022", cantidad: 1, x: "a".repeat(9000) });
 await pedir(w, env, "cot_cli", "POST", "/api/cotizaciones", { repuesto_id: "REP-0001", cantidad: 3, cliente_id: "CLI-01" });
+// SCRUM-83: correo de la cotización (envío de demostración: solo se registra).
+await pedir(w, env, "cot_correo", "POST", "/api/cotizaciones", { repuesto_id: "REP-0019", cantidad: 12, cliente_nombre: "Taller El Cruce", correo: "  compras@tallerelcruce.com " });
+await pedir(w, env, "cot_correo_mal", "POST", "/api/cotizaciones", { repuesto_id: "REP-0019", cantidad: 12, correo: "compras@taller" });
+await pedir(w, env, "cot_correo_largo", "POST", "/api/cotizaciones", { repuesto_id: "REP-0019", cantidad: 1, correo: "a".repeat(120) + "@x.com" });
+// Migración: una base creada antes de SCRUM-83 (sin las columnas de correo) las recibe sin perder lo que tenía.
+{
+  const vieja = d1();
+  await vieja.prepare(`CREATE TABLE cotizaciones (numero INTEGER PRIMARY KEY AUTOINCREMENT, fecha TEXT NOT NULL, cliente_id TEXT, cliente_nombre TEXT,
+     repuesto_id TEXT NOT NULL, cantidad INTEGER NOT NULL CHECK (cantidad >= 1), tc REAL NOT NULL, tc_fecha TEXT NOT NULL,
+     precio_lista_bs REAL NOT NULL, pct_aplicado REAL NOT NULL, total_bs REAL NOT NULL, convertida INTEGER NOT NULL DEFAULT 0, fecha_venta TEXT)`).run();
+  await vieja.prepare("INSERT INTO cotizaciones (fecha, repuesto_id, cantidad, tc, tc_fecha, precio_lista_bs, pct_aplicado, total_bs) VALUES ('2026-11-15T10:00:00Z', 'REP-0001', 2, 11.67, '2026-11-13', 400, 0, 800)").run();
+  const w3 = await cargar();
+  await pedir(w3, { DB: vieja, SECRETO: SEC }, "cot_migrada", "POST", "/api/cotizaciones", { repuesto_id: "REP-0022", cantidad: 1, correo: "a@b.co" });
+  salida.migracion = {
+    columnas: (await vieja.prepare("PRAGMA table_info(cotizaciones)").all()).results.map(c => c.name),
+    filas: (await vieja.prepare("SELECT numero, correo FROM cotizaciones ORDER BY numero").all()).results,
+  };
+}
 
 await pedir(w, env, "lista_anon", "GET", "/api/cotizaciones");
 await pedir(w, env, "entrar_mal", "POST", "/api/entrar", { usuario: "importador", clave: "otra" });

@@ -31,7 +31,7 @@ const ESQUEMA = [
      numero INTEGER PRIMARY KEY AUTOINCREMENT, fecha TEXT NOT NULL, cliente_id TEXT, cliente_nombre TEXT,
      repuesto_id TEXT NOT NULL, cantidad INTEGER NOT NULL CHECK (cantidad >= 1), tc REAL NOT NULL, tc_fecha TEXT NOT NULL,
      precio_lista_bs REAL NOT NULL, pct_aplicado REAL NOT NULL, total_bs REAL NOT NULL,
-     convertida INTEGER NOT NULL DEFAULT 0, fecha_venta TEXT)`,
+     convertida INTEGER NOT NULL DEFAULT 0, fecha_venta TEXT, correo TEXT, correo_enviado TEXT)`,
   `CREATE TABLE IF NOT EXISTS clientes (
      cliente_id TEXT PRIMARY KEY, nombre TEXT NOT NULL, tipo TEXT NOT NULL, zona TEXT NOT NULL, alta TEXT NOT NULL)`,
   `CREATE TABLE IF NOT EXISTS repuestos (
@@ -141,6 +141,9 @@ async function base(env) {
   if (!env.DB) throw new ErrorPedido(500, "El servidor no tiene la base de datos conectada.");
   if (!esquemaListo) {
     await env.DB.batch(ESQUEMA.map(sql => env.DB.prepare(sql)));
+    // SCRUM-83: la tabla publicada se creó antes de que existieran estas columnas; se agregan si faltan.
+    const cols = (await env.DB.prepare("PRAGMA table_info(cotizaciones)").all()).results.map(c => c.name);
+    for (const c of ["correo", "correo_enviado"]) if (!cols.includes(c)) await env.DB.prepare(`ALTER TABLE cotizaciones ADD COLUMN ${c} TEXT`).run();
     esquemaListo = true;
   }
   return env.DB;
@@ -238,15 +241,19 @@ async function api(req, env, url) {
     const cantidad = numero(b.cantidad, "La cantidad", 1, 100000, true);
     const clienteId = texto(b.cliente_id, "el cliente", 20, false);
     const nombre = texto(b.cliente_nombre, "El nombre del cliente", 80, false);
+    // SCRUM-83: el correo al que se «envía» la cotización. El envío es SIMULADO: se guarda la dirección y la hora,
+    // y no sale ningún correo de este servidor.
+    const correo = texto(b.correo, "El correo", 120, false);
+    if (correo && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(correo)) return error(400, "El correo no tiene una forma válida, por ejemplo nombre@empresa.com.");
     if (clienteId && !(await existeCliente(db, clienteId))) return error(400, "Ese cliente no existe.");
     const d = datosCon(await repuestosCargados(db));
     if (!d.repuestos.some(r => r.repuesto_id === repId)) return error(400, "Ese repuesto no existe.");
     const tc = await dolar();
     const c = Motor.cotizar(d, repId, cantidad, tc.valor);
     const r = await db.prepare(`INSERT INTO cotizaciones (fecha, cliente_id, cliente_nombre, repuesto_id, cantidad, tc, tc_fecha,
-        precio_lista_bs, pct_aplicado, total_bs) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING numero, fecha`)
-      .bind(ahora(), clienteId, nombre, repId, cantidad, tc.valor, tc.fecha, c.precio_lista_bs, c.pct_aplicado, c.total_bs).first();
-    return json(Object.assign({ numero: r.numero, fecha: r.fecha, tc_fecha: tc.fecha }, c), 201);
+        precio_lista_bs, pct_aplicado, total_bs, correo, correo_enviado) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING numero, fecha, correo_enviado`)
+      .bind(ahora(), clienteId, nombre, repId, cantidad, tc.valor, tc.fecha, c.precio_lista_bs, c.pct_aplicado, c.total_bs, correo, correo ? ahora() : null).first();
+    return json(Object.assign({ numero: r.numero, fecha: r.fecha, tc_fecha: tc.fecha, correo: correo, correo_enviado: r.correo_enviado, cliente_nombre: nombre }, c), 201);
   }
   if (ruta === "/api/cotizaciones" && m === "GET") {
     await exigir(env, req, "importador");
@@ -262,7 +269,7 @@ async function api(req, env, url) {
     const sql = "SELECT * FROM cotizaciones" + (where.length ? " WHERE " + where.join(" AND ") : "") + " ORDER BY numero DESC LIMIT 5000";
     const filas = (await db.prepare(sql).bind(...args).all()).results;
     if (url.searchParams.get("formato") === "csv") {
-      const cols = ["numero", "fecha", "cliente_id", "cliente_nombre", "repuesto_id", "cantidad", "tc", "tc_fecha", "precio_lista_bs", "pct_aplicado", "total_bs", "convertida", "fecha_venta"];
+      const cols = ["numero", "fecha", "cliente_id", "cliente_nombre", "repuesto_id", "cantidad", "tc", "tc_fecha", "precio_lista_bs", "pct_aplicado", "total_bs", "convertida", "fecha_venta", "correo", "correo_enviado"];
       const celda = v => { const s = v === null || v === undefined ? "" : String(v); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
       const csv = [cols.join(",")].concat(filas.map(f => cols.map(c => celda(f[c])).join(","))).join("\n") + "\n";
       return new Response(csv, { headers: { "content-type": "text/csv; charset=utf-8", "content-disposition": 'attachment; filename="cotizaciones.csv"', "cache-control": "no-store" } });

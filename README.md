@@ -65,6 +65,7 @@ motor de cálculo (`motor.js`, con su copia de prueba `motor_ref.py`) y la pági
 | SCRUM-80 | `src/scrum-80/predecir_venta.py` (modelo), vista `predicciones` de `plantilla_app.html` | Empresa › Predicción de ventas |
 | SCRUM-81 | `src/simulador/motor.js` (`rotacion`) y la vista `rotacion`, sin carpeta propia | Empresa › Importancia y rotación (ABC) |
 | SCRUM-82 | `src/simulador/plantilla_app.html` y `src/tienda/plantilla_tienda.html` (textos e íconos «i»), sin carpeta propia | Todas las pantallas |
+| SCRUM-83 | `src/portal/cotizacion_doc.js` (cotización imprimible y correo de demostración), `src/portal/worker_api.js` (columna `correo`), `tests/e2e` | Tienda › Cotizar; Empresa › Cotizaciones guardadas («Ver PDF») |
 
 Las pruebas de todas están en `tests/` (`python3 -m unittest discover -s tests`).
 

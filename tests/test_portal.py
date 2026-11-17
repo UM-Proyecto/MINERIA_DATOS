@@ -87,11 +87,35 @@ class Portal(unittest.TestCase):
         self.assertEqual(self.st("lista_prov"), 403)
         li = self.r["lista_imp"]["cuerpo"]
         self.assertEqual(self.st("lista_imp"), 200)
-        self.assertEqual([f["numero"] for f in li["filas"]], [2, 1])
-        self.assertEqual(li["filas"][1]["cliente_nombre"], "Taller Prueba")
-        self.assertEqual((li["total"], li["convertidas"], li["no_convertidas"]), (2, 0, 2))
+        self.assertEqual([f["numero"] for f in li["filas"]], [3, 2, 1])
+        self.assertEqual(li["filas"][2]["cliente_nombre"], "Taller Prueba")
+        self.assertEqual((li["total"], li["convertidas"], li["no_convertidas"]), (3, 0, 3))
         self.assertEqual(self.st("lista_mes_mal"), 400)
         self.assertEqual([f["repuesto_id"] for f in self.r["lista_rep"]["cuerpo"]["filas"]], ["REP-0001"])
+
+    def test_correo_de_la_cotizacion_scrum83(self):
+        # El envío es de demostración: el servidor valida el correo y lo guarda con la hora; no manda nada.
+        c = self.r["cot_correo"]
+        self.assertEqual(c["status"], 201)
+        self.assertEqual(c["cuerpo"]["correo"], "compras@tallerelcruce.com")
+        self.assertTrue(c["cuerpo"]["correo_enviado"])
+        self.assertEqual(c["cuerpo"]["cliente_nombre"], "Taller El Cruce")
+        self.assertAlmostEqual(c["cuerpo"]["total_bs"], ref.cotizar(self.d, "REP-0019", 12, 11.65)["total_bs"], places=6)
+        self.assertEqual(self.st("cot_correo_mal"), 400)
+        self.assertIn("correo", self.r["cot_correo_mal"]["cuerpo"]["error"].lower())
+        self.assertEqual(self.st("cot_correo_largo"), 400)
+        fila = next(f for f in self.r["lista_imp"]["cuerpo"]["filas"] if f["numero"] == c["cuerpo"]["numero"])
+        self.assertEqual(fila["correo"], "compras@tallerelcruce.com")
+        self.assertTrue(fila["correo_enviado"])
+        # sin correo, como antes: se guarda igual y sin hora de envío
+        self.assertIsNone(self.r["cot1"]["cuerpo"]["correo_enviado"])
+
+    def test_migracion_agrega_columnas_de_correo(self):
+        m = self.r["migracion"]
+        self.assertIn("correo", m["columnas"])
+        self.assertIn("correo_enviado", m["columnas"])
+        self.assertEqual(self.st("cot_migrada"), 201)
+        self.assertEqual(m["filas"], [{"numero": 1, "correo": None}, {"numero": 2, "correo": "a@b.co"}])
 
     def test_sesiones(self):
         self.assertEqual(self.st("entrar_mal"), 401)
@@ -139,7 +163,9 @@ class Portal(unittest.TestCase):
         self.assertTrue(c["tipo"].startswith("text/csv"))
         lineas = c["cuerpo"].strip().split("\n")
         self.assertTrue(lineas[0].startswith("numero,fecha,cliente_id"))
-        self.assertEqual(len(lineas), 1 + 3)
+        self.assertEqual(len(lineas), 1 + 4)
+        self.assertTrue(lineas[0].endswith(",correo,correo_enviado"))
+        self.assertTrue(any("compras@tallerelcruce.com" in l for l in lineas[1:]))
 
     def test_liviano_lee_datos_y_app_de_la_rama(self):
         self.assertEqual(self.st("liv_caido"), 503)

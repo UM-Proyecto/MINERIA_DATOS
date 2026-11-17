@@ -24,6 +24,7 @@ BASE = Path(__file__).resolve().parents[2]
 DATOS = BASE / "data/processed/simulador/datos_app.json"
 PLANTILLA = BASE / "src/simulador/plantilla_app.html"
 MOTOR = BASE / "src/simulador/motor.js"
+COTDOC = BASE / "src/portal/cotizacion_doc.js"  # cotización imprimible y correo simulado (SCRUM-83), va después del motor
 IMAGENES = BASE / "data/raw/scrum-74/imagenes"  # fotos del catálogo (SCRUM-74), con licencia libre
 LOGO = BASE / "src/hu-12/logo_multipartes.jpg"  # logotipo publicado en multipartes.com.bo
 SALIDA = BASE / "reports/simulador/MULTIPARTES_Simulador_Compras.html"
@@ -64,7 +65,7 @@ def generar(motor, salida):
     texto = seguro_en_script(json.dumps(datos, ensure_ascii=False, separators=(",", ":")))
     logo = "data:image/jpeg;base64," + base64.b64encode(LOGO.read_bytes()).decode()
     # El motor va al final: si se reemplazara antes, un '__DATA__' dentro de su código se tocaría.
-    html = plantilla.replace("__LOGO__", logo).replace("__DATA__", texto).replace("__MOTOR__", seguro_en_script(codigo))
+    html = plantilla.replace("__LOGO__", logo).replace("__DATA__", texto).replace("__MOTOR__", seguro_en_script(codigo + "\n" + COTDOC.read_text(encoding="utf-8")))
     salida.parent.mkdir(parents=True, exist_ok=True)
     salida.write_text(html, encoding="utf-8")
     return datos, html

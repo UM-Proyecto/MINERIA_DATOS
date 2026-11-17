@@ -354,15 +354,14 @@ de entrega. Lo que no es suyo no se lo entrega el servidor.
 
 ### 4.17 Cotización por correo — SCRUM-83
 
-> Esta parte está en el PR del correo y todavía no está en `main`.
-
 - **Flujo:** en la tienda, al cotizar se pide un correo y se valida su forma. Al «enviar», la pantalla confirma el
   envío y muestra cómo llegaría el correo: para, asunto, cuerpo y la cotización en PDF como adjunto.
 - **El envío es de demostración:** no sale ningún correo. El servidor guarda la dirección y la hora junto a la
   cotización, y aparecen en Cotizaciones guardadas.
 - **La cotización imprimible:** lleva el logotipo de MULTIPARTES sobre su verde, la franja de prototipo académico,
   el número, el cliente, el repuesto con su descuento, el total con el dólar del día, los tramos y una validez de 7
-  días.
+  días. La arma `src/portal/cotizacion_doc.js`, el mismo código en la tienda y en el área de la empresa.
+- **En la empresa:** Cotizaciones guardadas muestra a qué correo se envió cada cotización y la abre con «Ver PDF».
 
 ---
 

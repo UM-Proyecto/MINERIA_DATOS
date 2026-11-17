@@ -41,6 +41,10 @@ a{color:inherit}
 /* 2. BARRA LATERAL (como el panel de Fiorella) */
 .side{position:fixed;inset:0 auto 0 0;width:236px;background:var(--side);color:var(--side-ink);padding:26px 18px;display:flex;flex-direction:column;z-index:5;overflow-y:auto;overscroll-behavior:contain}
 .side .logo{display:block;width:100%;max-width:200px;height:auto;margin:0 0 6px -4px}
+/* SCRUM-83: el menú se desplaza solo, con una barra visible sobre el verde, para que se note que hay más abajo. */
+.side{scrollbar-width:thin;scrollbar-color:#ffffff66 transparent;-webkit-overflow-scrolling:touch;touch-action:pan-y}
+.side::-webkit-scrollbar{width:8px}.side::-webkit-scrollbar-thumb{background:#ffffff59;border-radius:8px}.side::-webkit-scrollbar-track{background:transparent}
+@media (max-height:860px) and (min-width:761px){body .side{padding-top:18px}body .side .logo{max-width:160px}body .side .sub{margin-bottom:18px}body .side nav a{min-height:36px;padding:7px 12px;margin:1px 0}body .side .navg{margin-top:8px}}
 .side .sub{font-size:10.5px;letter-spacing:1.6px;color:var(--side-mute);text-transform:uppercase;margin:4px 0 40px}
 .side .navt{font-size:10px;letter-spacing:1.6px;color:var(--side-mute);text-transform:uppercase;margin:0 12px 10px}
 .side nav a{display:flex;gap:10px;align-items:center;min-height:44px;padding:10px 12px;border-radius:8px;margin:3px 0;text-decoration:none;font-size:13px;color:var(--side-ink)}
@@ -453,6 +457,7 @@ svg.chart .pm{fill:none;stroke:var(--graphite);stroke-width:2}
 @media (max-width:1100px){.pr-val{grid-template-columns:1fr}}
 @media (max-width:760px){.kpi .v.txt{font-size:16px}.tecnica{font-size:12px}}
 /* Nota única sobre el origen de los datos (SCRUM-82, decisión de Sam del 17-11): al pie del menú; en el celular, al pie de la página. */
+.nota-fuente{color:inherit;text-decoration:underline;text-underline-offset:2px;white-space:nowrap}
 .nota-datos{display:none;margin:28px 0 8px;padding-top:12px;border-top:1px solid var(--line);font-size:11.5px;color:var(--ink-3)}
 /* 16. ÍCONO DE INFORMACIÓN (SCRUM-82): «i» junto a indicadores, gráficos, campos y columnas.
    Se abre con clic, toque o teclado (y además al pasar el cursor, si hay mouse); se cierra con Escape o tocando fuera. */
@@ -475,7 +480,7 @@ svg.chart .pm{fill:none;stroke:var(--graphite);stroke-width:2}
   <div class="navt">Funciones del portal</div>
   <nav id="menu"></nav>
   <div class="foot"><strong>Jefatura de compras</strong>Santa Cruz de la Sierra<br>Proyecto académico · Univalle</div>
-  <div class="side-nota nota-datos-txt">Ventas: base pública carparts. Clientes, proveedores, precios y stock: datos de demostración.</div>
+  <div class="side-nota nota-datos-txt">Ventas: base pública carparts. Clientes, proveedores, precios y stock: datos de demostración. <a class="nota-fuente" href="https://robjhyndman.com/expsmooth/" target="_blank" rel="noopener" title="Hyndman, Koehler, Ord y Snyder (2008), conjunto carparts">Ver la base de datos</a></div>
 </aside>
 
 <div class="main"><div class="inner">
@@ -861,7 +866,7 @@ svg.chart .pm{fill:none;stroke:var(--graphite);stroke-width:2}
       <p class="pie" id="cot-pie"></p>
     </section>
   </section>
-  <p class="nota-datos">Ventas: base pública carparts. Clientes, proveedores, precios y stock: datos de demostración.</p>
+  <p class="nota-datos">Ventas: base pública carparts. Clientes, proveedores, precios y stock: datos de demostración. <a class="nota-fuente" href="https://robjhyndman.com/expsmooth/" target="_blank" rel="noopener" title="Hyndman, Koehler, Ord y Snyder (2008), conjunto carparts">Ver la base de datos</a></p>
 </div></div>
 
 <script type="application/json" id="datos">__DATA__</script>
@@ -1768,7 +1773,9 @@ $("cot-emitir").addEventListener("click", async () => {
     if(SES.rol === "importador" && $("cot-cli").value) body.cliente_id = $("cot-cli").value;
     const r = await api("/api/cotizaciones", {method:"POST", body});
     $("cot-msg").className = "msg ok";
-    $("cot-msg").textContent = `Cotización N° ${r.numero} guardada: ${nf(r.cantidad)} u de ${nombreRep(r.id)}, total ${bs2(r.total_bs)} con el dólar oficial ${nf(r.tc,2)} del ${fecha(r.tc_fecha)}.`;
+    $("cot-msg").innerHTML = `Cotización N° ${r.numero} guardada: ${nf(r.cantidad)} unidades de ${esc(nombreRep(r.id))}, total ${bs2(r.total_bs)} con el dólar oficial de ${nf(r.tc,2)} Bs del ${fecha(r.tc_fecha)}. <button class="btn2" type="button" id="cot-pdf">Ver PDF</button>`;
+    const f = Object.assign({}, r, {repuesto_id: r.id});
+    $("cot-pdf").addEventListener("click", () => CotizacionDoc.abrir(docDe(f)));
   } catch(err){ $("cot-msg").className = "msg mal"; $("cot-msg").textContent = "No se guardó: " + err.message; }
   finally { $("cot-emitir").disabled = false; }
 });
@@ -1797,12 +1804,19 @@ async function pintarCotizaciones(){
       <div class="kpi"><div class="t">Sin venta${info("Sin venta", "Cotizaciones que no se marcaron como venta. Muestran demanda que no se concretó, por precio, plazo o falta de stock.")}</div><div class="v c-warn">${nf(d.no_convertidas)}</div><div class="d">${pct} de cada 100 cotizaciones</div></div>
       <div class="kpi"><div class="t">En esta lista</div><div class="v">${nf(d.filas.length)}</div><div class="d">con los filtros elegidos</div><span class="ayuda">«Descargar en Excel» baja esta misma lista.</span></div>`;
     const cli = id => { const c = D.clientes.lista.find(x => x.cliente_id === id); return c ? c.nombre.replace(" (ficticio)", "") : ""; };
-    $("t-cz").innerHTML = `<thead><tr><th>Número</th><th style="text-align:left">Fecha</th><th style="text-align:left">Cliente</th><th style="text-align:left">Repuesto</th><th>Cantidad</th><th>Total</th><th>Venta</th></tr></thead><tbody>` +
-      (d.filas.length ? d.filas.map(f => `<tr><td>${f.numero}</td><td style="text-align:left">${fechaLocal(f.fecha)}</td><td style="text-align:left">${esc(cli(f.cliente_id) || f.cliente_nombre || "—")}</td><td style="text-align:left">${esc(nombreRep(f.repuesto_id))}</td><td>${nf(f.cantidad)}</td><td>${bs2(f.total_bs)}</td><td>${f.convertida ? '<span class="insignia si">Vendida</span>' : `<button class="btn2" type="button" data-venta="${f.numero}">Marcar venta</button>`}</td></tr>`).join("")
-        : '<tr><td colspan="7" style="text-align:left">Todavía no hay cotizaciones con estos filtros.</td></tr>') + "</tbody>";
+    CZ_FILAS = {}; d.filas.forEach(f => CZ_FILAS[f.numero] = f);
+    $("t-cz").innerHTML = `<thead><tr><th>Número</th><th style="text-align:left">Fecha</th><th style="text-align:left">Cliente</th><th style="text-align:left">Enviada a${info("Enviada a", "Correo al que se envió la cotización desde la tienda y hora del envío. En este prototipo el envío es de demostración: se registra, pero no sale ningún correo.")}</th><th style="text-align:left">Repuesto</th><th>Cantidad</th><th>Total</th><th>Cotización</th><th>Venta</th></tr></thead><tbody>` +
+      (d.filas.length ? d.filas.map(f => `<tr><td>${f.numero}</td><td style="text-align:left">${fechaLocal(f.fecha)}</td><td style="text-align:left">${esc(cli(f.cliente_id) || f.cliente_nombre || "—")}</td><td style="text-align:left">${f.correo ? esc(f.correo) + (f.correo_enviado ? `<span class="ayuda">${fechaLocal(f.correo_enviado)}</span>` : "") : "—"}</td><td style="text-align:left">${esc(nombreRep(f.repuesto_id))}</td><td>${nf(f.cantidad)}</td><td>${bs2(f.total_bs)}</td><td><button class="btn2" type="button" data-pdf="${f.numero}" aria-label="Ver la cotización ${f.numero} para imprimir o guardar en PDF">Ver PDF</button></td><td>${f.convertida ? '<span class="insignia si">Vendida</span>' : `<button class="btn2" type="button" data-venta="${f.numero}">Marcar venta</button>`}</td></tr>`).join("")
+        : '<tr><td colspan="9" style="text-align:left">Todavía no hay cotizaciones con estos filtros.</td></tr>') + "</tbody>";
     $("cz-msg").textContent = "";
   } catch(err){ $("cz-msg").className = "msg mal"; $("cz-msg").textContent = err.message; }
 }
+// SCRUM-83: la cotización imprimible es la misma que va «adjunta» en el correo de la tienda.
+let CZ_FILAS = {};
+const OP_DOC = () => ({logo: document.querySelector(".side .logo").src, tramos: Motor.TRAMOS_EJEMPLO, validez_dias: 7});
+const docDe = f => CotizacionDoc.documento(Object.assign({}, f, {repuesto_nombre: nombreRep(f.repuesto_id), cliente_nombre: (f.cliente_id && cli0(f.cliente_id)) || f.cliente_nombre}), OP_DOC());
+const cli0 = id => { const c = D.clientes.lista.find(x => x.cliente_id === id); return c ? c.nombre.replace(" (ficticio)", "") : ""; };
+$("t-cz").addEventListener("click", e => { const b = e.target.closest("button[data-pdf]"); if(b && CZ_FILAS[b.dataset.pdf]) CotizacionDoc.abrir(docDe(CZ_FILAS[b.dataset.pdf])); });
 function filtrosCz(){ const q = new URLSearchParams(); if($("cz-cli").value) q.set("cliente", $("cz-cli").value); if($("cz-rep").value) q.set("repuesto", $("cz-rep").value); if($("cz-mes").value) q.set("mes", $("cz-mes").value); return q; }
 ["cz-cli","cz-rep","cz-mes"].forEach(id => $(id).addEventListener("change", pintarCotizaciones));
 $("t-cz").addEventListener("click", async e => { const b = e.target.closest("button[data-venta]"); if(!b) return;
