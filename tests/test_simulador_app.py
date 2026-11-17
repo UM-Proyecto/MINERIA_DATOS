@@ -17,7 +17,7 @@ sys.path.insert(0, str(SRC))
 import preparar_datos as pd  # noqa: E402
 import generar_app as ga  # noqa: E402
 
-CLAVES = {"generado", "corte", "tc", "repuestos", "proveedores", "ventas", "clasificacion", "catalogo", "clientes", "parametros"}
+CLAVES = {"generado", "corte", "tc", "repuestos", "proveedores", "ventas", "clasificacion", "catalogo", "clientes", "prediccion", "parametros"}
 
 # Textos que no pueden aparecer en la app (ver contrato y pedido de claudia-mineria del 12-nov-2026).
 PROHIBIDOS = [
@@ -99,10 +99,17 @@ class ArmadoApp(unittest.TestCase):
         self.assertIn("data:image/jpeg;base64,", h)
         self.assertEqual(h.lower().count("</script>"), 3)  # datos, motor y código de la app
 
-    def test_diez_vistas_sin_mis_decisiones(self):
-        for v in ["alertas", "simulador", "proveedores", "plan", "backtest", "clasificacion", "temporadas", "clientes", "catalogo", "cotizar"]:
+    def test_vistas_sin_mis_decisiones(self):
+        for v in ["dashboard", "predicciones", "rotacion", "alertas", "simulador", "proveedores", "plan", "temporadas", "clientes",
+                  "catalogo", "cotizar"]:
             self.assertIn(f'id="v-{v}"', self.html)
         self.assertNotIn("Mis decisiones", self.html)
+
+    def test_quitado_el_16_11(self):
+        # Pedido de Fio y Sam (16-11-2026): sin «¿Qué hubiera pasado?», sin «Clasificación de repuestos» y sin selector de dólar.
+        for x in ['id="v-backtest"', 'id="v-clasificacion"', '"#backtest"', '"#clasificacion"', 'id="tcsel"', 'id="f-otro"',
+                  "Dólar para calcular", "tcModo", "dólar elegido"]:
+            self.assertNotIn(x, self.html)
 
     def test_sin_textos_prohibidos(self):
         for patron, flags in PROHIBIDOS:
