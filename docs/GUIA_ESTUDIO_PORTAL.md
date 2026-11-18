@@ -6,8 +6,8 @@ muestra cada pantalla, de dónde sale cada dato, cómo se calcula cada cifra y q
 > **Cómo se armó esta guía.** Ninguna cifra está escrita a mano. El script `src/guia/hechos.js` calcula cada número
 > con el mismo motor y los mismos datos que usa el portal, y `src/guia/generar_guia.py` los pone en este texto. La
 > prueba `tests/test_guia.py` vuelve a generar la guía y la compara con esta versión: si alguien cambia un número a
-> mano, la prueba falla. Los datos usados son los del 16-nov-2026, con el dólar oficial de **11,67 Bs** del
-> 13-nov-2026; si el dólar cambia, las cifras en bolivianos de los ejemplos cambian con él.
+> mano, la prueba falla. Los datos usados son los del 18-nov-2026, con el dólar oficial de **11,70 Bs** del
+> 17-nov-2026; si el dólar cambia, las cifras en bolivianos de los ejemplos cambian con él.
 
 Contenido:
 
@@ -89,7 +89,7 @@ historia».
 ### 2.2 El dólar oficial: Banco Central de Bolivia (dato real)
 
 - **Qué es.** El tipo de cambio oficial (TC): cuántos bolivianos cuesta un dólar según el Banco Central de Bolivia
-  (BCB). Hoy: **11,67 Bs** por dólar, vigente el 13-nov-2026.
+  (BCB). Hoy: **11,70 Bs** por dólar, vigente el 17-nov-2026.
 - **Cómo se trae (SCRUM-54).** El script `src/scrum-54/obtener_tco_bcb.py`:
   1. lee la página pública <https://www.bcb.gob.bo/bcb_tco_publico_ultima_cotizacion.php>;
   2. quita el HTML, lee la tabla «Tipo de cambio oficial, diario» y comprueba que no falten días;
@@ -98,7 +98,7 @@ historia».
 - **Se actualiza solo (SCRUM-71).** GitHub Actions corre ese script dos veces al día (09:30 y 18:00 de Bolivia),
   con el archivo `.github/workflows/tco-diario.yml`. Si hay un valor nuevo, regenera los datos, la app, la tienda y
   esta guía, corre las pruebas y lo guarda en el repositorio.
-- **Serie:** 140 días, desde el 27-jun-2026 (9,73 Bs). Antes de esa fecha el dólar
+- **Serie:** 144 días, desde el 27-jun-2026 (9,73 Bs). Antes de esa fecha el dólar
   oficial fue fijo, de 6,96 Bs.
 
 ### 2.3 Otros datos públicos
@@ -192,7 +192,7 @@ sirve. Los íconos «i» explican cada indicador, gráfico y columna.
   - catálogo: `data/processed/scrum-74/catalogo.csv`;
   - precio: `repuestos.csv` (`precio_venta_usd`) por el dólar del día;
   - stock: `stock_al_2026_11_10`.
-- **Ejemplo:** Correa de distribución para motor diésel 2.5 (REP-0019), 12 unidades → Bs 6.872,76. El cálculo está en 5.8.
+- **Ejemplo:** Correa de distribución para motor diésel 2.5 (REP-0019), 12 unidades → Bs 6.890,40. El cálculo está en 5.8.
 
 ### 4.2 Entrada (`/empresa`)
 
@@ -202,8 +202,8 @@ horas y va firmada con una clave secreta guardada en Cloudflare.
 ### 4.3 Tablero de ventas — SCRUM-79
 
 - **Qué muestra:**
-  - ventas totales: Bs 467.068, 797 unidades de ago-2022 a oct-2026;
-  - ventas de los últimos 12 meses: Bs 107.797, contra Bs 103.995 de los 12 anteriores (+4 %);
+  - ventas totales: Bs 468.268, 797 unidades de ago-2022 a oct-2026;
+  - ventas de los últimos 12 meses: Bs 108.074, contra Bs 104.262 de los 12 anteriores (+4 %);
   - repuesto más vendido: REP-0019, con 89 unidades;
   - cliente que más compra: Taller El Cruce (16,1 %); los 5 primeros suman el 51 %;
   - gráfico de unidades por mes con su promedio móvil de 12 meses, ventas por año y evolución de cada cliente por
@@ -244,7 +244,7 @@ horas y va firmada con una clave secreta guardada en Cloudflare.
 - **Técnica:** política de reposición (s, S) sobre el pronóstico (ver 5.6). Función `Motor.alertas`.
 - **Ejemplo:** REP-0022 tiene 1 unidad en almacén y 5 en camino.
   - Su punto de pedido es 8 y su nivel máximo 9, así que está en «Pedir ya».
-  - Cantidad sugerida: 3 unidades, que cuestan Bs 616,89 puestas en Santa Cruz.
+  - Cantidad sugerida: 3 unidades, que cuestan Bs 618,45 puestas en Santa Cruz.
 - **Para qué:** saber qué pedir esta semana y cuánto. Al elegir una fila se abre el simulador con ese repuesto.
 
 ### 4.6 Simulador de compra — SCRUM-53 a SCRUM-64
@@ -266,14 +266,14 @@ horas y va firmada con una clave secreta guardada en Cloudflare.
   | Alternativa | Cantidad | Puntaje (de 100) | Riesgo de quedarse sin stock | Ganancia media | Escenario desfavorable |
   |---|---|---|---|---|---|
   | A | 1 | 55 | 44 de 100 | Bs 523 | Bs −133 |
-  | B | 2 | 45 | 42 de 100 | Bs 523 | Bs −180 |
-  | C | 2 | 0 | 42 de 100 | Bs 523 | Bs −180 |
-  | D | 2 | 0 | 44 de 100 | Bs 170 | Bs −515 |
+  | B | 2 | 45 | 42 de 100 | Bs 523 | Bs −179 |
+  | C | 2 | 0 | 42 de 100 | Bs 523 | Bs −179 |
+  | D | 2 | 0 | 44 de 100 | Bs 170 | Bs −514 |
 
   Gana la alternativa A.
 - **Dólar de quiebre:** si se espera que el dólar pase de **12,25 Bs** en 90 días, la mejor deja de ser
   A y pasa a ser B.
-- **Qué supuesto pesa más:** el dólar. Moverlo de un extremo al otro cambia la ganancia esperada en Bs 355;
+- **Qué supuesto pesa más:** el dólar. Moverlo de un extremo al otro cambia la ganancia esperada en Bs 354;
   el que menos pesa la cambia en Bs 21.
 - **Herramientas que respaldan cada alternativa:** el pronóstico de la venta (gráfico con la serie real) y la tabla
   de proveedores con su costo puesto.
@@ -296,8 +296,8 @@ horas y va firmada con una clave secreta guardada en Cloudflare.
 
 - **Qué muestra:** cada repuesto según su peso en las ventas de los últimos 12 meses (clase ABC por dinero) y la
   rapidez con que se vende su stock.
-  - Clase A: 13 repuestos concentran el 81 % de Bs 107.797.
-  - Alertas: acumulación en 8 repuestos (Bs 15.788 inmovilizados) y baja rotación en 16.
+  - Clase A: 13 repuestos concentran el 81 % de Bs 108.074.
+  - Alertas: acumulación en 8 repuestos (Bs 15.828 inmovilizados) y baja rotación en 16.
   - La matriz cruza las dos cosas: 4 repuestos son A de rotación alta («no pueden faltar») y
     9 son C de rotación baja («no reponer»).
 - **Técnica:** análisis ABC con el principio de Pareto (ver 5.1) y rotación del stock (ver 5.10).
@@ -374,8 +374,8 @@ de entrega. Lo que no es suyo no se lo entrega el servidor.
   1. Se ordenan los repuestos de mayor a menor valor vendido.
   2. Se suma el porcentaje acumulado.
   3. Los que llegan hasta el 80 % son clase A, hasta el 95 % clase B y el resto clase C.
-- **Ejemplo (12 meses):** el primero es REP-0028, con Bs 13.557, que es el 12,6 % del total; con el
-  segundo, REP-0013 (Bs 9.180), el acumulado llega a 21,1 %. Siguiendo así, 13 repuestos llegan al
+- **Ejemplo (12 meses):** el primero es REP-0028, con Bs 13.592, que es el 12,6 % del total; con el
+  segundo, REP-0013 (Bs 9.204), el acumulado llega a 21,1 %. Siguiendo así, 13 repuestos llegan al
   81 %: esos son los de clase A.
 - **Ojo, hay dos clases ABC:**
   - la de la pantalla de rotación es por dinero de los últimos 12 meses;
@@ -429,9 +429,9 @@ de entrega. Lo que no es suyo no se lo entrega el servidor.
   - **FOB:** puesto en el barco de origen, se suma el flete;
   - **CIF:** incluye flete y seguro hasta destino, no se suma flete.
 - **Ejemplo:** REP-0022 cuesta 16,70 USD en fábrica.
-  - Con Proveedor China Beta (CIF): fábrica Bs 194,89 + gastos Bs 10,74 = **Bs 205,63**.
-  - Con Proveedor China Alfa (FOB): fábrica Bs 194,89 + flete Bs 15,20 (7,8 %) + gastos Bs 11,52
-    = **Bs 221,61**.
+  - Con Proveedor China Beta (CIF): fábrica Bs 195,39 + gastos Bs 10,76 = **Bs 206,15**.
+  - Con Proveedor China Alfa (FOB): fábrica Bs 195,39 + flete Bs 15,24 (7,8 %) + gastos Bs 11,55
+    = **Bs 222,18**.
 - **Función:** `Motor.costoPuesto`.
 
 ### 5.6 Política de reposición (s, S) y stock de seguridad
@@ -468,9 +468,9 @@ de entrega. Lo que no es suyo no se lo entrega el servidor.
 - **Regla:** precio por unidad = precio de lista × (1 − descuento del tramo). El descuento nunca deja el precio por
   debajo del costo puesto.
 - **Ejemplo:** Correa de distribución para motor diésel 2.5, 12 unidades:
-  - precio de lista Bs 602,87; 12 unidades están en el tramo de 10 a 50−1, con 5 %;
-  - precio por unidad Bs 572,73;
-  - subtotal Bs 7.234,44 − descuento Bs 361,68 = **Bs 6.872,76**.
+  - precio de lista Bs 604,42; 12 unidades están en el tramo de 10 a 50−1, con 5 %;
+  - precio por unidad Bs 574,20;
+  - subtotal Bs 7.253,04 − descuento Bs 362,64 = **Bs 6.890,40**.
 - **El servidor recalcula este precio con el motor** antes de guardarlo.
 - **Función:** `Motor.cotizar`.
 
@@ -539,7 +539,7 @@ de entrega. Lo que no es suyo no se lo entrega el servidor.
 
 ### 5.12 El dólar en los cálculos
 
-- **Dólar oficial (11,67 Bs):** con él se convierte a bolivianos todo costo y precio del día.
+- **Dólar oficial (11,70 Bs):** con él se convierte a bolivianos todo costo y precio del día.
 - **Dólar a 90 días:** es un supuesto que mueve quien decide.
 - **Dólar paralelo:** se muestra, pero no se usa en los cálculos.
 - **Pedidos de demostración del pasado:** se convirtieron con el dólar oficial del día de la orden.
@@ -605,7 +605,7 @@ lo que se pronostica y se mide, y una capa de demostración, con reglas escritas
 16. **¿Qué es el dólar de quiebre?** El valor del dólar a 90 días desde el que conviene comprar más hoy. Para
     REP-0022, 12,25 Bs.
 17. **¿Qué es el costo puesto?** Fábrica + flete + aduana, en bolivianos. Para REP-0022 con CIF,
-    Bs 205,63.
+    Bs 206,15.
 18. **¿Qué cambia entre FOB y CIF?** Con FOB se suma el flete (7,8 % desde China); con CIF ya viene en
     el precio.
 19. **¿Qué es (s, S)?** Pedir cuando el stock y lo que viene en camino bajan a s, hasta llegar a S. Para REP-0022,
