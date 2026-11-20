@@ -107,9 +107,11 @@ historia».
   las importaciones. La diferencia entre los dos es el flete y el seguro: desde China da **{{flete_china_pct}} %** del
   valor FOB. Está en `data/processed/hu-30-31/hu31_costos_importacion.csv`.
 - **Dólar paralelo (fuente privada, solo referencia).** {{tc_paralelo}} Bs al {{tc_paralelo_fecha}}: promedio de
-  venta en 8 plataformas de compraventa entre personas (P2P), tomado de dolarbolivia.net. Está en
-  `data/raw/hu-32/insumos_publicos/puntos_documentados.csv`. Se muestra en el simulador, pero **no entra en ningún
-  cálculo**.
+  venta en plataformas de compraventa entre personas (P2P). Se lee una vez al día de dolarbolivia.net y, si no
+  responde, de Binance P2P (dólar digital USDT contra bolivianos), con `src/scrum-54/obtener_paralelo.py`. La serie
+  está en `data/processed/scrum-54/dolar_paralelo_diario.csv`, con la fuente de cada día. Si ninguna fuente
+  responde, se conserva el último valor y la pantalla dice de qué fecha es. Se muestra en el simulador, pero **no
+  entra en ningún cálculo**.
 
 ### 2.4 Lo que es de demostración y con qué regla se generó
 

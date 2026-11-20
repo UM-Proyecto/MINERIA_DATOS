@@ -62,8 +62,12 @@ class DatosApp(unittest.TestCase):
         self.assertEqual(tc["serie"][-1], [ultima["fecha"], float(ultima["tco_bs_por_usd"])])
         self.assertIn("BCB", tc["oficial"]["fuente"])
         self.assertEqual(tc["serie"][0], ["2026-06-27", 9.73])
-        self.assertEqual(tc["paralelo"]["valor"], 11.99)
-        self.assertEqual(tc["paralelo"]["fecha"], "2026-10-23")
+        # El paralelo es la ÚLTIMA fila de su serie diaria, tampoco con fecha fija.
+        with open(pd.PARALELO, encoding="utf-8", newline="") as f:
+            up = sorted(csv.DictReader(f), key=lambda r: r["fecha"])[-1]
+        self.assertEqual(tc["paralelo"]["valor"], float(up["paralelo_bs_por_usd"]))
+        self.assertEqual(tc["paralelo"]["fecha"], up["fecha"])
+        self.assertEqual(tc["paralelo"]["fuente"], up["fuente"])
         self.assertEqual(tc["paralelo"]["marca"], "PRIVADO")
 
     def test_clasificacion(self):
@@ -160,6 +164,66 @@ class ArmadoApp(unittest.TestCase):
     def test_escape_de_script(self):
         self.assertEqual(ga.seguro_en_script("a</script>b i</n"), "a<\\/script>b i</n")
 
+
+
+# ---- Dólar paralelo diario (src/scrum-54/obtener_paralelo.py) ----
+sys.path.insert(0, str(RAIZ / "src" / "scrum-54"))
+import obtener_paralelo as op  # noqa: E402
+
+PAGINA = ('<html><script type="application/ld+json">{"@graph":[{"@id":"https://dolarbolivia.net#rate-oficial",'
+          '"currentExchangeRate":{"price":11.75}},{"@id":"https://dolarbolivia.net#rate-paralelo",'
+          '"currentExchangeRate":{"price":11.95}}]}</script></html>')
+BINANCE = json.dumps({"data": [{"adv": {"price": p}} for p in ("11.98", "11.99", "12.00", "11.99")]})
+
+
+def red(respuestas):
+    """Imita urllib: cada URL devuelve su texto o lanza el error indicado."""
+    def pedir(url, cuerpo=None):
+        r = respuestas[url]
+        if isinstance(r, Exception):
+            raise r
+        return r
+    return pedir
+
+
+class DolarParalelo(unittest.TestCase):
+    def test_fuente_principal(self):
+        v, f = op.leer_fuentes("P", "R", red({"P": PAGINA, "R": OSError("no debe usarse")}))
+        self.assertEqual((v, f.split(",")[0]), (11.95, "dolarbolivia.net"))
+
+    def test_principal_caida_pasa_a_binance(self):
+        v, f = op.leer_fuentes("P", "R", red({"P": OSError("caída"), "R": BINANCE}))
+        self.assertEqual(v, 11.99)
+        self.assertTrue(f.startswith("Binance P2P"))
+
+    def test_principal_cambiada_pasa_a_binance(self):
+        v, _ = op.leer_fuentes("P", "R", red({"P": "<html>sin datos</html>", "R": BINANCE}))
+        self.assertEqual(v, 11.99)
+
+    def test_valor_absurdo_se_descarta(self):
+        with self.assertRaises(op.SinDato):
+            op.leer_fuentes("P", "R", red({"P": PAGINA.replace("11.95", "1195"), "R": json.dumps({"data": []})}))
+
+    def test_fuentes_caidas_no_tocan_el_csv(self):
+        with tempfile.TemporaryDirectory() as t:
+            csvp = Path(t) / "paralelo.csv"
+            antes = "fecha,paralelo_bs_por_usd,fuente,fecha_lectura,marca\n2026-10-23,11.99,x,2026-10-25,PRIVADO\n"
+            csvp.write_text(antes, encoding="utf-8")
+            rc = op.main(["--url-principal", "http://127.0.0.1:9/", "--url-respaldo", "http://127.0.0.1:9/", "--salida", str(csvp)])
+            self.assertEqual(rc, 1)
+            self.assertEqual(csvp.read_bytes(), antes.encode())
+
+    def test_una_fila_por_dia(self):
+        from datetime import datetime, timezone
+        with tempfile.TemporaryDirectory() as t:
+            csvp = Path(t) / "p.csv"
+            op.actualizar(11.9, "A", datetime(2026, 11, 20, 14, tzinfo=timezone.utc), csvp)
+            op.actualizar(11.95, "B", datetime(2026, 11, 20, 22, tzinfo=timezone.utc), csvp)   # mismo día en Bolivia
+            op.actualizar(12.0, "C", datetime(2026, 11, 21, 3, tzinfo=timezone.utc), csvp)    # 23:00 del 20 en Bolivia
+            with csvp.open(encoding="utf-8", newline="") as f:
+                filas = list(csv.DictReader(f))
+            self.assertEqual([(r["fecha"], r["paralelo_bs_por_usd"], r["fuente"]) for r in filas], [("2026-11-20", "12.00", "C")])
+            self.assertEqual(filas[0]["marca"], "PRIVADO")
 
 if __name__ == "__main__":
     unittest.main()

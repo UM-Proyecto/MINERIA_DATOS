@@ -570,7 +570,7 @@ svg.chart .pm{fill:none;stroke:var(--graphite);stroke-width:2}
         </div>
         <div class="spark"><div class="lab">Evolución del dólar oficial <span class="ayuda" style="display:inline" id="spark-dias"></span></div><div id="spark"></div></div>
         <div class="paralelo">
-          <div class="lab" data-i="Dólar paralelo|Precio promedio del dólar en plataformas de compraventa entre personas (P2P). Es de fuente privada y se muestra solo como referencia: no entra en ningún cálculo.">Dólar paralelo <span class="badge-priv">fuente privada</span></div>
+          <div class="lab" data-i="Dólar paralelo|Precio promedio del dólar en plataformas de compraventa entre personas (P2P). Es de fuente privada y se muestra solo como referencia: no entra en ningún cálculo. Se lee una vez al día.">Dólar paralelo <span class="badge-priv">referencia privada</span></div>
           <div class="v" id="pa-v"></div>
           <span class="ayuda" id="pa-ayuda"></span>
         </div>
@@ -973,6 +973,8 @@ const fecha = f => { const [y,m,d] = f.split("-"); return +d + "-" + MES[+m-1] +
 const fechaDia = f => DIA[new Date(f + "T12:00:00").getDay()] + " " + fecha(f);
 // SCRUM-71: el BCB publica un valor por día. Si el último tiene más de un día, se avisa desde qué fecha se usa.
 const diasTc = () => { const h = new Date(), hoy = Date.UTC(h.getFullYear(), h.getMonth(), h.getDate()), [y,m,d] = OF.fecha.split("-"); return Math.round((hoy - Date.UTC(+y, +m - 1, +d)) / 864e5); };
+// La misma cuenta para el dólar paralelo (diasTc se deja aparte porque una prueba la extrae del código tal cual).
+const diasDesde = f => { const h = new Date(), hoy = Date.UTC(h.getFullYear(), h.getMonth(), h.getDate()), [y,m,d] = f.split("-"); return Math.round((hoy - Date.UTC(+y, +m - 1, +d)) / 864e5); };
 const avisoTc = () => diasTc() > 1 ? ` <span class="marca-tc">El Banco Central de Bolivia no publicó un valor más reciente: se usa el del ${fecha(OF.fecha)}.</span>` : "";
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 // Ícono «i» (SCRUM-82): tema = de qué habla; txt = qué es, de dónde sale el dato y cómo leerlo, en una o dos frases.
@@ -1109,7 +1111,7 @@ function pintarAlertas(){
     <div class="kpi"><div class="t">Pedir esta semana${info("Pedir esta semana", "Repuestos cuyo stock, sumado a lo que viene en camino, ya no alcanza para cubrir la venta mientras llega un pedido nuevo. Conviene pedirlos ahora.")}</div><div class="v c-bad">${pedir}<small>repuestos</small></div><div class="d">llegaron al punto de pedido</div></div>
     <div class="kpi"><div class="t">En vigilancia${info("En vigilancia", "Repuestos que todavía tienen stock, pero que llegarán al punto de pedido antes de que pueda llegar un pedido nuevo. Conviene pedirlos pronto.")}</div><div class="v c-warn">${vig}<small>repuestos</small></div><div class="d">llegarán al punto de pedido antes de que pueda llegar un pedido nuevo</div></div>
     <div class="kpi"><div class="t">En camino${info("En camino", "Unidades de pedidos ya hechos que todavía no llegaron al almacén. Se cuentan como stock futuro al decidir qué pedir.")}</div><div class="v">${nf(camino)}<small>unidades</small></div><div class="d">de pedidos ya hechos que todavía no llegan</div></div>
-    <div class="kpi"><div class="t">Dólar de hoy${info("Dólar de hoy", "Tipo de cambio oficial publicado por el Banco Central de Bolivia: cuántos bolivianos cuesta un dólar. Con este valor se calcula el costo de lo que hay que pedir.")}</div><div class="v">${nf(tcHoy(),2)}<small>Bs</small></div><div class="d">oficial del Banco Central de Bolivia · ${fecha(OF.fecha)}</div></div>`;
+    <div class="kpi"><div class="t">Dólar de hoy${info("Dólar de hoy", "Tipo de cambio oficial publicado por el Banco Central de Bolivia: cuántos bolivianos cuesta un dólar. Con este valor se calcula el costo de lo que hay que pedir.")}</div><div class="v">${nf(tcHoy(),2)}<small>Bs</small></div><div class="d">oficial del Banco Central de Bolivia · actualizado el ${fecha(OF.fecha)}</div></div>`;
   const filas = S.verTodas ? al : al.slice(0, 12);
   $("t-alertas").innerHTML = `<thead><tr><th>Repuesto${info("Repuesto", "Debajo del código va el código en la base de ventas, el patrón de venta (regular, irregular u ocasional) y la clase ABC: A son los repuestos más importantes en ventas.")}</th><th>Estado</th><th>Stock<span class="ayuda">en almacén</span></th><th>En camino</th><th>Punto de pedido${info("Punto de pedido", "Nivel de stock en el que hay que pedir. Cubre la venta esperada mientras llega el pedido, más un stock de seguridad por si se vende más o el proveedor se atrasa.")}</th><th>Plazo${info("Plazo", "Días que tarda el proveedor en entregar, desde que se hace el pedido hasta que llega al almacén.")}</th><th>Venta en el plazo${info("Venta en el plazo", "Unidades que se espera vender mientras llega el pedido, según el pronóstico. Si supera al stock más lo que viene en camino, faltará mercadería.")}</th><th>Cantidad sugerida${info("Cantidad sugerida", "Unidades a pedir para volver al nivel de reposición, descontando el stock y lo que viene en camino.")}</th><th>Costo puesto${info("Costo puesto", "Lo que cuesta tener el pedido en el almacén de Santa Cruz: precio de fábrica, flete y gastos de aduana, en bolivianos.")}</th><th style="text-align:left">Proveedor</th></tr></thead><tbody>` +
     filas.map(a => { const r = REP[a.id], p = PRV[r.proveedor_id];
@@ -1167,9 +1169,12 @@ function etiquetas(){
 function pintarCabecera(){
   $("sim-intro").textContent = `Elija un repuesto y ajuste los supuestos: el precio del dólar, la venta esperada y el atraso del proveedor. El simulador evalúa cada alternativa en ${nf(PAR.simulaciones)} escenarios posibles y le muestra cuál conviene. La decisión la toma usted.`;
   $("of-v").innerHTML = `${nf(OF.valor,2)}<small>Bs por dólar</small>`;
-  $("of-src").innerHTML = `Vigente el <b>${fechaDia(OF.fecha)}</b>. Fuente: Banco Central de Bolivia, tabla «Tipo de cambio oficial, diario». Se actualiza una vez al día.${avisoTc()}`;
+  $("of-src").innerHTML = `Actualizado el <b>${fechaDia(OF.fecha)}</b>. Fuente: Banco Central de Bolivia, tabla «Tipo de cambio oficial, diario». Se actualiza una vez al día.${avisoTc()}`;
   $("pa-v").innerHTML = `${nf(PA.valor,2)} <small style="font-size:12px;color:var(--ink-3);font-weight:500">Bs</small>`;
-  $("pa-ayuda").textContent = `Promedio de plataformas de compraventa entre personas (P2P) al ${fecha(PA.fecha)}. Solo como referencia: los cálculos usan el dólar oficial.`;
+  // El paralelo se lee cada día (src/scrum-54/obtener_paralelo.py). Se dice de qué fuente salió ese día y, si la
+  // fuente no respondió, desde qué fecha se usa el último valor.
+  $("pa-ayuda").innerHTML = `Actualizado el <b>${fecha(PA.fecha)}</b>. Fuente de ese día: ${esc(PA.fuente)}. Solo como referencia: los cálculos usan el dólar oficial.` +
+    (diasDesde(PA.fecha) > 1 ? ` <span class="marca-tc">No hubo una lectura más reciente: se usa la del ${fecha(PA.fecha)}.</span>` : "");
   const se = D.tc.serie, W = Math.max(300, Math.round($("spark").clientWidth || 520)), H = 170, pl = 44, pb = 38, pr = 10, vs = se.map(x => x[1]);
   const lo = Math.floor(Math.min(...vs) * 2) / 2 - .25, hi = Math.ceil(Math.max(...vs) * 2) / 2 + .25, n = se.length - 1;
   const X = i => pl + i * (W - pl - pr) / n, Y = v => 8 + (hi - v) * (H - pb - 8) / (hi - lo);
@@ -1741,7 +1746,7 @@ function cotizarAhora(){
   catch(e){ $("cot-err").textContent = "Escriba una cantidad entera de 1 o más."; $("cot-q").setAttribute("aria-invalid","true"); $("cot-res").innerHTML = ""; tramosTxt(null); return; }
   $("cot-err").textContent = ""; $("cot-q").removeAttribute("aria-invalid");
   tramosTxt(c.pct_tramo);
-  const dolar = `dólar oficial de ${nf(OF.valor,2)} Bs del ${fecha(OF.fecha)} (Banco Central de Bolivia)`;
+  const dolar = `dólar oficial de ${nf(OF.valor,2)} Bs actualizado el ${fecha(OF.fecha)} (Banco Central de Bolivia)`;
   const sig = c.siguiente_tramo ? `<p class="d">Si lleva ${nf(c.siguiente_tramo.faltan)} más (${nf(c.siguiente_tramo.desde)} en total), cada unidad sale ${c.siguiente_tramo.pct} % más barata que el precio de lista.</p>` : "";
   const stock = c.en_stock === null ? "No hay dato de stock: hay que confirmarlo." : c.por_pedir === 0 ? `Hay stock para entregar las ${nf(c.cantidad)} unidades.` : `Hay ${nf(c.en_stock)} en el almacén; las otras ${nf(c.por_pedir)} llegan en unos ${nf(c.plazo_dias)} días, el plazo del proveedor.`;
   $("cot-res").innerHTML = `<div class="scroll"><table class="cot-desg"><thead><tr><th>Concepto</th><th>Monto</th></tr></thead><tbody>

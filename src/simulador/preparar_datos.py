@@ -27,7 +27,7 @@ from pathlib import Path
 BASE = Path(__file__).resolve().parents[2]
 S55 = BASE / "data/processed/scrum-55"
 TCO = BASE / "data/processed/scrum-54/tco_bcb_diario.csv"
-PARALELO = BASE / "data/raw/hu-32/insumos_publicos/puntos_documentados.csv"
+PARALELO = BASE / "data/processed/scrum-54/dolar_paralelo_diario.csv"  # serie diaria, referencia privada
 CATALOGO = BASE / "data/processed/scrum-74/catalogo.csv"
 FUENTES_IMG = BASE / "data/raw/scrum-74/fuentes_imagenes.csv"
 CLIENTES = BASE / "data/processed/scrum-76/clientes.csv"
@@ -70,14 +70,15 @@ def convertir(fila):
 
 
 def paralelo():
-    """Punto documentado del dólar paralelo (promedio P2P). Se busca por serie y fecha, no por número de línea."""
-    with open(PARALELO, encoding="utf-8-sig", newline="") as f:
-        for fila in csv.reader(f):
-            if len(fila) > 2 and fila[0] == "PARALELO_P2P_VENTA" and fila[1] == "2026-10-23":
-                return {"valor": float(fila[2]), "fecha": fila[1],
-                        "fuente": "Promedio de venta en 8 plataformas P2P (dolarbolivia.net), consultado el 2026-10-25",
-                        "marca": "PRIVADO"}
-    raise SystemExit(f"No se encontró el dólar paralelo del 2026-10-23 en {PARALELO}")
+    """Último valor de la serie diaria del dólar paralelo (src/scrum-54/obtener_paralelo.py). Es una referencia
+    privada: no entra en ningún cálculo. No se fija la fecha: la app toma sola el valor nuevo cada día y, si la
+    fuente no respondió, sigue con el último y muestra de qué día es."""
+    filas = sorted(leer(PARALELO), key=lambda r: r["fecha"])
+    if not filas:
+        raise SystemExit(f"La serie del dólar paralelo está vacía: {PARALELO}")
+    u = filas[-1]
+    return {"valor": float(u["paralelo_bs_por_usd"]), "fecha": u["fecha"], "fuente": u["fuente"],
+            "lectura": u["fecha_lectura"], "marca": u["marca"]}
 
 
 def preparar():
