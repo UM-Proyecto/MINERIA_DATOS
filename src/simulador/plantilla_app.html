@@ -471,6 +471,59 @@ svg.chart .pm{fill:none;stroke:var(--graphite);stroke-width:2}
   padding:10px 12px;font:400 12.5px/1.5 Poppins,system-ui,sans-serif;letter-spacing:0;text-transform:none;box-shadow:0 6px 24px rgba(0,0,0,.22)}
 #info-pop[hidden]{display:none}
 #info-pop b{display:block;font-weight:600;margin-bottom:3px}
+/* 17. MINERÍA DE DATOS (proyecto integrador): apartado en ámbar, separado del verde del resto del portal (boceto de
+   Sam del 20-11). Texto oscuro sobre ámbar y ámbar oscuro sobre blanco: los dos pasan el contraste AA (medido). */
+:root{--mina:#f5a300;--mina-hover:#ffb52e;--mina-ink:#2a1a00;--mina-dark:#8a4f00;--mina-soft:#fff6e3;--mina-line:#f1d9a6}
+.side nav a.mn{background:var(--mina);color:var(--mina-ink);font-weight:600;margin-top:16px;transition:background .12s}
+.side nav a.mn:hover{background:var(--mina-hover)}
+.side nav a.mn[aria-current=page]{background:var(--mina);color:var(--mina-ink);box-shadow:inset 0 0 0 2px #fff}
+.side nav a.mn .nuevo{display:none}
+#v-mineria .eyebrow{color:var(--mina-dark)}
+.lz-card{border:1px solid var(--mina-line);border-radius:var(--r);overflow:hidden;background:var(--card)}
+.lz-top{background:var(--mina);color:var(--mina-ink);padding:14px 20px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline}
+.lz-top h2{font-size:20px;font-weight:700}
+.lz-top span{font-size:12.5px}
+/* La grilla repite la disposición clásica del lienzo (como el del equipo): aliados a la izquierda, propuesta al
+   centro, segmentos a la derecha y, abajo, gastos e ingresos. Debajo de 1100 px se apila en el orden 1 a 9. */
+.lz{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:10px;padding:12px;background:var(--mina-soft);
+  grid-template-areas:"ali ali act act pro pro rel rel seg seg" "ali ali rec rec pro pro can can seg seg" "gas gas gas gas gas ing ing ing ing ing"}
+.lz-b{background:#fff;border:1px solid var(--mina-line);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;min-width:0}
+.lz-b h3{font-size:15px;font-weight:700;line-height:1.25;margin-bottom:8px;display:flex;gap:8px;align-items:baseline}
+.lz-b h3 .n{flex:none;display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--mina);color:var(--mina-ink);font-size:12px}
+.lz-b ul{margin:0;padding:0 0 0 16px;font-size:12.5px;color:var(--ink-2)}
+.lz-b li{margin-bottom:8px}
+.lz-b li b{color:var(--ink)}
+.lz-ir{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.lz-ir a{display:inline-flex;align-items:center;min-height:24px;font-size:11px;font-weight:600;border:1px solid var(--mina-line);border-radius:6px;padding:2px 7px;color:var(--mina-dark);background:var(--mina-soft);text-decoration:none;transition:border-color .12s}
+.lz-ir a:hover{border-color:var(--mina-dark)}
+.lz-ir .sin{font-size:11px;color:var(--ink-3);font-style:italic}
+.lz-b .autor{margin-top:auto;padding-top:6px;font-size:11px;color:var(--ink-3)}
+/* Detalle: cada idea con su pantalla, la técnica que usa y lo que se ve. */
+.lz-det{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:18px}
+.lz-det .card{margin-top:0}
+.lz-det h3{font-size:16px;font-weight:600;margin-bottom:4px;display:flex;gap:8px;align-items:baseline}
+.lz-det h3 .n{flex:none;display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--mina);color:var(--mina-ink);font-size:12px}
+.lz-det .autor{font-size:11.5px;color:var(--ink-3);margin-bottom:10px}
+.lz-idea{border-top:1px solid var(--line);padding:10px 0 4px}
+.lz-idea>p{font-size:13px;color:var(--ink);margin-bottom:6px}
+.lz-ev{display:grid;grid-template-columns:minmax(150px,200px) minmax(0,1fr);gap:2px 12px;font-size:12.5px;padding:5px 0 5px 10px;border-left:3px solid var(--mina)}
+.lz-ev+.lz-ev{margin-top:6px}
+.lz-ev a{font-weight:600;color:var(--mina-dark)}
+.lz-ev .t{color:var(--ink-2)}
+.lz-ev .t b{color:var(--ink);font-weight:600}
+.lz-ev.no{border-left-color:var(--line-2);grid-template-columns:1fr;color:var(--ink-3)}
+.lz-tec{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 24px;margin:0}
+.lz-tec dt{font-weight:600;font-size:13.5px}
+.lz-tec dd{margin:2px 0 0;font-size:12.5px;color:var(--ink-2)}
+.lz-tec dd a{color:var(--mina-dark);font-weight:600}
+@media (max-width:1400px){.lz-det{grid-template-columns:1fr}}
+@media (max-width:1100px){.lz{grid-template-columns:1fr 1fr;grid-template-areas:none}.lz-b{grid-area:auto!important}.lz-tec{grid-template-columns:1fr}}
+@media (max-width:760px){
+  .side nav a.mn{margin:0 0 0 6px}
+  .lz{grid-template-columns:1fr;padding:8px}
+  .lz-top{padding:12px 14px}
+  .lz-ev{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
@@ -866,6 +919,26 @@ svg.chart .pm{fill:none;stroke:var(--graphite);stroke-width:2}
       <p class="pie" id="cot-pie"></p>
     </section>
   </section>
+
+  <!-- ============ MINERÍA DE DATOS (proyecto integrador) ============ -->
+  <section class="vista" id="v-mineria" hidden aria-labelledby="h1-mn">
+    <div class="hero"><div><div class="eyebrow">Proyecto integrador · Minería de datos</div><h1 id="h1-mn">¿Cómo cumple el portal el modelo de negocio?</h1>
+      <p>El lienzo de modelo de negocio resume en nueve bloques a quién sirve el servicio, qué le ofrece y cómo se sostiene. Cada idea del lienzo lleva a la pantalla del portal que la muestra. Las ideas que no tienen pantalla lo dicen.</p></div></div>
+    <div class="grid-k" id="mn-kpis"></div>
+    <section class="lz-card" style="margin-top:18px" aria-labelledby="mn-lz">
+      <div class="lz-top"><h2 id="mn-lz">Lienzo de modelo de negocio</h2><span>Texto del equipo. Toque una pantalla para abrirla.</span></div>
+      <div class="lz" id="mn-lienzo"></div>
+    </section>
+    <section class="card" style="margin-top:18px">
+      <div class="card-h"><div><h2>Las técnicas de minería de datos del portal, en palabras simples</h2>
+        <p>Son las que el portal calcula de verdad con los datos. Cada una dice en qué pantalla se ve.</p></div></div>
+      <dl class="lz-tec" id="mn-tec"></dl>
+    </section>
+    <div class="card-h" style="margin-top:28px"><div><h2>Dónde se cumple cada idea del lienzo</h2>
+      <p>Para cada idea: la pantalla que la muestra, la técnica que usa y qué se ve. Si no hay pantalla, se explica por qué.</p></div></div>
+    <div class="lz-det" id="mn-det"></div>
+    <p class="pie">Lienzo elaborado por el equipo del proyecto (Fiorella Sandoval, Carlos Andrés Méndez Cadario, Samuel Castillo y Sabrina Adrian Zelaya). Las técnicas son las del motor de cálculo del portal y del modelo de predicción de ventas.</p>
+  </section>
   <p class="nota-datos">Ventas: base pública carparts. Clientes, proveedores, precios y stock: datos de demostración. <a class="nota-fuente" href="https://robjhyndman.com/expsmooth/" target="_blank" rel="noopener" title="Hyndman, Koehler, Ord y Snyder (2008), conjunto carparts">Ver la base de datos</a></p>
 </div></div>
 
@@ -930,13 +1003,14 @@ const IC = {al:'<path d="M8 2l6 11H2z"/><path d="M8 6.5v3M8 11.5h.01"/>', sim:'<
   tm:'<rect x="2" y="3" width="12" height="11" rx="1"/><path d="M2 6.5h12M5 2v2.5M11 2v2.5"/>', cot:'<path d="M2 8.5V2.5h6L14 8.5 8 14.5z"/><circle cx="5.2" cy="5.7" r="1"/>', plan:'<path d="M3 3h10v10H3z"/><path d="M5.5 6.5h5M5.5 9.5h3"/>',
   db:'<rect x="2" y="2" width="5" height="7" rx="1"/><rect x="9" y="2" width="5" height="4" rx="1"/><rect x="2" y="11" width="5" height="3" rx="1"/><rect x="9" y="8" width="5" height="6" rx="1"/>',
   pr:'<path d="M2 13c2-6 4-9 6-9s4 3 6 9"/><path d="M8 4v10" stroke-dasharray="1.5 1.5"/>',
-  rt:'<path d="M2 3h12M2 8h8M2 13h4"/><path d="M12 10l2 2-2 2"/>'};
+  rt:'<path d="M2 3h12M2 8h8M2 13h4"/><path d="M12 10l2 2-2 2"/>',
+  mn:'<rect x="1.5" y="2.5" width="13" height="11" rx="1"/><path d="M1.5 10h13M5.5 2.5V10M10.5 2.5V10M8 10v3.5"/>'};   /* lienzo de 9 bloques */
 /* Roles (SCRUM-78). Fuera del portal (archivo abierto con doble clic) se ven las vistas del importador, menos las
    que necesitan el servidor. En el portal (/empresa) cada rol ve lo suyo y sin sesión solo se ve «Entrar»: el
    cliente cotiza en la tienda pública (/). */
 const PORTAL = !!window.PORTAL;
 const SES = {rol:null, nombre:"", token:null, prov:null};
-const QUIEN = {dashboard:"imp", predicciones:"imp", rotacion:"imp", alertas:"imp", simulador:"imp", proveedores:"imp", plan:"imp", temporadas:"imp", clientes:"imp",
+const QUIEN = {dashboard:"imp", predicciones:"imp", rotacion:"imp", alertas:"imp", simulador:"imp", proveedores:"imp", plan:"imp", temporadas:"imp", clientes:"imp", mineria:"imp",
   catalogo:"todos", cotizar:"todos", cotizaciones:"imp-portal", cargar:"imp-portal", miprov:"prov", entrar:"anon"};
 function rol(){ return PORTAL ? (SES.rol || "cliente") : "importador"; }
 function puede(v){ const q = QUIEN[v], r = rol();
@@ -949,10 +1023,11 @@ const VISTAS = [["dashboard","Tablero de ventas","db","SCRUM-79"],["predicciones
   ["alertas","Alertas de reposición","al","nuevo"],["simulador","Simulador de compra","sim","SCRUM-61"],["proveedores","Comparar proveedores","prov","nuevo"],
   ["plan","Plan de compra con presupuesto","plan","nuevo"],
   ["temporadas","Temporadas de venta","tm","nuevo"],["clientes","Clientes que más compran","cli","nuevo"],["catalogo","Catálogo","cat","nuevo"],["cotizar","Cotizar por cantidad","cot","nuevo"],
-  ["cotizaciones","Cotizaciones guardadas","cz","nuevo"],["cargar","Registrar repuestos y clientes","cg","nuevo"],["miprov","Mis repuestos","prov","nuevo"],["entrar","Entrar","ent","portal"]];
+  ["cotizaciones","Cotizaciones guardadas","cz","nuevo"],["cargar","Registrar repuestos y clientes","cg","nuevo"],["mineria","Minería de datos","mn","nuevo"],["miprov","Mis repuestos","prov","nuevo"],["entrar","Entrar","ent","portal"]];
 const GRUPOS = [["Resumen",["dashboard","predicciones"]],["Decidir",["alertas","simulador","proveedores","plan"]],["Entender la demanda",["rotacion","temporadas","clientes"]],
-  ["Gestionar",["cotizaciones","cargar","catalogo","cotizar"]],["Proveedor",["miprov"]],["",["entrar"]]];
-const enlaceMenu = ([k,t,i,h]) => `<a href="#${k}" data-v="${k}" aria-label="${t}" title="${t}"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">${IC[i]}</svg><span>${t}</span></a>`;
+  ["Gestionar",["cotizaciones","cargar","catalogo","cotizar"]],["",["mineria"]],["Proveedor",["miprov"]],["",["entrar"]]];
+// «Minería de datos» (proyecto integrador) va en ámbar, separado del verde: así lo pidió Sam en su boceto del 20-11.
+const enlaceMenu = ([k,t,i,h]) => `<a href="#${k}" data-v="${k}"${k === "mineria" ? ' class="mn"' : ""} aria-label="${t}" title="${t}"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">${IC[i]}</svg><span>${t}</span></a>`;
 function pintarMenu(){
   $("menu").innerHTML = GRUPOS.map(([g, vs]) => { const items = VISTAS.filter(x => vs.includes(x[0]) && puede(x[0]));
     return items.length ? (g ? `<div class="navg">${g}</div>` : "") + items.map(enlaceMenu).join("") : ""; }).join("");
@@ -973,7 +1048,7 @@ function ir(v){
   document.querySelectorAll(".vista").forEach(s => s.hidden = s.id !== "v-" + v);
   document.querySelectorAll("#menu a").forEach(a => { if(a.dataset.v === v) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current"); });
   $("miga").innerHTML = "Funciones &nbsp;/&nbsp; " + VISTAS.find(x => x[0] === v)[1];
-  ({dashboard:pintarDashboard, predicciones:pintarPredicciones, rotacion:pintarRotacion, alertas:pintarAlertas, simulador:pintarSimulador, proveedores:pintarProveedoresVista, plan:pintarPlan, temporadas:pintarTemporadas, clientes:pintarClientes, catalogo:pintarCatalogo, cotizar:pintarCotizar, cotizaciones:pintarCotizaciones, cargar:pintarCargar, miprov:pintarMiProv, entrar:pintarEntrar})[v]();
+  ({dashboard:pintarDashboard, predicciones:pintarPredicciones, rotacion:pintarRotacion, alertas:pintarAlertas, simulador:pintarSimulador, proveedores:pintarProveedoresVista, plan:pintarPlan, temporadas:pintarTemporadas, clientes:pintarClientes, catalogo:pintarCatalogo, cotizar:pintarCotizar, cotizaciones:pintarCotizaciones, cargar:pintarCargar, mineria:pintarMineria, miprov:pintarMiProv, entrar:pintarEntrar})[v]();
   pintado[v] = true;
 }
 window.addEventListener("hashchange", () => { ir(location.hash.slice(1)); window.scrollTo(0,0); });
@@ -1848,6 +1923,116 @@ $("f-cli").addEventListener("submit", async e => { e.preventDefault(); const m =
   try { const r = await api("/api/clientes", {method:"POST", body:{nombre:$("cc-nom").value, tipo:$("cc-tipo").value, zona:$("cc-zona").value}});
     await cargarServidor(); e.target.reset(); pintarCargar(); m.className = "msg ok"; m.textContent = `Alta hecha: ${r.cliente_id}, ${r.nombre}.`;
   } catch(err){ m.className = "msg mal"; m.textContent = err.message; } });
+
+/* ==================== MINERÍA DE DATOS: LIENZO DE MODELO DE NEGOCIO (proyecto integrador) ==================== */
+/* Texto del lienzo del equipo, tal cual (solo se corrigieron tildes y espacios). Cada idea lleva a la pantalla que la
+   muestra: [vista, técnica, qué se ve]. Las técnicas son solo las que el portal calcula (motor.js y el modelo de
+   src/scrum-80); lo que no es minería de datos se dice así. Las ideas sin pantalla llevan «sin» con el porqué, para
+   que el equipo no tenga que inventar una respuesta frente al docente. */
+const TEC_MN = {
+  desc:["Estadística descriptiva","Resume las ventas con totales, promedios y listas ordenadas: cuánto se vendió, qué repuestos y a qué clientes."],
+  pareto:["Principio de Pareto","Mide qué parte de las ventas viene de pocos clientes: si cinco clientes suman la mitad, las ventas dependen de ellos."],
+  logit:["Regresión logística (clasificación)","Aprende del historial de ventas y da, para cada repuesto, la probabilidad de venderse el mes que viene. Se comprobó con 12 meses que el modelo no usó para aprender."],
+  estac:["Índice estacional","Compara la venta de cada mes con el promedio del año: 1,0 es un mes normal y 2,0, un mes que vende el doble."],
+  abc:["Análisis ABC y rotación","Ordena los repuestos por lo que venden en dinero (A: los que suman el primer 80 %, B: hasta el 95 %, C: el resto) y mide en cuántos meses se vende el stock."],
+  sba:["Pronóstico para venta intermitente (SBA)","Estima la venta del mes de repuestos que no se venden todos los meses: mira por separado cuánto se vende cuando hay venta y cada cuánto hay venta."],
+  ss:["Punto de pedido con stock de seguridad (s, S)","Cuando el stock baja del nivel s, se pide hasta llegar al nivel S. Los dos niveles salen del pronóstico y del plazo del proveedor."],
+  mc:["Simulación de Monte Carlo","Repite el cálculo en 1.500 futuros posibles, en los que la venta, el dólar y el plazo cambian al azar, para ver el costo y el riesgo de cada forma de comprar."],
+  costo:["Cálculo de costo (no es minería de datos)","Suma al precio de fábrica el flete, la aduana y el atraso del proveedor para obtener el costo puesto en Santa Cruz."],
+  dato:["Registro de datos (no es minería de datos)","Guarda los datos que después usan los cálculos."]};
+const TEC_ORDEN = ["desc","pareto","logit","estac","abc","sba","ss","mc"];
+const VIS_TEC = {dashboard:["desc"], clientes:["pareto"], predicciones:["logit"], temporadas:["estac"], rotacion:["abc"], plan:["abc"], alertas:["sba","ss"], simulador:["sba","mc"]};
+// Bloques en el orden del lienzo (1 a 9). «a» es la zona de la grilla de escritorio.
+const LIENZO = [
+  {n:1, t:"Propuesta de valor", a:"pro", autor:"Carlos Andrés Méndez Cadario", ideas:[
+    ["Anticipar qué repuestos se venderían más o menos en cada época y decidir cuándo y cuánto reponer.", [
+      ["predicciones","logit","La probabilidad de que cada repuesto se venda el mes que viene."],
+      ["temporadas","estac","Los meses en que cada repuesto vende más o menos que su promedio."],
+      ["alertas","ss","Qué repuestos pedir esta semana y cuántas unidades."]]],
+    ["Reúne ventas por producto, inventario, cotizaciones, tipo de cambio y costos logísticos.", [
+      ["dashboard","desc","Las ventas por mes, por repuesto y por cliente."],
+      ["cargar","dato","Dónde se agregan repuestos y clientes nuevos."],
+      ["cotizaciones","dato","Las cotizaciones pedidas por los clientes, aunque no hayan comprado."],
+      ["simulador",null,"El dólar oficial del día, leído del Banco Central de Bolivia, que usan todos los cálculos."],
+      ["proveedores","costo","El costo de cada proveedor con flete, aduana y plazo."]]],
+    ["Muestra tendencias estacionales y compara escenarios de demanda, costo de reposición y capital comprometido.", [
+      ["temporadas","estac","El gráfico de los 12 meses del año y el mapa de los 30 repuestos."],
+      ["simulador","mc","Cuatro formas de comprar, cada una con su costo, su riesgo de quedarse sin stock y el dinero que queda inmovilizado."]]],
+    ["Ayuda a priorizar compras y a reducir inventario de baja rotación y quiebres de stock. El comprador toma la decisión final.", [
+      ["alertas","ss","Los 30 repuestos ordenados del más urgente al menos urgente."],
+      ["rotacion","abc","Qué repuestos son importantes y cuáles se acumulan en el almacén."],
+      ["plan","abc","Qué comprar primero cuando el presupuesto no alcanza para todo."]]]]},
+  {n:2, t:"Segmentos de clientes", a:"seg", autor:"Samuel Castillo", ideas:[
+    [["Cliente inicial:","importadoras medianas de repuestos automotrices en Santa Cruz de la Sierra."], "Es a quién se ofrece el servicio. El portal usa a MULTIPARTES como primer caso."],
+    [["Usuario:","jefe de compras, gerente o responsable de abastecimiento."], "El área de la empresa está hecha para este usuario: entra con su cuenta y ve todas las pantallas de este menú."],
+    [["Quién paga:","la empresa importadora, si comprueba utilidad en un piloto."], "Es una idea de negocio: el portal no cobra."],
+    [["Beneficiarios internos:","inventario, finanzas y ventas."], [
+      ["rotacion","abc","Inventario: qué se acumula y qué se vende rápido."],
+      ["plan","abc","Finanzas: cuánto dinero pide cada compra y qué entra en el presupuesto."],
+      ["clientes","pareto","Ventas: de qué clientes dependen las ventas."]]]]},
+  {n:3, t:"Relación con los clientes", a:"rel", autor:"Fiorella Sandoval", ideas:[
+    ["Diagnóstico y configuración inicial con cada empresa piloto.", [
+      ["cargar","dato","Dónde se cargan los repuestos y clientes de la empresa al empezar."]]],
+    ["Acompañamiento en el primer uso y soporte por WhatsApp o correo.", "Es atención de personas y no tiene pantalla. Para el primer uso, cada pantalla trae íconos «i» que explican cada dato."],
+    ["Revisión periódica de resultados y comentarios para mejorar.", [
+      ["predicciones","logit","Cuánto acertó el modelo en los últimos 12 meses, que no usó para aprender."]]]]},
+  {n:4, t:"Canales de comunicación", a:"can", autor:"Sabrina Adrian Zelaya", ideas:[
+    ["Contacto directo con jefes de compras y gerentes.", "Es trabajo comercial del equipo; no tiene pantalla."],
+    ["Demostración y prueba piloto con datos de la empresa.", [
+      ["dashboard",null,"Este mismo portal es la demostración. Con datos de una empresa piloto, todas las pantallas se calcularían con sus ventas."]]],
+    ["Entrega mediante herramienta web, seguimiento por correo o WhatsApp.", [
+      ["cotizaciones",null,"El portal web, y el envío de cada cotización por correo (de demostración). WhatsApp no está en el portal."]]]]},
+  {n:5, t:"Actividades clave", a:"act", autor:"Sabrina Adrian Zelaya", ideas:[
+    ["Integrar ventas por producto, inventario, cotizaciones y costos.", [
+      ["dashboard","desc","Las ventas de los 30 repuestos juntas, mes a mes."],
+      ["alertas","ss","El stock, lo que viene en camino y el plazo de cada repuesto, en una sola tabla."],
+      ["proveedores","costo","Los costos de importación de cada proveedor."]]],
+    ["Estimar demanda por repuesto y época del año para calcular escenarios de compra.", [
+      ["temporadas","estac","La venta esperada de cada repuesto en cada mes del año."],
+      ["simulador","sba","El pronóstico de venta de cada repuesto, que alimenta los 1.500 futuros de la simulación."]]],
+    ["Contrastar pronósticos y decisiones con compradores reales.", [
+      ["predicciones","logit","La comparación del pronóstico con lo que de verdad se vendió en 12 meses. El contraste con compradores reales se hace en el piloto, fuera del portal."]]]]},
+  {n:6, t:"Recursos clave", a:"rec", autor:"Samuel Castillo", ideas:[
+    ["Equipo de análisis de datos, desarrollo y conocimiento de importación.", "Son las personas del equipo; no tiene pantalla."],
+    ["Historial de ventas por repuesto, inventario, faltantes y plazos de entrega.", [
+      ["dashboard","desc","El historial de ventas por mes desde 2022."],
+      ["alertas","ss","Stock, faltantes y plazo de entrega de cada repuesto."]]],
+    ["Infraestructura segura para alojar y proteger información empresarial.", "No es una pantalla de análisis. Se nota al entrar: cada usuario ve solo lo que corresponde a su cuenta."]]},
+  {n:7, t:"Aliados clave", a:"ali", autor:"Fiorella Sandoval", ideas:[
+    ["Importadoras piloto que faciliten datos y prueben decisiones reales.", "Todavía no hay una importadora piloto con datos propios: las ventas vienen de una base pública y el resto son datos de demostración."],
+    ["Proveedores de datos de tipo de cambio y otras variables públicas.", [
+      ["simulador",null,"El dólar oficial del Banco Central de Bolivia, actualizado cada día."],
+      ["proveedores","costo","El flete desde China, con datos del Instituto Nacional de Estadística."]]],
+    ["Asesores de logística y aduana para validar costos y tiempos.", [
+      ["proveedores","costo","Los costos de flete, aduana y plazo que esos asesores revisarían."]]],
+    ["Proveedores de software de inventario para futuras integraciones.", "Es para más adelante: hoy los datos se cargan a mano en «Registrar repuestos y clientes»."]]},
+  {n:8, t:"Fuentes de ingreso", a:"ing", autor:"Samuel Castillo", ideas:[
+    [["Hipótesis principal:","suscripción mensual pagada por empresa tras un piloto."], "Es una idea de negocio que se valida con el piloto: el portal no cobra ni mide ingresos del servicio."],
+    [["Posible ingreso adicional:","implementación o integración personalizada. Precio por validar."], "Igual que la anterior: no tiene pantalla."]]},
+  {n:9, t:"Estructura de gastos", a:"gas", autor:"Carlos Andrés Méndez Cadario", ideas:[
+    [["Fijos:","desarrollo, mantenimiento, alojamiento seguro y atención al cliente."], "Es una estimación del equipo; no tiene pantalla."],
+    [["Variables:","adquisición de clientes, conexión de datos y adaptación inicial por empresa."], "Es una estimación del equipo; no tiene pantalla."]]}];
+const nomVista = v => (VISTAS.find(x => x[0] === v) || [0, v])[1];
+// Si la pantalla no está disponible para esta cuenta (p. ej. el archivo abierto sin el portal), se nombra sin enlace.
+const irA = v => puede(v) ? `<a href="#${v}">${esc(nomVista(v))}</a>` : `<span title="Se ve en el portal, entrando con usuario">${esc(nomVista(v))} (en el portal)</span>`;
+const textoIdea = i => Array.isArray(i) ? `<b>${esc(i[0])}</b> ${esc(i[1])}` : esc(i);
+function pintarMineria(){
+  const ideas = LIENZO.flatMap(b => b.ideas), conP = ideas.filter(x => Array.isArray(x[1])).length;
+  const pantallas = [...new Set(ideas.flatMap(x => Array.isArray(x[1]) ? x[1].map(e => e[0]) : []))];
+  $("mn-kpis").innerHTML = `
+    <div class="kpi"><div class="t">Bloques del lienzo</div><div class="v">${LIENZO.length}</div><div class="d">del equipo, con su autor</div></div>
+    <div class="kpi"><div class="t">Ideas que se ven en el portal${info("Ideas que se ven en el portal", "Ideas del lienzo que tienen al menos una pantalla del portal que las muestra. Las demás son ideas de negocio o trabajo de personas y lo dicen en su bloque.")}</div><div class="v">${conP}<small>de ${ideas.length}</small></div><div class="d">las otras ${ideas.length - conP} dicen por qué no</div></div>
+    <div class="kpi"><div class="t">Pantallas que las respaldan</div><div class="v">${pantallas.length}</div><div class="d">del menú del portal</div></div>
+    <div class="kpi"><div class="t">Técnicas de minería de datos</div><div class="v">${TEC_ORDEN.length}</div><div class="d">explicadas abajo</div></div>`;
+  $("mn-lienzo").innerHTML = LIENZO.map(b => `<article class="lz-b" style="grid-area:${b.a}" aria-labelledby="lz-${b.n}"><h3 id="lz-${b.n}"><span class="n">${b.n}</span>${esc(b.t)}</h3><ul>` +
+    b.ideas.map(([i, ev]) => `<li>${textoIdea(i)}<div class="lz-ir">${Array.isArray(ev) ? [...new Set(ev.map(e => e[0]))].map(irA).join("") : '<span class="sin">Sin pantalla</span>'}</div></li>`).join("") +
+    `</ul><div class="autor">Autor: ${esc(b.autor)}</div></article>`).join("");
+  $("mn-tec").innerHTML = TEC_ORDEN.map(k => `<div><dt>${esc(TEC_MN[k][0])}</dt><dd>${esc(TEC_MN[k][1])} Se ve en: ${Object.keys(VIS_TEC).filter(v => VIS_TEC[v].includes(k)).map(irA).join(", ")}.</dd></div>`).join("");
+  $("mn-det").innerHTML = LIENZO.map(b => `<section class="card"><h3><span class="n">${b.n}</span>${esc(b.t)}</h3><div class="autor">Autor: ${esc(b.autor)}</div>` +
+    b.ideas.map(([i, ev]) => `<div class="lz-idea"><p>${textoIdea(i)}</p>` + (Array.isArray(ev)
+      ? ev.map(([v, k, q]) => `<div class="lz-ev">${irA(v)}<div class="t">${k ? `<b>Técnica:</b> ${esc(TEC_MN[k][0])}. ` : ""}<b>Qué se ve:</b> ${esc(q)}</div></div>`).join("")
+      : `<div class="lz-ev no"><div><b>Sin pantalla.</b> ${esc(ev)}</div></div>`) + `</div>`).join("") + `</section>`).join("");
+}
 
 /* ---- Mis repuestos, para el proveedor (SCRUM-78) ---- */
 async function pintarMiProv(){

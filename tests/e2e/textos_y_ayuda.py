@@ -6,7 +6,7 @@ from playwright.sync_api import sync_playwright
 
 B, out = sys.argv[1].rstrip("/"), sys.argv[2]
 IMP = ["dashboard", "predicciones", "alertas", "simulador", "proveedores", "plan", "rotacion", "temporadas", "clientes",
-       "catalogo", "cotizar", "cotizaciones", "cargar"]
+       "catalogo", "cotizar", "cotizaciones", "cargar", "mineria"]
 MARCAS = re.compile(r"SINTÉTIC|ILUSTRATIV|\bsimulad[oa]s?\b|TRAMOS DE EJEMPLO|ficticio|historia nueva|\$\{|(?-i:\bundefined\b|\bNaN\b)", re.I)
 NOTA = "Ventas: base pública carparts. Clientes, proveedores, precios y stock: datos de demostración."
 falla = []

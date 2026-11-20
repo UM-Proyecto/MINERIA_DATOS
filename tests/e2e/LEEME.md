@@ -16,7 +16,7 @@ node src/portal/servir_local.mjs --puerto 8790      # portal local con una base 
 
 | Archivo | Qué comprueba | Historia |
 |---|---|---|
-| `textos_y_ayuda.py` | En la tienda y las 15 pantallas de la empresa, a 1920 y 390: ninguna marca de dato en pantalla, ninguna etiqueta SCRUM o HU fuera de las notas al pie, la nota única a la vista, que los íconos «i» abran, sin errores de consola ni desborde. | SCRUM-82 |
+| `textos_y_ayuda.py` | En la tienda y las 16 pantallas de la empresa, a 1920 y 390: ninguna marca de dato en pantalla, ninguna etiqueta SCRUM o HU fuera de las notas al pie, la nota única a la vista, que los íconos «i» abran, sin errores de consola ni desborde. | SCRUM-82 |
 | `menu_desplazable.py` | El menú lateral se desplaza con la rueda o con el dedo, y el último ítem queda a la vista, sin que lo tape la nota, y se puede abrir. Prueba seis tamaños, desde 1920×1080 hasta el celular. | SCRUM-83 |
 | `cotizacion_por_correo.py` | En la tienda, un correo vacío o mal escrito no se envía; uno válido muestra la confirmación y la vista del correo, y el adjunto abre la cotización imprimible. En la empresa, la cotización figura con su correo y «Ver PDF» la abre. | SCRUM-83 |
 
