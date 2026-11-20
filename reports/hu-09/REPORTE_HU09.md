@@ -1,6 +1,6 @@
 # HU-09 y SCRUM-66: alertas de reposición
 
-Generado por `src/hu-09/generar_alertas.py` con la lógica única del motor del simulador (`motor_ref.alertas`). Dólar: 11,68 Bs por dólar (2026-11-19).
+Generado por `src/hu-09/generar_alertas.py` con la lógica única del motor del simulador (`motor_ref.alertas`). Dólar: 11,75 Bs por dólar (2026-11-20).
 
 ## Resultado
 
@@ -26,14 +26,14 @@ Que la venta promedio no supere lo disponible no quiere decir que no haya riesgo
 
 | # | Repuesto | Estado | Faltante (HU-09) | Stock | En camino | Punto de pedido | Plazo | Venta en el plazo | Cantidad sugerida | Costo Bs |
 |---|---|---|---|---|---|---|---|---|---|---|
-| 1 | REP-0022 | Pedir ya | SIN_ALERTA | 1 | 5 | 8 | 60 | 0.91 | 3 | 617.40 |
-| 2 | REP-0020 | Pedir ya | SIN_ALERTA | 6 | 10 | 16 | 60 | 1.01 | 2 | 397.12 |
-| 3 | REP-0030 | Pedir ya | SIN_ALERTA | 2 | 0 | 2 | 40 | 0.22 | 1 | 822.04 |
-| 4 | REP-0019 | Vigilar | SIN_ALERTA | 12 | 0 | 11 | 35 | 1.89 | 1 | 446.64 |
-| 5 | REP-0029 | Vigilar | SIN_ALERTA | 4 | 0 | 3 | 55 | 2.14 | 1 | 853.34 |
-| 6 | REP-0023 | Vigilar | SIN_ALERTA | 7 | 0 | 6 | 45 | 1.74 | 1 | 80.01 |
-| 7 | REP-0003 | Vigilar | SIN_ALERTA | 6 | 0 | 5 | 50 | 1.15 | 1 | 290.95 |
-| 8 | REP-0002 | Cubierto | SIN_ALERTA | 7 | 0 | 6 | 30 | 0.72 | 1 | 431.46 |
+| 1 | REP-0022 | Pedir ya | SIN_ALERTA | 1 | 5 | 8 | 60 | 0.91 | 3 | 621.12 |
+| 2 | REP-0020 | Pedir ya | SIN_ALERTA | 6 | 10 | 16 | 60 | 1.01 | 2 | 399.50 |
+| 3 | REP-0030 | Pedir ya | SIN_ALERTA | 2 | 0 | 2 | 40 | 0.22 | 1 | 826.97 |
+| 4 | REP-0019 | Vigilar | SIN_ALERTA | 12 | 0 | 11 | 35 | 1.89 | 1 | 449.32 |
+| 5 | REP-0029 | Vigilar | SIN_ALERTA | 4 | 0 | 3 | 55 | 2.14 | 1 | 858.46 |
+| 6 | REP-0023 | Vigilar | SIN_ALERTA | 7 | 0 | 6 | 45 | 1.74 | 1 | 80.49 |
+| 7 | REP-0003 | Vigilar | SIN_ALERTA | 6 | 0 | 5 | 50 | 1.15 | 1 | 292.69 |
+| 8 | REP-0002 | Cubierto | SIN_ALERTA | 7 | 0 | 6 | 30 | 0.72 | 1 | 434.05 |
 | 9 | REP-0026 | Cubierto | SIN_ALERTA | 4 | 0 | 3 | 42 | 0.99 | 0 | 0.00 |
 | 10 | REP-0004 | Cubierto | SIN_ALERTA | 5 | 1 | 5 | 45 | 0.94 | 0 | 0.00 |
 | 11 | REP-0008 | Cubierto | SIN_ALERTA | 4 | 0 | 3 | 30 | 0.62 | 0 | 0.00 |
