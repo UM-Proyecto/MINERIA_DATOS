@@ -69,6 +69,7 @@ class DatosApp(unittest.TestCase):
         self.assertEqual(tc["paralelo"]["fecha"], up["fecha"])
         self.assertEqual(tc["paralelo"]["fuente"], up["fuente"])
         self.assertEqual(tc["paralelo"]["marca"], "PRIVADO")
+        self.assertEqual(tc["paralelo"]["serie"][-1], [up["fecha"], float(up["paralelo_bs_por_usd"])])
 
     def test_clasificacion(self):
         c = self.d["clasificacion"]

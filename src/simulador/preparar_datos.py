@@ -78,7 +78,9 @@ def paralelo():
         raise SystemExit(f"La serie del dólar paralelo está vacía: {PARALELO}")
     u = filas[-1]
     return {"valor": float(u["paralelo_bs_por_usd"]), "fecha": u["fecha"], "fuente": u["fuente"],
-            "lectura": u["fecha_lectura"], "marca": u["marca"]}
+            "lectura": u["fecha_lectura"], "marca": u["marca"],
+            # La serie completa alimenta la gráfica de los dos dólares en «Minería de datos».
+            "serie": [[r["fecha"], float(r["paralelo_bs_por_usd"])] for r in filas]}
 
 
 def preparar():

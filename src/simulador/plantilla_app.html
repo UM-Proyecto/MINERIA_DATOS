@@ -472,57 +472,53 @@ svg.chart .pm{fill:none;stroke:var(--graphite);stroke-width:2}
 #info-pop[hidden]{display:none}
 #info-pop b{display:block;font-weight:600;margin-bottom:3px}
 /* 17. MINERÍA DE DATOS (proyecto integrador): apartado en ámbar, separado del verde del resto del portal (boceto de
-   Sam del 20-11). Texto oscuro sobre ámbar y ámbar oscuro sobre blanco: los dos pasan el contraste AA (medido). */
+   Sam del 20-11). Texto oscuro sobre ámbar (8,1:1) y ámbar oscuro sobre blanco (6,6:1): los dos pasan AA (medido).
+   Dentro, un submenú por técnica; cada técnica muestra las funciones y gráficas que la usan. Las pantallas que ya
+   existen en el menú verde se muestran aquí mismo (se mueven, no se copian) y vuelven a su lugar al salir. */
 :root{--mina:#f5a300;--mina-hover:#ffb52e;--mina-ink:#2a1a00;--mina-dark:#8a4f00;--mina-soft:#fff6e3;--mina-line:#f1d9a6}
 .side nav a.mn{background:var(--mina);color:var(--mina-ink);font-weight:600;margin-top:16px;transition:background .12s}
 .side nav a.mn:hover{background:var(--mina-hover)}
 .side nav a.mn[aria-current=page]{background:var(--mina);color:var(--mina-ink);box-shadow:inset 0 0 0 2px #fff}
 .side nav a.mn .nuevo{display:none}
-#v-mineria .eyebrow{color:var(--mina-dark)}
-.lz-card{border:1px solid var(--mina-line);border-radius:var(--r);overflow:hidden;background:var(--card)}
-.lz-top{background:var(--mina);color:var(--mina-ink);padding:14px 20px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline}
-.lz-top h2{font-size:20px;font-weight:700}
-.lz-top span{font-size:12.5px}
-/* La grilla repite la disposición clásica del lienzo (como el del equipo): aliados a la izquierda, propuesta al
-   centro, segmentos a la derecha y, abajo, gastos e ingresos. Debajo de 1100 px se apila en el orden 1 a 9. */
-.lz{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:10px;padding:12px;background:var(--mina-soft);
-  grid-template-areas:"ali ali act act pro pro rel rel seg seg" "ali ali rec rec pro pro can can seg seg" "gas gas gas gas gas ing ing ing ing ing"}
-.lz-b{background:#fff;border:1px solid var(--mina-line);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;min-width:0}
-.lz-b h3{font-size:15px;font-weight:700;line-height:1.25;margin-bottom:8px;display:flex;gap:8px;align-items:baseline}
-.lz-b h3 .n{flex:none;display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--mina);color:var(--mina-ink);font-size:12px}
-.lz-b ul{margin:0;padding:0 0 0 16px;font-size:12.5px;color:var(--ink-2)}
-.lz-b li{margin-bottom:8px}
-.lz-b li b{color:var(--ink)}
-.lz-ir{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
-.lz-ir a{display:inline-flex;align-items:center;min-height:24px;font-size:11px;font-weight:600;border:1px solid var(--mina-line);border-radius:6px;padding:2px 7px;color:var(--mina-dark);background:var(--mina-soft);text-decoration:none;transition:border-color .12s}
-.lz-ir a:hover{border-color:var(--mina-dark)}
-.lz-ir .sin{font-size:11px;color:var(--ink-3);font-style:italic}
-.lz-b .autor{margin-top:auto;padding-top:6px;font-size:11px;color:var(--ink-3)}
-/* Detalle: cada idea con su pantalla, la técnica que usa y lo que se ve. */
-.lz-det{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:18px}
-.lz-det .card{margin-top:0}
-.lz-det h3{font-size:16px;font-weight:600;margin-bottom:4px;display:flex;gap:8px;align-items:baseline}
-.lz-det h3 .n{flex:none;display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--mina);color:var(--mina-ink);font-size:12px}
-.lz-det .autor{font-size:11.5px;color:var(--ink-3);margin-bottom:10px}
-.lz-idea{border-top:1px solid var(--line);padding:10px 0 4px}
-.lz-idea>p{font-size:13px;color:var(--ink);margin-bottom:6px}
-.lz-ev{display:grid;grid-template-columns:minmax(150px,200px) minmax(0,1fr);gap:2px 12px;font-size:12.5px;padding:5px 0 5px 10px;border-left:3px solid var(--mina)}
-.lz-ev+.lz-ev{margin-top:6px}
-.lz-ev a{font-weight:600;color:var(--mina-dark)}
-.lz-ev .t{color:var(--ink-2)}
-.lz-ev .t b{color:var(--ink);font-weight:600}
-.lz-ev.no{border-left-color:var(--line-2);grid-template-columns:1fr;color:var(--ink-3)}
-.lz-tec{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 24px;margin:0}
-.lz-tec dt{font-weight:600;font-size:13.5px}
-.lz-tec dd{margin:2px 0 0;font-size:12.5px;color:var(--ink-2)}
-.lz-tec dd a{color:var(--mina-dark);font-weight:600}
-@media (max-width:1400px){.lz-det{grid-template-columns:1fr}}
-@media (max-width:1100px){.lz{grid-template-columns:1fr 1fr;grid-template-areas:none}.lz-b{grid-area:auto!important}.lz-tec{grid-template-columns:1fr}}
+#v-mineria>.hero .eyebrow{color:var(--mina-dark)}
+/* Submenú de técnicas. No queda pegado arriba: con dos filas ocupaba un cuarto de la pantalla a 1366×768 (medido). */
+.mn-sub{padding:10px 0;border-bottom:1px solid var(--mina-line);display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center}
+.mn-sub .g{font-size:9.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--ink-3);font-weight:600;width:100%}
+.mn-sub .g+.fila{margin-bottom:4px}
+.mn-sub .fila{display:flex;flex-wrap:wrap;gap:6px}
+.mn-sub button{min-height:36px;border:1px solid var(--mina-line);background:#fff;border-radius:99px;padding:4px 14px;font-size:12.5px;font-weight:500;color:var(--ink-2);transition:background .12s,border-color .12s}
+.mn-sub button:hover{border-color:var(--mina-dark)}
+.mn-sub button[aria-pressed=true]{background:var(--mina);border-color:var(--mina);color:var(--mina-ink);font-weight:600}
+.mn-intro{margin-top:18px;background:var(--mina-soft);border:1px solid var(--mina-line);border-left:4px solid var(--mina);border-radius:var(--r);padding:14px 18px}
+.mn-intro h2{font-size:20px;font-weight:700;margin-bottom:4px}
+.mn-intro p{font-size:13.5px;color:var(--ink-2);max-width:95ch}
+.mn-intro p+p{margin-top:6px}
+.mn-intro .neg{font-size:12.5px;color:var(--mina-dark)}
+/* Pantalla del portal mostrada dentro del apartado: una franja dice de dónde viene. */
+.mn-prest{margin-top:26px;border-top:2px dashed var(--mina-line);padding-top:6px}
+.mn-prest .de{font-size:11.5px;color:var(--ink-3)}
+.mn-prest .de a{color:var(--mina-dark);font-weight:600}
+.mn-prest .hero{padding-top:10px}
+.mn-prest .hero h1{font-size:24px}
+.mn-fn{margin-top:18px}
+.mn-fn .card-h h2 .nueva{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.6px;border-radius:99px;padding:2px 8px;background:var(--mina);color:var(--mina-ink);margin-left:8px;vertical-align:3px}
+.badge-sup{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.6px;border-radius:99px;padding:1px 7px;background:var(--warn-soft);color:var(--warn);margin-left:6px;vertical-align:1px}
+.mn-sup{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px 16px}
+.mn-sup input{width:100%}
+.aviso-sup{margin-top:14px;background:var(--warn-soft);border:1px solid #efd9a3;border-radius:var(--r);padding:11px 16px;font-size:13px;color:#5c4100}
+svg.chart .ln{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+svg.chart .pt{stroke:#fff;stroke-width:2}
+svg.chart .br{fill:#c9cec8}
+svg.chart .pe{stroke:var(--graphite);stroke-width:1.5;stroke-dasharray:4 3}
+.mn-cel small{display:block;color:var(--ink-3);font-size:11px}
+@media (max-width:1100px){.mn-sup{grid-template-columns:1fr 1fr}}
 @media (max-width:760px){
   .side nav a.mn{margin:0 0 0 6px}
-  .lz{grid-template-columns:1fr;padding:8px}
-  .lz-top{padding:12px 14px}
-  .lz-ev{grid-template-columns:1fr}
+  .mn-sub{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+  .mn-sub .g{display:none}
+  .mn-sub .fila{flex-wrap:nowrap}
+  .mn-sub button{white-space:nowrap}
+  .mn-sup{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -922,22 +918,67 @@ svg.chart .pm{fill:none;stroke:var(--graphite);stroke-width:2}
 
   <!-- ============ MINERÍA DE DATOS (proyecto integrador) ============ -->
   <section class="vista" id="v-mineria" hidden aria-labelledby="h1-mn">
-    <div class="hero"><div><div class="eyebrow">Proyecto integrador · Minería de datos</div><h1 id="h1-mn">¿Cómo cumple el portal el modelo de negocio?</h1>
-      <p>El lienzo de modelo de negocio resume en nueve bloques a quién sirve el servicio, qué le ofrece y cómo se sostiene. Cada idea del lienzo lleva a la pantalla del portal que la muestra. Las ideas que no tienen pantalla lo dicen.</p></div></div>
-    <div class="grid-k" id="mn-kpis"></div>
-    <section class="lz-card" style="margin-top:18px" aria-labelledby="mn-lz">
-      <div class="lz-top"><h2 id="mn-lz">Lienzo de modelo de negocio</h2><span>Texto del equipo. Toque una pantalla para abrirla.</span></div>
-      <div class="lz" id="mn-lienzo"></div>
+    <div class="hero"><div><div class="eyebrow">Proyecto integrador · Minería de datos</div><h1 id="h1-mn">Las técnicas de minería de datos y lo que permiten decidir</h1>
+      <p>Elija una técnica. Debajo aparecen las funciones y gráficas del portal que la usan, con los datos de MULTIPARTES. Algunas también están en el menú verde: aquí se muestran juntas, ordenadas por técnica.</p></div></div>
+    <nav class="mn-sub" id="mn-sub" aria-label="Técnicas de minería de datos"></nav>
+    <div class="mn-intro" id="mn-intro" aria-live="polite"></div>
+
+    <!-- Función nueva: pronóstico contra lo vendido (técnica: pronóstico SBA) -->
+    <section class="card mn-fn" id="mn-f-val" hidden>
+      <div class="card-h"><div><h2 id="val-tit">¿Cuánto acierta el pronóstico de venta?<span class="nueva">NUEVA</span></h2>
+        <p>Cada mes de los últimos 12, el pronóstico se calculó solo con las ventas anteriores a ese mes y se comparó con lo que de verdad se vendió.</p></div></div>
+      <div class="selrep"><label for="val-rep">Repuesto<span class="ayuda">Puede ver los 30 juntos o uno solo.</span></label><select id="val-rep"></select></div>
+      <div class="grid-k" id="val-kpis" aria-live="polite" style="margin-top:0"></div>
+      <div class="chartbox" id="chart-val" style="margin-top:14px"></div>
+      <div class="legend"><span><i class="sw" style="background:#c9cec8"></i>Vendido en el mes</span><span><i class="sw" style="background:var(--brand)"></i>Pronóstico hecho antes de ese mes</span></div>
+      <details><summary>Ver los datos del gráfico como tabla</summary><div class="scroll"><table id="t-val"></table></div></details>
+      <p class="nota-sit" id="val-nota"></p>
+      <p class="pie">Mismo cálculo que usa el simulador: método SBA para los repuestos que se venden de vez en cuando y promedio de los últimos 12 meses para los que se venden casi todos los meses (función Motor.pronostico).</p>
     </section>
-    <section class="card" style="margin-top:18px">
-      <div class="card-h"><div><h2>Las técnicas de minería de datos del portal, en palabras simples</h2>
-        <p>Son las que el portal calcula de verdad con los datos. Cada una dice en qué pantalla se ve.</p></div></div>
-      <dl class="lz-tec" id="mn-tec"></dl>
+
+    <!-- Función nueva: capital inmovilizado según escenarios (técnica: Monte Carlo) -->
+    <section class="card mn-fn" id="mn-f-cap" hidden>
+      <div class="card-h"><div><h2 id="cap-tit">¿Cuánto dinero queda inmovilizado según la venta y el dólar?<span class="nueva">NUEVA</span></h2>
+        <p>Para un repuesto, el simulador se corre con cinco escenarios de venta y tres precios del dólar. Cada cifra es el promedio de 1.500 futuros posibles.</p></div></div>
+      <div class="selrep"><label for="cap-rep">Repuesto</label><select id="cap-rep"></select></div>
+      <div class="grid-k" id="cap-kpis" aria-live="polite" style="margin-top:0"></div>
+      <div class="card-h" style="margin-top:16px"><div><h3 style="font-size:15px" id="cap-gtit">Dinero inmovilizado de cada forma de comprar, según cuánto se venda</h3><p>Con el dólar oficial de hoy.</p></div></div>
+      <div class="chartbox" id="chart-cap"></div>
+      <div class="legend" id="cap-leg"></div>
+      <div class="card-h" style="margin-top:18px"><div><h3 style="font-size:15px">Con la forma de comprar recomendada, según la venta y el dólar al reponer</h3><p id="cap-tsub"></p></div></div>
+      <div class="scroll"><table id="t-cap"></table></div>
+      <p class="nota-sit" id="cap-nota"></p>
+      <p class="pie">Simulación de Monte Carlo del motor (Motor.simular), con 1.500 futuros y 90 días. Escenario de venta: cambio sobre el pronóstico. Dólar al reponer: precio del dólar con que se paga la compra.</p>
     </section>
-    <div class="card-h" style="margin-top:28px"><div><h2>Dónde se cumple cada idea del lienzo</h2>
-      <p>Para cada idea: la pantalla que la muestra, la técnica que usa y qué se ve. Si no hay pantalla, se explica por qué.</p></div></div>
-    <div class="lz-det" id="mn-det"></div>
-    <p class="pie">Lienzo elaborado por el equipo del proyecto (Fiorella Sandoval, Carlos Andrés Méndez Cadario, Samuel Castillo y Sabrina Adrian Zelaya). Las técnicas son las del motor de cálculo del portal y del modelo de predicción de ventas.</p>
+
+    <!-- Función nueva: los dos dólares y el costo puesto -->
+    <section class="card mn-fn" id="mn-f-tc" hidden>
+      <div class="card-h"><div><h2 id="tc2-tit">El dólar oficial, el paralelo y el costo de cada repuesto<span class="nueva">NUEVA</span></h2>
+        <p>Los dos dólares se actualizan una vez al día. El oficial es el que usan todos los cálculos; el paralelo es una referencia privada.</p></div></div>
+      <div class="grid-k" id="tc2-kpis" aria-live="polite" style="margin-top:0"></div>
+      <div class="chartbox" id="chart-tc2" style="margin-top:14px"></div>
+      <div class="legend"><span><i class="sw" style="background:var(--s1)"></i>Dólar oficial (Banco Central de Bolivia)</span><span><i class="sw" style="background:var(--s2)"></i>Dólar paralelo (referencia privada; la línea punteada une dos lecturas sin datos entre ellas)</span></div>
+      <div class="card-h" style="margin-top:18px"><div><h3 style="font-size:15px" id="tc2-ttit">Costo puesto en Santa Cruz de una unidad, con cada dólar</h3><p>Ordenados por la diferencia. El costo puesto suma al precio de fábrica el flete y la aduana.</p></div></div>
+      <div class="scroll"><table id="t-tc2"></table></div>
+      <button class="btn2 mas" id="tc2-mas" type="button" aria-expanded="false">Mostrar los 30</button>
+      <p class="nota-sit" id="tc2-nota"></p>
+      <p class="pie">Oficial: Banco Central de Bolivia, diario. Paralelo: dolarbolivia.net o, si no responde, Binance P2P (src/scrum-54/obtener_paralelo.py). Costo puesto: Motor.costoPuesto, igual que en el resto del portal.</p>
+    </section>
+
+    <!-- Función nueva: ingresos y gastos del servicio (supuestos editables) -->
+    <section class="card mn-fn" id="mn-f-ing" hidden>
+      <div class="card-h"><div><h2 id="ing-tit">¿Con cuántas empresas se cubren los gastos del servicio?<span class="nueva">NUEVA</span></h2>
+        <p>Simulación de la suscripción mensual frente a los gastos fijos y variables. Cambie cualquier valor y el cálculo se actualiza.</p></div></div>
+      <p class="aviso-sup"><b>Todos los valores de esta función son SUPUESTOS del equipo</b> para la idea de negocio (bloques de ingresos y gastos del modelo). No son datos de MULTIPARTES ni del mercado: sirven para ver cómo cambia el resultado.</p>
+      <div class="mn-sup" id="ing-sup" style="margin-top:14px"></div>
+      <div class="grid-k" id="ing-kpis" aria-live="polite"></div>
+      <div class="chartbox" id="chart-ing" style="margin-top:14px"></div>
+      <div class="legend"><span><i class="sw" style="background:var(--brand)"></i>Ingreso mensual</span><span><i class="sw" style="background:var(--s3)"></i>Gasto mensual</span><span><i class="sw" style="background:var(--graphite);height:2px;vertical-align:3px"></i>Punto de equilibrio</span></div>
+      <details><summary>Ver los datos del gráfico como tabla</summary><div class="scroll"><table id="t-ing"></table></div></details>
+      <p class="nota-sit" id="ing-nota"></p>
+    </section>
+
+    <div id="mn-prestadas"></div>
   </section>
   <p class="nota-datos">Ventas: base pública carparts. Clientes, proveedores, precios y stock: datos de demostración. <a class="nota-fuente" href="https://robjhyndman.com/expsmooth/" target="_blank" rel="noopener" title="Hyndman, Koehler, Ord y Snyder (2008), conjunto carparts">Ver la base de datos</a></p>
 </div></div>
@@ -1039,6 +1080,7 @@ pintarMenu();
 
 const pintado = {};
 function ir(v){
+  if(v !== "mineria") devolverPrestadas();   // las pantallas mostradas en «Minería de datos» vuelven a su lugar
   const inicio = () => puede("dashboard") ? "dashboard" : SES.rol === "proveedor" ? "miprov" : PORTAL && !SES.rol ? "entrar" : "catalogo";
   if(!VISTAS.some(x => x[0] === v)){ v = inicio(); if(location.hash && location.hash.slice(1) !== v) history.replaceState(null, "", "#" + v); }
   if(!puede(v)){ // la dirección escrita no corresponde a este rol: no se muestra
@@ -1929,115 +1971,259 @@ $("f-cli").addEventListener("submit", async e => { e.preventDefault(); const m =
     await cargarServidor(); e.target.reset(); pintarCargar(); m.className = "msg ok"; m.textContent = `Alta hecha: ${r.cliente_id}, ${r.nombre}.`;
   } catch(err){ m.className = "msg mal"; m.textContent = err.message; } });
 
-/* ==================== MINERÍA DE DATOS: LIENZO DE MODELO DE NEGOCIO (proyecto integrador) ==================== */
-/* Texto del lienzo del equipo, tal cual (solo se corrigieron tildes y espacios). Cada idea lleva a la pantalla que la
-   muestra: [vista, técnica, qué se ve]. Las técnicas son solo las que el portal calcula (motor.js y el modelo de
-   src/scrum-80); lo que no es minería de datos se dice así. Las ideas sin pantalla llevan «sin» con el porqué, para
-   que el equipo no tenga que inventar una respuesta frente al docente. */
-const TEC_MN = {
-  desc:["Estadística descriptiva","Resume las ventas con totales, promedios y listas ordenadas: cuánto se vendió, qué repuestos y a qué clientes."],
-  pareto:["Principio de Pareto","Mide qué parte de las ventas viene de pocos clientes: si cinco clientes suman la mitad, las ventas dependen de ellos."],
-  logit:["Regresión logística (clasificación)","Aprende del historial de ventas y da, para cada repuesto, la probabilidad de venderse el mes que viene. Se comprobó con 12 meses que el modelo no usó para aprender."],
-  estac:["Índice estacional","Compara la venta de cada mes con el promedio del año: 1,0 es un mes normal y 2,0, un mes que vende el doble."],
-  abc:["Análisis ABC y rotación","Ordena los repuestos por lo que venden en dinero (A: los que suman el primer 80 %, B: hasta el 95 %, C: el resto) y mide en cuántos meses se vende el stock."],
-  sba:["Pronóstico para venta intermitente (SBA)","Estima la venta del mes de repuestos que no se venden todos los meses: mira por separado cuánto se vende cuando hay venta y cada cuánto hay venta."],
-  ss:["Punto de pedido con stock de seguridad (s, S)","Cuando el stock baja del nivel s, se pide hasta llegar al nivel S. Los dos niveles salen del pronóstico y del plazo del proveedor."],
-  mc:["Simulación de Monte Carlo","Repite el cálculo en 1.500 futuros posibles, en los que la venta, el dólar y el plazo cambian al azar, para ver el costo y el riesgo de cada forma de comprar."],
-  costo:["Cálculo de costo (no es minería de datos)","Suma al precio de fábrica el flete, la aduana y el atraso del proveedor para obtener el costo puesto en Santa Cruz."],
-  dato:["Registro de datos (no es minería de datos)","Guarda los datos que después usan los cálculos."]};
-const TEC_ORDEN = ["desc","pareto","logit","estac","abc","sba","ss","mc"];
-const VIS_TEC = {dashboard:["desc"], clientes:["pareto"], predicciones:["logit"], temporadas:["estac"], rotacion:["abc"], plan:["abc"], alertas:["sba","ss"], simulador:["sba","mc"]};
-// Bloques en el orden del lienzo (1 a 9). «a» es la zona de la grilla de escritorio.
-const LIENZO = [
-  {n:1, t:"Propuesta de valor", a:"pro", autor:"Carlos Andrés Méndez Cadario", ideas:[
-    ["Anticipar qué repuestos se venderían más o menos en cada época y decidir cuándo y cuánto reponer.", [
-      ["predicciones","logit","La probabilidad de que cada repuesto se venda el mes que viene."],
-      ["temporadas","estac","Los meses en que cada repuesto vende más o menos que su promedio."],
-      ["alertas","ss","Qué repuestos pedir esta semana y cuántas unidades."]]],
-    ["Reúne ventas por producto, inventario, cotizaciones, tipo de cambio y costos logísticos.", [
-      ["dashboard","desc","Las ventas por mes, por repuesto y por cliente."],
-      ["cargar","dato","Dónde se agregan repuestos y clientes nuevos."],
-      ["cotizaciones","dato","Las cotizaciones pedidas por los clientes, aunque no hayan comprado."],
-      ["simulador",null,"El dólar oficial del día, leído del Banco Central de Bolivia, que usan todos los cálculos."],
-      ["proveedores","costo","El costo de cada proveedor con flete, aduana y plazo."]]],
-    ["Muestra tendencias estacionales y compara escenarios de demanda, costo de reposición y capital comprometido.", [
-      ["temporadas","estac","El gráfico de los 12 meses del año y el mapa de los 30 repuestos."],
-      ["simulador","mc","Cuatro formas de comprar, cada una con su costo, su riesgo de quedarse sin stock y el dinero que queda inmovilizado."]]],
-    ["Ayuda a priorizar compras y a reducir inventario de baja rotación y quiebres de stock. El comprador toma la decisión final.", [
-      ["alertas","ss","Los 30 repuestos ordenados del más urgente al menos urgente."],
-      ["rotacion","abc","Qué repuestos son importantes y cuáles se acumulan en el almacén."],
-      ["plan","abc","Qué comprar primero cuando el presupuesto no alcanza para todo."]]]]},
-  {n:2, t:"Segmentos de clientes", a:"seg", autor:"Samuel Castillo", ideas:[
-    [["Cliente inicial:","importadoras medianas de repuestos automotrices en Santa Cruz de la Sierra."], "Es a quién se ofrece el servicio. El portal usa a MULTIPARTES como primer caso."],
-    [["Usuario:","jefe de compras, gerente o responsable de abastecimiento."], "El área de la empresa está hecha para este usuario: entra con su cuenta y ve todas las pantallas de este menú."],
-    [["Quién paga:","la empresa importadora, si comprueba utilidad en un piloto."], "Es una idea de negocio: el portal no cobra."],
-    [["Beneficiarios internos:","inventario, finanzas y ventas."], [
-      ["rotacion","abc","Inventario: qué se acumula y qué se vende rápido."],
-      ["plan","abc","Finanzas: cuánto dinero pide cada compra y qué entra en el presupuesto."],
-      ["clientes","pareto","Ventas: de qué clientes dependen las ventas."]]]]},
-  {n:3, t:"Relación con los clientes", a:"rel", autor:"Fiorella Sandoval", ideas:[
-    ["Diagnóstico y configuración inicial con cada empresa piloto.", [
-      ["cargar","dato","Dónde se cargan los repuestos y clientes de la empresa al empezar."]]],
-    ["Acompañamiento en el primer uso y soporte por WhatsApp o correo.", "Es atención de personas y no tiene pantalla. Para el primer uso, cada pantalla trae íconos «i» que explican cada dato."],
-    ["Revisión periódica de resultados y comentarios para mejorar.", [
-      ["predicciones","logit","Cuánto acertó el modelo en los últimos 12 meses, que no usó para aprender."]]]]},
-  {n:4, t:"Canales de comunicación", a:"can", autor:"Sabrina Adrian Zelaya", ideas:[
-    ["Contacto directo con jefes de compras y gerentes.", "Es trabajo comercial del equipo; no tiene pantalla."],
-    ["Demostración y prueba piloto con datos de la empresa.", [
-      ["dashboard",null,"Este mismo portal es la demostración. Con datos de una empresa piloto, todas las pantallas se calcularían con sus ventas."]]],
-    ["Entrega mediante herramienta web, seguimiento por correo o WhatsApp.", [
-      ["cotizaciones",null,"El portal web, y el envío de cada cotización por correo (de demostración). WhatsApp no está en el portal."]]]]},
-  {n:5, t:"Actividades clave", a:"act", autor:"Sabrina Adrian Zelaya", ideas:[
-    ["Integrar ventas por producto, inventario, cotizaciones y costos.", [
-      ["dashboard","desc","Las ventas de los 30 repuestos juntas, mes a mes."],
-      ["alertas","ss","El stock, lo que viene en camino y el plazo de cada repuesto, en una sola tabla."],
-      ["proveedores","costo","Los costos de importación de cada proveedor."]]],
-    ["Estimar demanda por repuesto y época del año para calcular escenarios de compra.", [
-      ["temporadas","estac","La venta esperada de cada repuesto en cada mes del año."],
-      ["simulador","sba","El pronóstico de venta de cada repuesto, que alimenta los 1.500 futuros de la simulación."]]],
-    ["Contrastar pronósticos y decisiones con compradores reales.", [
-      ["predicciones","logit","La comparación del pronóstico con lo que de verdad se vendió en 12 meses. El contraste con compradores reales se hace en el piloto, fuera del portal."]]]]},
-  {n:6, t:"Recursos clave", a:"rec", autor:"Samuel Castillo", ideas:[
-    ["Equipo de análisis de datos, desarrollo y conocimiento de importación.", "Son las personas del equipo; no tiene pantalla."],
-    ["Historial de ventas por repuesto, inventario, faltantes y plazos de entrega.", [
-      ["dashboard","desc","El historial de ventas por mes desde 2022."],
-      ["alertas","ss","Stock, faltantes y plazo de entrega de cada repuesto."]]],
-    ["Infraestructura segura para alojar y proteger información empresarial.", "No es una pantalla de análisis. Se nota al entrar: cada usuario ve solo lo que corresponde a su cuenta."]]},
-  {n:7, t:"Aliados clave", a:"ali", autor:"Fiorella Sandoval", ideas:[
-    ["Importadoras piloto que faciliten datos y prueben decisiones reales.", "Todavía no hay una importadora piloto con datos propios: las ventas vienen de una base pública y el resto son datos de demostración."],
-    ["Proveedores de datos de tipo de cambio y otras variables públicas.", [
-      ["simulador",null,"El dólar oficial del Banco Central de Bolivia, actualizado cada día."],
-      ["proveedores","costo","El flete desde China, con datos del Instituto Nacional de Estadística."]]],
-    ["Asesores de logística y aduana para validar costos y tiempos.", [
-      ["proveedores","costo","Los costos de flete, aduana y plazo que esos asesores revisarían."]]],
-    ["Proveedores de software de inventario para futuras integraciones.", "Es para más adelante: hoy los datos se cargan a mano en «Registrar repuestos y clientes»."]]},
-  {n:8, t:"Fuentes de ingreso", a:"ing", autor:"Samuel Castillo", ideas:[
-    [["Hipótesis principal:","suscripción mensual pagada por empresa tras un piloto."], "Es una idea de negocio que se valida con el piloto: el portal no cobra ni mide ingresos del servicio."],
-    [["Posible ingreso adicional:","implementación o integración personalizada. Precio por validar."], "Igual que la anterior: no tiene pantalla."]]},
-  {n:9, t:"Estructura de gastos", a:"gas", autor:"Carlos Andrés Méndez Cadario", ideas:[
-    [["Fijos:","desarrollo, mantenimiento, alojamiento seguro y atención al cliente."], "Es una estimación del equipo; no tiene pantalla."],
-    [["Variables:","adquisición de clientes, conexión de datos y adaptación inicial por empresa."], "Es una estimación del equipo; no tiene pantalla."]]}];
-const nomVista = v => (VISTAS.find(x => x[0] === v) || [0, v])[1];
-// Si la pantalla no está disponible para esta cuenta (p. ej. el archivo abierto sin el portal), se nombra sin enlace.
-const irA = v => puede(v) ? `<a href="#${v}">${esc(nomVista(v))}</a>` : `<span title="Se ve en el portal, entrando con usuario">${esc(nomVista(v))} (en el portal)</span>`;
-const textoIdea = i => Array.isArray(i) ? `<b>${esc(i[0])}</b> ${esc(i[1])}` : esc(i);
-function pintarMineria(){
-  const ideas = LIENZO.flatMap(b => b.ideas), conP = ideas.filter(x => Array.isArray(x[1])).length;
-  const pantallas = [...new Set(ideas.flatMap(x => Array.isArray(x[1]) ? x[1].map(e => e[0]) : []))];
-  $("mn-kpis").innerHTML = `
-    <div class="kpi"><div class="t">Bloques del lienzo</div><div class="v">${LIENZO.length}</div><div class="d">del equipo, con su autor</div></div>
-    <div class="kpi"><div class="t">Ideas que se ven en el portal${info("Ideas que se ven en el portal", "Ideas del lienzo que tienen al menos una pantalla del portal que las muestra. Las demás son ideas de negocio o trabajo de personas y lo dicen en su bloque.")}</div><div class="v">${conP}<small>de ${ideas.length}</small></div><div class="d">las otras ${ideas.length - conP} dicen por qué no</div></div>
-    <div class="kpi"><div class="t">Pantallas que las respaldan</div><div class="v">${pantallas.length}</div><div class="d">del menú del portal</div></div>
-    <div class="kpi"><div class="t">Técnicas de minería de datos</div><div class="v">${TEC_ORDEN.length}</div><div class="d">explicadas abajo</div></div>`;
-  $("mn-lienzo").innerHTML = LIENZO.map(b => `<article class="lz-b" style="grid-area:${b.a}" aria-labelledby="lz-${b.n}"><h3 id="lz-${b.n}"><span class="n">${b.n}</span>${esc(b.t)}</h3><ul>` +
-    b.ideas.map(([i, ev]) => `<li>${textoIdea(i)}<div class="lz-ir">${Array.isArray(ev) ? [...new Set(ev.map(e => e[0]))].map(irA).join("") : '<span class="sin">Sin pantalla</span>'}</div></li>`).join("") +
-    `</ul><div class="autor">Autor: ${esc(b.autor)}</div></article>`).join("");
-  $("mn-tec").innerHTML = TEC_ORDEN.map(k => `<div><dt>${esc(TEC_MN[k][0])}</dt><dd>${esc(TEC_MN[k][1])} Se ve en: ${Object.keys(VIS_TEC).filter(v => VIS_TEC[v].includes(k)).map(irA).join(", ")}.</dd></div>`).join("");
-  $("mn-det").innerHTML = LIENZO.map(b => `<section class="card"><h3><span class="n">${b.n}</span>${esc(b.t)}</h3><div class="autor">Autor: ${esc(b.autor)}</div>` +
-    b.ideas.map(([i, ev]) => `<div class="lz-idea"><p>${textoIdea(i)}</p>` + (Array.isArray(ev)
-      ? ev.map(([v, k, q]) => `<div class="lz-ev">${irA(v)}<div class="t">${k ? `<b>Técnica:</b> ${esc(TEC_MN[k][0])}. ` : ""}<b>Qué se ve:</b> ${esc(q)}</div></div>`).join("")
-      : `<div class="lz-ev no"><div><b>Sin pantalla.</b> ${esc(ev)}</div></div>`) + `</div>`).join("") + `</section>`).join("");
+/* ==================== MINERÍA DE DATOS (proyecto integrador) ==================== */
+/* Un submenú por técnica. Cada técnica muestra:
+   - las funciones nuevas que la usan (pronóstico contra lo vendido, capital según escenarios) o que completan el
+     modelo de negocio (los dos dólares y el costo; ingresos y gastos del servicio), y
+   - las pantallas del menú verde que ya la usan. Esas pantallas NO se copian: su sección se mueve aquí, se pinta con
+     su misma función y vuelve a su lugar al salir del apartado (devolverPrestadas, llamada desde ir()).
+   Las técnicas son solo las que calcula el portal (motor.js y el modelo de src/scrum-80). */
+const MN_TABS = [
+  {k:"desc", t:"Estadística descriptiva y Pareto", prest:["dashboard","clientes"],
+   que:"Resume las ventas con totales, promedios y listas ordenadas: cuánto se vendió, qué repuestos y a qué clientes. El principio de Pareto mide qué parte de las ventas viene de pocos clientes.",
+   neg:"Reúne en un solo lugar las ventas por repuesto y por cliente, y muestra de qué clientes dependen las ventas."},
+  {k:"sba", t:"Pronóstico de venta (SBA)", nuevas:["val"],
+   que:"Estima cuánto se venderá de cada repuesto por mes. Para los que se venden de vez en cuando usa el método SBA, que mira por separado cuánto se vende cuando hay venta y cada cuánto hay venta; para los que se venden casi todos los meses, el promedio de los últimos 12 meses.",
+   neg:"Anticipa qué repuestos se venderán y permite contrastar el pronóstico con lo que de verdad se vendió."},
+  {k:"logit", t:"Regresión logística", prest:["predicciones"],
+   que:"Es una técnica de clasificación: aprende del historial de ventas y da, para cada repuesto, la probabilidad de venderse el mes que viene. Se comprobó con 12 meses que el modelo no usó para aprender.",
+   neg:"Anticipa qué repuestos tienen más probabilidad de venderse, para asegurar su stock."},
+  {k:"estac", t:"Índice estacional", prest:["temporadas"],
+   que:"Compara la venta de cada mes con el promedio del año: 1,0 es un mes normal y 2,0, un mes que vende el doble.",
+   neg:"Muestra en qué época del año se vende más cada repuesto, para pedir con anticipación."},
+  {k:"abc", t:"ABC y rotación", prest:["rotacion","plan"],
+   que:"Ordena los repuestos por lo que venden en dinero (A: los que suman el primer 80 %, B: hasta el 95 %, C: el resto) y mide en cuántos meses se vende el stock.",
+   neg:"Ayuda a priorizar compras y a reducir el inventario que se vende lento."},
+  {k:"ss", t:"Punto de pedido (s, S)", prest:["alertas"],
+   que:"Cuando el stock baja del nivel s, se pide hasta llegar al nivel S. Los dos niveles salen del pronóstico, del plazo del proveedor y de un stock de seguridad según la clase ABC.",
+   neg:"Dice qué pedir esta semana y cuánto, para no quedarse sin stock."},
+  {k:"mc", t:"Simulación de Monte Carlo", nuevas:["cap"], prest:["simulador"],
+   que:"Repite el cálculo en 1.500 futuros posibles, en los que la venta, el dólar y el plazo del proveedor cambian al azar, para ver el costo y el riesgo de cada forma de comprar.",
+   neg:"Compara escenarios de venta, costo de reposición y dinero inmovilizado antes de comprar."},
+  {k:"tc", t:"Tipo de cambio y costos", nuevas:["tc"], neg2:true,
+   que:"No es una técnica de minería de datos: es el cálculo del costo puesto en Santa Cruz con los dos dólares, que se actualizan cada día.",
+   neg:"Reúne el tipo de cambio y los costos logísticos que entran en cada decisión de compra."},
+  {k:"ing", t:"Ingresos y gastos del servicio", nuevas:["ing"], neg2:true,
+   que:"No es una técnica de minería de datos: es una simulación simple de la suscripción mensual frente a los gastos del servicio, con supuestos que usted puede cambiar.",
+   neg:"Corresponde a las fuentes de ingreso y a la estructura de gastos del modelo de negocio."}];
+const MN_PINTAR = {dashboard:() => pintarDashboard(), clientes:() => pintarClientes(), predicciones:() => pintarPredicciones(), temporadas:() => pintarTemporadas(),
+  rotacion:() => pintarRotacion(), plan:() => pintarPlan(), alertas:() => pintarAlertas(), simulador:() => pintarSimulador()};
+const MN_NUEVAS = {val:() => pintarVal(), cap:() => pintarCap(), tc:() => pintarTc2(), ing:() => pintarIng()};
+// Al cambiar el ancho, solo se redibujan las gráficas (no se vuelve a correr el simulador).
+function mnRedibujar(){ const t = mnTab(); (t.nuevas || []).forEach(k => seguro(MN_NUEVAS[k]));
+  (t.prest || []).forEach(v => { if(["dashboard","predicciones","temporadas"].includes(v)) seguro(MN_PINTAR[v]); if(v === "simulador" && S.rep) pintarVentas(pronostico(S.rep)); }); }
+const PREST = {};   // vista prestada -> marcador de su lugar original
+function devolverPrestadas(){
+  Object.entries(PREST).forEach(([v, ph]) => { const s = $("v-" + v); if(s && ph.nextSibling !== s) ph.after(s); });
+  const c = $("mn-prestadas"); if(c) c.innerHTML = "";
 }
+function mnTab(){ return MN_TABS.find(t => t.k === S.mnTec) || MN_TABS[0]; }
+function pintarMineria(){
+  devolverPrestadas();
+  const tab = mnTab(); S.mnTec = tab.k;
+  const boton = t => `<button type="button" data-k="${t.k}" aria-pressed="${t.k === tab.k}">${esc(t.t)}</button>`;
+  $("mn-sub").innerHTML = `<span class="g">Técnicas de minería de datos</span><div class="fila">${MN_TABS.filter(t => !t.neg2).map(boton).join("")}</div>` +
+    `<span class="g">Funciones del modelo de negocio</span><div class="fila">${MN_TABS.filter(t => t.neg2).map(boton).join("")}</div>`;
+  $("mn-intro").innerHTML = `<h2>${esc(tab.t)}</h2><p>${esc(tab.que)}</p><p class="neg"><b>En el modelo de negocio:</b> ${esc(tab.neg)}</p>`;
+  Object.keys(MN_NUEVAS).forEach(k => $("mn-f-" + k).hidden = !(tab.nuevas || []).includes(k));
+  (tab.nuevas || []).forEach(k => seguro(MN_NUEVAS[k], $("mn-f-" + k)));
+  (tab.prest || []).filter(puede).forEach(v => {
+    const s = $("v-" + v); if(!PREST[v]){ PREST[v] = document.createComment("lugar de v-" + v); s.before(PREST[v]); }
+    const w = document.createElement("div"); w.className = "mn-prest";
+    w.innerHTML = `<p class="de">Pantalla del portal: <a href="#${v}">${esc(VISTAS.find(x => x[0] === v)[1])}</a>, también en el menú verde.</p>`;
+    w.appendChild(s); $("mn-prestadas").appendChild(w); s.hidden = false;
+    seguro(MN_PINTAR[v]); pintado[v] = true;
+  });
+}
+$("mn-sub").addEventListener("click", e => { const b = e.target.closest("button[data-k]"); if(!b) return;
+  S.mnTec = b.dataset.k; pintarMineria(); $("mn-sub").querySelector(`[data-k="${b.dataset.k}"]`).focus();
+  const top = $("v-mineria").querySelector(".mn-sub").getBoundingClientRect().top; if(top < 0) $("mn-intro").scrollIntoView({block:"start"}); });
+
+/* Ejes y cuadrícula comunes a las gráficas nuevas: un solo eje vertical y la misma letra que el resto del portal. */
+function marco(W, H, pl, pr, pb, mx, fmtY, ytit, xtit){
+  const Y = v => 10 + (1 - v / mx) * (H - pb - 10), ticks = [0, mx / 2, mx];
+  return {Y, svg: ticks.map(t => `<line class="grid" x1="${pl}" x2="${W - pr}" y1="${Y(t)}" y2="${Y(t)}"/><text x="${pl - 6}" y="${Y(t) + 4}" text-anchor="end">${fmtY(t)}</text>`).join("") +
+    `<text class="axt" x="${(pl + W - pr) / 2}" y="${H - 4}" text-anchor="middle">${xtit}</text><text class="axt" transform="translate(12 ${(H - pb) / 2}) rotate(-90)" text-anchor="middle">${ytit}</text>`};
+}
+const ancho = id => Math.max(320, Math.round($(id).clientWidth || 900));
+const mesCorto = m => MES[+m.slice(5, 7) - 1] + " " + m.slice(2, 4);
+
+/* ---- a. Pronóstico contra lo vendido (backtest de 12 meses) ---- */
+let VAL = null;
+function valDatos(){
+  if(VAL) return VAL;
+  const ids = D.repuestos.map(r => r.repuesto_id).filter(id => (D.ventas[id] || []).length);
+  const meses = [...new Set(ids.flatMap(id => D.ventas[id].map(x => x[0])))].sort().slice(-12);
+  const por = {};
+  ids.forEach(id => { const v = D.ventas[id], real = {}; v.forEach(x => real[x[0]] = x[1]);
+    por[id] = meses.map(m => ({mes:m, real:real[m] || 0, pron:Motor.pronostico(v.filter(x => x[0] < m), REP[id].tipo_demanda).unidades_mes})); });
+  return VAL = {ids, meses, por};
+}
+function pintarVal(){
+  const V = valDatos();
+  if(S.valRep === undefined) S.valRep = "";
+  $("val-rep").innerHTML = '<option value="">Los 30 repuestos juntos</option>' + V.ids.map(id => `<option value="${id}">${id} · ${esc(nombreRep(id))}</option>`).join("");
+  $("val-rep").value = S.valRep;
+  const fil = V.meses.map((m, i) => { const sel = S.valRep ? [S.valRep] : V.ids;
+    return {mes:m, real:sel.reduce((s, id) => s + V.por[id][i].real, 0), pron:sel.reduce((s, id) => s + V.por[id][i].pron, 0)}; });
+  fil.forEach(f => f.err = f.real - f.pron);
+  const tr = fil.reduce((s, f) => s + f.real, 0), tp = fil.reduce((s, f) => s + f.pron, 0);
+  const mae = fil.reduce((s, f) => s + Math.abs(f.err), 0) / fil.length, wape = tr ? fil.reduce((s, f) => s + Math.abs(f.err), 0) / tr * 100 : null;
+  const deMas = fil.filter(f => f.err < 0).length, sesgo = tr ? (tp - tr) / tr * 100 : null;
+  const quien = S.valRep ? `${S.valRep} (${nombreRep(S.valRep)})` : "los 30 repuestos juntos";
+  $("val-kpis").innerHTML = `
+    <div class="kpi"><div class="t">Error promedio por mes${info("Error promedio por mes", "Promedio, en los 12 meses, de la diferencia entre lo vendido y lo pronosticado, sin importar si fue de más o de menos.")}</div><div class="v">${nf(mae,1)}<small>unidades</small></div><div class="d">${wape === null ? "sin ventas en el período" : nf(wape) + " % de lo vendido"}</div></div>
+    <div class="kpi"><div class="t">Pronosticado en 12 meses${info("Pronosticado en 12 meses", "Suma de los pronósticos de los 12 meses, cada uno hecho con las ventas anteriores a ese mes.")}</div><div class="v">${nf(tp)}<small>unidades</small></div><div class="d">vendido: ${nf(tr)} unidades</div></div>
+    <div class="kpi"><div class="t">Desvío total${info("Desvío total", "Cuánto más (o menos) se pronosticó que lo que se vendió en los 12 meses, en porcentaje de lo vendido. Positivo: el pronóstico se pasó.")}</div><div class="v">${sesgo === null ? "—" : (sesgo > 0 ? "+" : "") + nf(sesgo) + "<small>%</small>"}</div><div class="d">${sesgo === null ? "" : sesgo > 0 ? "pronosticó de más" : "pronosticó de menos"}</div></div>
+    <div class="kpi"><div class="t">Meses en que se pasó${info("Meses en que se pasó", "Meses en que el pronóstico fue mayor que lo vendido. Si son muchos, el pronóstico tiende a sobrar stock.")}</div><div class="v">${deMas}<small>de 12</small></div><div class="d">pronóstico mayor que la venta</div></div>`;
+  $("val-tit").innerHTML = `¿Cuánto acierta el pronóstico de venta?<span class="nueva">NUEVA</span>` + info("Pronóstico contra lo vendido", "Para cada mes, el pronóstico se calculó solo con las ventas anteriores, como si se hubiera hecho ese día. Las barras grises son lo vendido; la línea verde, lo pronosticado.");
+  const W = ancho("chart-val"), H = 260, pl = 48, pr = 16, pb = 44, n = fil.length;
+  const mx = Math.max(1, ...fil.map(f => Math.max(f.real, f.pron))) * 1.12, bw = (W - pl - pr) / n, X = i => pl + i * bw + bw / 2;
+  const M = marco(W, H, pl, pr, pb, mx, t => nf(t, mx < 6 ? 1 : 0), "Unidades", "Mes");
+  const barras = fil.map((f, i) => `<rect class="br" x="${(X(i) - bw * .32).toFixed(1)}" y="${M.Y(f.real).toFixed(1)}" width="${(bw * .64).toFixed(1)}" height="${(H - pb - M.Y(f.real)).toFixed(1)}" rx="3"><title>${mesCorto(f.mes)}: vendido ${nf(f.real)}, pronosticado ${nf(f.pron,1)}, error ${nf(f.err,1)}</title></rect>`).join("");
+  const linea = fil.map((f, i) => `${i ? "L" : "M"}${X(i).toFixed(1)} ${M.Y(f.pron).toFixed(1)}`).join(" ");
+  $("chart-val").innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Vendido y pronosticado por mes, ${esc(quien)}. Error promedio ${nf(mae,1)} unidades por mes">${M.svg}${barras}
+    <path class="ln" d="${linea}" stroke="var(--brand)"/>${fil.map((f, i) => `<circle class="pt" cx="${X(i).toFixed(1)}" cy="${M.Y(f.pron).toFixed(1)}" r="4.5" fill="var(--brand)"><title>${mesCorto(f.mes)}: pronosticado ${nf(f.pron,1)}</title></circle>`).join("")}
+    ${fil.map((f, i) => `<text x="${X(i)}" y="${H - 24}" text-anchor="middle">${mesCorto(f.mes)}</text>`).join("")}</svg>`;
+  $("t-val").innerHTML = `<thead><tr><th>Mes</th><th>Vendido</th><th>Pronosticado</th><th>Error (vendido − pronosticado)</th><th>Error en %</th></tr></thead><tbody>` +
+    fil.map(f => `<tr><td>${mesCorto(f.mes)}</td><td>${nf(f.real)}</td><td>${nf(f.pron,1)}</td><td>${f.err > 0 ? "+" : ""}${nf(f.err,1)}</td><td>${f.real ? nf(Math.abs(f.err) / f.real * 100) + " %" : "—"}</td></tr>`).join("") + "</tbody>";
+  const peor = fil.reduce((a, f) => Math.abs(f.err) > Math.abs(a.err) ? f : a, fil[0]);
+  $("val-nota").innerHTML = `<strong>Conclusión:</strong> para ${esc(quien)}, el pronóstico se equivocó en promedio ${nf(mae,1)} unidades por mes` +
+    (wape === null ? "." : ` (${nf(wape)} % de lo vendido).`) + (sesgo === null ? "" : ` En los 12 meses pronosticó ${nf(Math.abs(sesgo))} % ${sesgo > 0 ? "más" : "menos"} de lo que se vendió.`) +
+    ` El mes con mayor error fue ${mesCorto(peor.mes)}: se vendieron ${nf(peor.real)} y se esperaban ${nf(peor.pron,1)}. Con ventas que van y vienen, un error mes a mes es normal; lo importante es que en el total no se pase ni se quede corto por mucho.`;
+}
+$("val-rep").addEventListener("change", e => { S.valRep = e.target.value; pintarVal(); });
+
+/* ---- b. Capital inmovilizado según escenarios de venta y de dólar (Monte Carlo) ---- */
+const CAP_VENTA = [-30, -15, 0, 15, 30];
+const capDolares = () => [["oficial de hoy", tcHoy()], ["paralelo de hoy", PA.valor], ["oficial + 10 %", Math.round(tcHoy() * 110) / 100]];
+const capMemo = {};
+function capCorrer(id){
+  const clave = id + "|" + tcHoy(); if(capMemo[clave]) return capMemo[clave];
+  const base = {tc_base:tcHoy(), tc_90:tcHoy(), venta_pct:0, atraso_dias:0, precio_sigue_dolar:true};
+  const res = capDolares().map(([, tc]) => CAP_VENTA.map(v => Motor.simular(D, id, REP[id].proveedor_id, Object.assign({}, base, {tc_base:tc, tc_90:tc, venta_pct:v}), OPC)));
+  return capMemo[clave] = res;
+}
+function pintarCap(){
+  const ids = D.repuestos.map(r => r.repuesto_id).filter(id => (D.ventas[id] || []).length);
+  // Por defecto, el repuesto que más se espera vender: con uno de venta muy baja las cuatro formas de comprar piden
+  // casi lo mismo y la gráfica no muestra diferencias.
+  if(!S.capRep || !ids.includes(S.capRep)) S.capRep = ids.reduce((a, id) => pronostico(id).unidades_mes > pronostico(a).unidades_mes ? id : a, ids[0]);
+  $("cap-rep").innerHTML = ids.map(id => `<option value="${id}">${id} · ${esc(nombreRep(id))}</option>`).join(""); $("cap-rep").value = S.capRep;
+  const R = capCorrer(S.capRep), dol = capDolares(), b = R[0][2], mejor = b.mejor, L = ["A","B","C","D"], COL = {A:"var(--brand)", B:"var(--s1)", C:"var(--s2)", D:"var(--s3)"};
+  const cap = (d, v, a) => R[d][v][a].capital_inmovilizado_bs;
+  $("cap-tit").innerHTML = `¿Cuánto dinero queda inmovilizado según la venta y el dólar?<span class="nueva">NUEVA</span>` + info("Dinero inmovilizado", "Dinero invertido en mercadería que todavía no se vendió, en promedio durante los 90 días y en los 1.500 futuros. En cada escenario cambia la venta esperada y, con ella, cuánto pide cada forma de comprar: si se espera vender más, se pide más y queda más dinero en mercadería.");
+  $("cap-kpis").innerHTML = `
+    <div class="kpi"><div class="t">Forma de comprar recomendada${info("Forma de comprar recomendada", "La alternativa que gana en más futuros con la venta pronosticada y el dólar oficial de hoy, igual que en el Simulador de compra.")}</div><div class="v txt">${esc(ALT[mejor].t)}</div><div class="d">${nf(b[mejor].cantidad)} ${b[mejor].cantidad === 1 ? "unidad" : "unidades"} · ${bs(b[mejor].costo.total_bs)}</div></div>
+    <div class="kpi"><div class="t">Inmovilizado con la venta esperada</div><div class="v">${bs(cap(0,2,mejor))}</div><div class="d">dólar oficial de hoy</div></div>
+    <div class="kpi"><div class="t">Si la venta cae 30 %</div><div class="v">${bs(cap(0,0,mejor))}</div><div class="d">${Math.abs(cap(0,0,mejor) - cap(0,2,mejor)) < 0.01 * cap(0,2,mejor) ? "casi igual que con la venta esperada" : (cap(0,0,mejor) > cap(0,2,mejor) ? "+" : "−") + bs(Math.abs(cap(0,0,mejor) - cap(0,2,mejor))) + " frente a la venta esperada"}</div></div>
+    <div class="kpi"><div class="t">Si el dólar sube 10 %${info("Dólar 10 % más caro", "La misma compra pagada con un dólar 10 % más caro que el oficial de hoy: cambia el costo de reposición y, con él, el dinero inmovilizado.")}</div><div class="v">${bs(cap(2,2,mejor))}</div><div class="d">compra de ${bs(R[2][2][mejor].costo.total_bs)}</div></div>`;
+  // En el celular el margen derecho se achica (los rótulos «C: Bs 2.672» caben en 96 px) y el eje x muestra solo tres marcas.
+  const W = ancho("chart-cap"), H = 270, pl = 70, pr = W < 500 ? 96 : 150, pb = 44, angosto = W < 500;
+  const mx = Math.max(1, ...L.flatMap(a => CAP_VENTA.map((_, v) => cap(0, v, a)))) * 1.12, X = i => pl + 20 + i * (W - pl - pr - 40) / (CAP_VENTA.length - 1);
+  const M = marco(W, H, pl, pr, pb, mx, t => bs(t), "Dinero inmovilizado", "Escenario de venta frente al pronóstico");
+  // Rótulos directos al final de cada línea; si dos quedan muy juntos, se separan 13 px.
+  const fin = L.map(a => ({a, y:M.Y(cap(0, 4, a))})).sort((p, q) => p.y - q.y); fin.forEach((p, i) => { if(i && p.y - fin[i - 1].y < 13) p.y = fin[i - 1].y + 13; });
+  $("chart-cap").innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Dinero inmovilizado de las cuatro formas de comprar según el escenario de venta, para ${S.capRep}">${M.svg}
+    ${L.map(a => `<path class="ln" stroke="${COL[a]}" d="${CAP_VENTA.map((_, v) => `${v ? "L" : "M"}${X(v).toFixed(1)} ${M.Y(cap(0, v, a)).toFixed(1)}`).join(" ")}"/>` +
+      CAP_VENTA.map((p, v) => `<circle class="pt" cx="${X(v).toFixed(1)}" cy="${M.Y(cap(0, v, a)).toFixed(1)}" r="4.5" fill="${COL[a]}"><title>${ALT[a].t}, venta ${p > 0 ? "+" : ""}${p} %: ${bs(cap(0, v, a))}</title></circle>`).join("")).join("")}
+    ${fin.map(p => `<text x="${X(4) + 10}" y="${p.y + 4}" class="lbl" style="fill:var(--ink-2)">${p.a}: ${bs(cap(0, 4, p.a))}</text>`).join("")}
+    ${CAP_VENTA.map((p, v) => angosto && Math.abs(p) === 15 ? "" : `<text x="${X(v)}" y="${H - 24}" text-anchor="middle">${p === 0 ? "esperada" : (p > 0 ? "+" : "") + p + " %"}</text>`).join("")}</svg>`;
+  $("cap-leg").innerHTML = L.map(a => `<span><i class="sw" style="background:${COL[a]}"></i>${a}. ${esc(ALT[a].t)}${a === mejor ? " (recomendada)" : ""}</span>`).join("");
+  $("cap-tsub").textContent = `«${ALT[mejor].t}». En cada casilla: dinero inmovilizado y, debajo, lo que cuesta la compra con ese dólar.`;
+  $("t-cap").innerHTML = `<thead><tr><th>Escenario de venta</th>${dol.map(([t, v]) => `<th>Dólar ${t}<span class="ayuda">${nf(v,2)} Bs</span></th>`).join("")}</tr></thead><tbody>` +
+    CAP_VENTA.map((p, v) => `<tr><td>${p === 0 ? "Venta esperada" : `Venta ${p > 0 ? "+" : ""}${p} %`}</td>${dol.map((_, d) => `<td class="mn-cel">${bs(cap(d, v, mejor))}<small>compra ${bs(R[d][v][mejor].costo.total_bs)}</small></td>`).join("")}</tr>`).join("") + "</tbody>";
+  const mas = L.reduce((x, a) => cap(0,2,a) > cap(0,2,x) ? a : x, "A");
+  const cmin = Math.min(...CAP_VENTA.map((_, v) => cap(0, v, mejor))), cmax = Math.max(...CAP_VENTA.map((_, v) => cap(0, v, mejor)));
+  $("cap-nota").innerHTML = `<strong>Conclusión:</strong> para ${esc(S.capRep)} (${esc(nombreRep(S.capRep))}), comprando «${esc(ALT[mejor].t.toLowerCase())}», el dinero inmovilizado ` +
+    // Si el rango es chico (menos del 5 %), se dice que casi no cambia: pasa cuando la cantidad pedida es la misma.
+    ((cmax - cmin) < 0.05 * cmax ? `casi no cambia con la venta (de ${bs(cmin)} a ${bs(cmax)}), porque en los cinco escenarios se pide la misma cantidad: ${nf(b[mejor].cantidad)} ${b[mejor].cantidad === 1 ? "unidad" : "unidades"}. `
+      : `va de ${bs(cmin)} a ${bs(cmax)} según cuánto se espere vender: con más venta esperada se pide más y queda más dinero en mercadería. `) +
+    `Pagar la compra con el dólar paralelo la encarece en ${bs(R[1][2][mejor].costo.total_bs - b[mejor].costo.total_bs)}. «${esc(ALT[mas].t)}» es la forma de comprar que más dinero deja quieto: ${bs(cap(0,2,mas))} con la venta esperada.`;
+}
+$("cap-rep").addEventListener("change", e => { S.capRep = e.target.value; $("chart-cap").setAttribute("aria-busy","true"); setTimeout(() => { seguro(pintarCap, $("chart-cap")); $("chart-cap").removeAttribute("aria-busy"); }, 0); });
+
+/* ---- c. Los dos dólares y el costo puesto ---- */
+function pintarTc2(){
+  const so = D.tc.serie, sp = (PA.serie || [[PA.fecha, PA.valor]]).filter(x => x[0] >= so[0][0]);
+  const brecha = (PA.valor - tcHoy()) / tcHoy() * 100;
+  $("tc2-tit").innerHTML = `El dólar oficial, el paralelo y el costo de cada repuesto<span class="nueva">NUEVA</span>` + info("Los dos dólares", "Oficial: lo publica cada día el Banco Central de Bolivia y es el único que entra en los cálculos. Paralelo: promedio de venta en plataformas de compraventa entre personas, de fuente privada; se muestra solo como referencia.");
+  $("tc2-kpis").innerHTML = `
+    <div class="kpi"><div class="t">Dólar oficial</div><div class="v">${nf(tcHoy(),2)}<small>Bs</small></div><div class="d">actualizado el ${fecha(OF.fecha)}</div></div>
+    <div class="kpi"><div class="t">Dólar paralelo <span class="badge-priv">referencia privada</span></div><div class="v">${nf(PA.valor,2)}<small>Bs</small></div><div class="d">actualizado el ${fecha(PA.fecha)} · ${esc(PA.fuente.split(",")[0])}</div></div>
+    <div class="kpi"><div class="t">Diferencia${info("Diferencia entre los dos dólares", "Cuánto más caro (o más barato) está el paralelo que el oficial, en porcentaje del oficial.")}</div><div class="v">${brecha > 0 ? "+" : ""}${nf(brecha,1)}<small>%</small></div><div class="d">paralelo frente al oficial</div></div>`;
+  const W = ancho("chart-tc2"), H = 250, pl = 52, pr = 110, pb = 44;   // margen derecho para «11,95 paralelo»
+  const t0 = Date.parse(so[0][0]), t1 = Date.parse(so[so.length - 1][0] > sp[sp.length - 1][0] ? so[so.length - 1][0] : sp[sp.length - 1][0]);
+  const X = f => pl + (Date.parse(f) - t0) / Math.max(1, t1 - t0) * (W - pl - pr);
+  const vs = so.map(x => x[1]).concat(sp.map(x => x[1])), lo = Math.floor(Math.min(...vs)) - 0.5, hi = Math.ceil(Math.max(...vs)) + 0.5;
+  const Y = v => 10 + (1 - (v - lo) / (hi - lo)) * (H - pb - 10), ticks = [lo, (lo + hi) / 2, hi];
+  const ruta = s => s.map((x, i) => `${i ? "L" : "M"}${X(x[0]).toFixed(1)} ${Y(x[1]).toFixed(1)}`).join(" ");
+  const meses = [...new Set(so.map(x => x[0].slice(0, 7)))].filter((m, i) => i % 2 === 0);
+  $("chart-tc2").innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Dólar oficial desde el ${fecha(so[0][0])} y dólar paralelo. Hoy: oficial ${nf(tcHoy(),2)}, paralelo ${nf(PA.valor,2)} Bs">
+    ${ticks.map(t => `<line class="grid" x1="${pl}" x2="${W - pr}" y1="${Y(t)}" y2="${Y(t)}"/><text x="${pl - 6}" y="${Y(t) + 4}" text-anchor="end">${nf(t,2)}</text>`).join("")}
+    <path class="ln" stroke="var(--s1)" d="${ruta(so)}"/><path class="ln" stroke="var(--s2)" stroke-dasharray="5 4" d="${ruta(sp)}"/>
+    ${sp.map(x => `<circle class="pt" cx="${X(x[0]).toFixed(1)}" cy="${Y(x[1]).toFixed(1)}" r="4.5" fill="var(--s2)"><title>Paralelo ${fecha(x[0])}: ${nf(x[1],2)} Bs</title></circle>`).join("")}
+    <circle class="pt" cx="${X(so[so.length - 1][0]).toFixed(1)}" cy="${Y(so[so.length - 1][1]).toFixed(1)}" r="4.5" fill="var(--s1)"><title>Oficial ${fecha(so[so.length - 1][0])}: ${nf(so[so.length - 1][1],2)} Bs</title></circle>
+    <text x="${W - pr + 8}" y="${Y(so[so.length - 1][1]) + (PA.valor >= tcHoy() ? 14 : -6)}" class="lbl" style="fill:var(--ink-2)">${nf(tcHoy(),2)} oficial</text>
+    <text x="${W - pr + 8}" y="${Y(PA.valor) + (PA.valor >= tcHoy() ? -6 : 14)}" class="lbl" style="fill:var(--ink-2)">${nf(PA.valor,2)} paralelo</text>
+    ${meses.map(m => `<text x="${X(m + "-01").toFixed(1)}" y="${H - 24}" text-anchor="middle">${mesCorto(m)}</text>`).filter((_, i) => X(meses[i] + "-01") >= pl).join("")}
+    <text class="axt" x="${(pl + W - pr) / 2}" y="${H - 4}" text-anchor="middle">Fecha</text><text class="axt" transform="translate(12 ${(H - pb) / 2}) rotate(-90)" text-anchor="middle">Bs por dólar</text></svg>`;
+  const PRV = {}; D.proveedores.forEach(p => PRV[p.proveedor_id] = p);
+  const fil = D.repuestos.map(r => { const o = Motor.costoPuesto(r, PRV[r.proveedor_id], tcHoy()), p = Motor.costoPuesto(r, PRV[r.proveedor_id], PA.valor);
+    return {id:r.repuesto_id, o:o.total_bs, p:p.total_bs, usd:o.total_usd}; }).sort((a, b) => (b.p - b.o) - (a.p - a.o) || (a.id < b.id ? -1 : 1));
+  const ver = S.tc2Todas ? fil : fil.slice(0, 10);
+  $("t-tc2").innerHTML = `<thead><tr><th>Repuesto</th><th>Con el oficial</th><th>Con el paralelo</th><th>Diferencia por unidad</th><th>Si el dólar sube 0,10 Bs${info("Si el dólar sube 0,10 Bs", "Cuánto sube el costo puesto de una unidad por cada 10 centavos que sube el dólar. Sale del costo en dólares del repuesto con flete y aduana.")}</th></tr></thead><tbody>` +
+    ver.map(f => `<tr><td><b>${esc(nombreRep(f.id))}</b><span class="ayuda">${f.id}</span></td><td>${bs(f.o)}</td><td>${bs(f.p)}</td><td>${f.p >= f.o ? "+" : ""}${bs(f.p - f.o)}</td><td>+${bs(f.usd * 0.1)}</td></tr>`).join("") + "</tbody>";
+  $("tc2-mas").textContent = S.tc2Todas ? "Mostrar solo los 10 primeros" : "Mostrar los 30"; $("tc2-mas").setAttribute("aria-expanded", !!S.tc2Todas);
+  const so_ = fil.reduce((s, f) => s + f.o, 0), sp_ = fil.reduce((s, f) => s + f.p, 0);
+  $("tc2-nota").innerHTML = `<strong>Conclusión:</strong> hoy el paralelo está ${nf(Math.abs(brecha),1)} % ${brecha >= 0 ? "por encima" : "por debajo"} del oficial. Una unidad de cada uno de los 30 repuestos cuesta ${bs(so_)} con el oficial y ${bs(sp_)} con el paralelo: ${bs(Math.abs(sp_ - so_))} de diferencia. ` +
+    `El que más cambia es ${esc(nombreRep(fil[0].id))} (${bs(fil[0].p - fil[0].o)} por unidad). La serie del paralelo empezó a guardarse a diario el 20-nov-2026; antes hay un solo punto, del ${fecha(sp[0][0])}.`;
+}
+$("tc2-mas").addEventListener("click", () => { S.tc2Todas = !S.tc2Todas; pintarTc2(); });
+
+/* ---- d. Ingresos y gastos del servicio (supuestos editables, nada se presenta como dato) ---- */
+const ING_SUP = [
+  ["precio","Suscripción mensual por empresa",1500,"Lo que pagaría cada empresa importadora al mes, después del piloto."],
+  ["empresas","Empresas con suscripción",4,"Cantidad de empresas que se supone pagan la suscripción."],
+  ["desarrollo","Desarrollo y mantenimiento al mes",4000,"Gasto fijo: horas del equipo para mantener y mejorar el portal."],
+  ["alojamiento","Alojamiento seguro al mes",400,"Gasto fijo: servidor, dominio y copias de seguridad."],
+  ["atencion","Atención al cliente al mes",1200,"Gasto fijo: soporte por WhatsApp o correo."],
+  ["conexion","Conexión de datos por empresa al mes",250,"Gasto variable: cargar y revisar los datos de cada empresa cada mes."],
+  ["adquisicion","Adquisición por empresa nueva",1500,"Gasto variable, una sola vez: contacto, demostración y prueba piloto."],
+  ["adaptacion","Adaptación inicial por empresa nueva",2000,"Gasto variable, una sola vez: configurar el portal con los datos de la empresa."]];
+const ING = {}; ING_SUP.forEach(([k,, v]) => ING[k] = v);
+function ingCalc(){
+  const fijos = ING.desarrollo + ING.alojamiento + ING.atencion, margen = ING.precio - ING.conexion, inicial = ING.adquisicion + ING.adaptacion;
+  return {fijos, margen, inicial, pe: margen > 0 ? Math.ceil(fijos / margen) : null, recupera: margen > 0 ? Math.ceil(inicial / margen) : null,
+    resultado: ING.empresas * margen - fijos};
+}
+function pintarIng(){
+  if(!$("ing-sup").children.length) $("ing-sup").innerHTML = ING_SUP.map(([k, t, , a]) => `<div><label for="ing-${k}" data-i="${esc(t)}|${esc(a)} Es un supuesto: cámbielo para ver otro escenario.">${esc(t)}<span class="badge-sup">SUPUESTO</span><span class="ayuda">${k === "empresas" ? "empresas" : "en bolivianos"}</span></label><input id="ing-${k}" type="number" min="0" step="${k === "empresas" ? 1 : 50}" inputmode="numeric" value="${ING[k]}"></div>`).join("");
+  ING_SUP.forEach(([k]) => { const el = $("ing-" + k); if(document.activeElement !== el) el.value = ING[k]; });
+  const c = ingCalc();
+  $("ing-kpis").innerHTML = `
+    <div class="kpi"><div class="t">Gastos fijos al mes</div><div class="v">${bs(c.fijos)}</div><div class="d">desarrollo, alojamiento y atención</div></div>
+    <div class="kpi"><div class="t">Margen por empresa al mes${info("Margen por empresa al mes", "Suscripción menos el gasto variable mensual de esa empresa. Es lo que cada empresa aporta para cubrir los gastos fijos.")}</div><div class="v">${bs(c.margen)}</div><div class="d">suscripción menos conexión de datos</div></div>
+    <div class="kpi"><div class="t">Punto de equilibrio${info("Punto de equilibrio", "Cantidad de empresas con suscripción a partir de la cual el ingreso del mes cubre todos los gastos del mes.")}</div><div class="v">${c.pe === null ? "—" : c.pe}<small>${c.pe === 1 ? "empresa" : "empresas"}</small></div><div class="d">${c.pe === null ? "la suscripción no cubre el gasto variable" : "para cubrir los gastos del mes"}</div></div>
+    <div class="kpi"><div class="t">Resultado del mes con ${nf(ING.empresas)}</div><div class="v ${c.resultado >= 0 ? "c-ok" : "c-bad"}">${c.resultado >= 0 ? "" : "−"}${bs(Math.abs(c.resultado))}</div><div class="d">${c.resultado >= 0 ? "ganancia" : "pérdida"} mensual</div></div>`;
+  const nMax = Math.max(10, (c.pe || 0) * 2, ING.empresas + 2), W = ancho("chart-ing"), H = 260, pl = 74, pr = 120, pb = 44;
+  const ing = n => n * ING.precio, gas = n => c.fijos + n * ING.conexion, mx = Math.max(ing(nMax), gas(nMax)) * 1.1, X = n => pl + n / nMax * (W - pl - pr);
+  const M = marco(W, H, pl, pr, pb, mx, t => bs(t), "Bs por mes", "Empresas con suscripción");
+  const xs = Array.from({length: nMax + 1}, (_, n) => n).filter(n => n % Math.ceil(nMax / 10) === 0);
+  $("chart-ing").innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Ingreso y gasto mensual según la cantidad de empresas. Punto de equilibrio: ${c.pe === null ? "no hay" : c.pe + " empresas"}">${M.svg}
+    <path class="ln" stroke="var(--brand)" d="M${X(0)} ${M.Y(0)} L${X(nMax)} ${M.Y(ing(nMax))}"/><path class="ln" stroke="var(--s3)" d="M${X(0)} ${M.Y(gas(0))} L${X(nMax)} ${M.Y(gas(nMax))}"/>
+    ${c.pe !== null && c.pe <= nMax ? `<line class="pe" x1="${X(c.pe)}" x2="${X(c.pe)}" y1="10" y2="${H - pb}"/><text x="${X(c.pe) + 6}" y="22" class="lbl" style="fill:var(--ink-2)">equilibrio: ${c.pe}</text>` : ""}
+    <circle class="pt" cx="${X(ING.empresas)}" cy="${M.Y(ing(ING.empresas))}" r="5" fill="var(--brand)"><title>Con ${ING.empresas} empresas: ingreso ${bs(ing(ING.empresas))}, gasto ${bs(gas(ING.empresas))}</title></circle>
+    <text x="${X(nMax) + 8}" y="${M.Y(ing(nMax)) + 4}" class="lbl" style="fill:var(--ink-2)">Ingreso</text><text x="${X(nMax) + 8}" y="${M.Y(gas(nMax)) + 4}" class="lbl" style="fill:var(--ink-2)">Gasto</text>
+    ${xs.map(n => `<text x="${X(n)}" y="${H - 24}" text-anchor="middle">${n}</text>`).join("")}</svg>`;
+  $("t-ing").innerHTML = `<thead><tr><th>Empresas</th><th>Ingreso del mes</th><th>Gasto del mes</th><th>Resultado</th></tr></thead><tbody>` +
+    xs.map(n => `<tr><td>${n}</td><td>${bs(ing(n))}</td><td>${bs(gas(n))}</td><td>${ing(n) - gas(n) >= 0 ? "" : "−"}${bs(Math.abs(ing(n) - gas(n)))}</td></tr>`).join("") + "</tbody>";
+  $("ing-nota").innerHTML = c.pe === null ? `<strong>Conclusión:</strong> con estos supuestos la suscripción no alcanza ni para el gasto variable de cada empresa: no hay punto de equilibrio. Hay que subir la suscripción o bajar el gasto de conexión.`
+    : `<strong>Conclusión:</strong> con estos supuestos, cada empresa deja ${bs(c.margen)} al mes y hacen falta ${c.pe} ${c.pe === 1 ? "empresa" : "empresas"} para cubrir los ${bs(c.fijos)} de gastos fijos. ` +
+      `Con ${nf(ING.empresas)} el mes cierra con ${c.resultado >= 0 ? "una ganancia" : "una pérdida"} de ${bs(Math.abs(c.resultado))}. Lo que cuesta sumar una empresa (${bs(c.inicial)}, una sola vez) se recupera en ${c.recupera} ${c.recupera === 1 ? "mes" : "meses"}. Son supuestos: el piloto tiene que confirmarlos.`;
+}
+$("ing-sup").addEventListener("input", e => { const k = e.target.id.replace("ing-", ""); if(!(k in ING)) return;
+  const v = Number(e.target.value); if(e.target.value === "" || !isFinite(v) || v < 0) return; ING[k] = k === "empresas" ? Math.round(v) : v; pintarIng(); });
 
 /* ---- Mis repuestos, para el proveedor (SCRUM-78) ---- */
 async function pintarMiProv(){
@@ -2058,7 +2244,8 @@ async function pintarMiProv(){
 let tRz = null;
 window.addEventListener("resize", () => { clearTimeout(tRz); tRz = setTimeout(() => { if(S.vista === "simulador") pintarVentas(pronostico(S.rep));
   if(S.vista === "temporadas") pintarTemporadas();
-  if(S.vista === "dashboard") pintarDashboard(); if(S.vista === "predicciones") pintarPredicciones(); }, 150); });
+  if(S.vista === "dashboard") pintarDashboard(); if(S.vista === "predicciones") pintarPredicciones();
+  if(S.vista === "mineria") mnRedibujar(); }, 150); });
 
 /* ---- Arranque ---- */
 if(PORTAL){ pintarSesion(); iniciarPortal().finally(() => ir(location.hash.slice(1) || (puede("dashboard") ? "dashboard" : SES.rol === "proveedor" ? "miprov" : "entrar"))); }
