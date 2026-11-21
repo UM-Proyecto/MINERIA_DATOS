@@ -63,7 +63,7 @@ class Portal(unittest.TestCase):
         self.assertEqual(self.st("no_existe"), 404)
 
     def test_dolar_del_dia(self):
-        self.assertEqual(self.r["tc"]["cuerpo"], {**self.r["tc"]["cuerpo"], "valor": 11.65, "fecha": "2026-11-14", "origen": "repositorio"})
+        self.assertEqual(self.r["tc"]["cuerpo"], {**self.r["tc"]["cuerpo"], "valor": 11.65, "fecha": self.d["tc"]["oficial"]["fecha"], "origen": "repositorio"})
         sin = self.r["tc_sin_red"]["cuerpo"]
         self.assertEqual((sin["valor"], sin["fecha"], sin["origen"]), (self.d["tc"]["oficial"]["valor"], self.d["tc"]["oficial"]["fecha"], "incrustado"))
 
