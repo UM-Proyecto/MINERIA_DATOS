@@ -1,4 +1,6 @@
 # SCRUM-71: el dólar oficial del BCB se actualiza solo, una vez al día.
+# Desde el 20-11-2026 también el dólar paralelo (referencia privada, no entra en ningún cálculo), con la misma regla:
+# si la fuente no responde, se conserva el último valor y la app dice de qué fecha es.
 #
 # La tarea corre el script de SCRUM-54, regenera los datos y la app del simulador, corre las pruebas y guarda
 # el resultado en main si hay un valor nuevo. Si el BCB no responde, no se toca nada: la app sigue con el último
@@ -45,13 +47,24 @@ jobs:
         if: steps.bcb.outcome == 'failure'
         run: echo "::warning::El BCB no respondió. La app sigue con el último valor publicado ($(tail -n 1 data/processed/scrum-54/tco_bcb_diario.csv | cut -d, -f1,2))."
 
+      - name: Leer el dólar paralelo (dolarbolivia.net; si no responde, Binance P2P)
+        id: paralelo
+        continue-on-error: true
+        run: python3 src/scrum-54/obtener_paralelo.py
+
+      - name: Si ninguna fuente del paralelo respondió, se conserva el último valor
+        if: steps.paralelo.outcome == 'failure'
+        run: echo "::warning::El dólar paralelo no se pudo leer. La app sigue con el último valor ($(tail -n 1 data/processed/scrum-54/dolar_paralelo_diario.csv | cut -d, -f1,2))."
+
       - name: ¿Hay un valor nuevo?
         id: cambio
         run: |
-          if git diff --quiet -- data/processed/scrum-54/tco_bcb_diario.csv; then
-            echo "nuevo=no" >> "$GITHUB_OUTPUT"; echo "El CSV no cambió."
+          # Basta con que cambie uno de los dos dólares para regenerar la app.
+          if git diff --quiet -- data/processed/scrum-54/tco_bcb_diario.csv data/processed/scrum-54/dolar_paralelo_diario.csv; then
+            echo "nuevo=no" >> "$GITHUB_OUTPUT"; echo "Los CSV no cambiaron."
           else
-            echo "nuevo=si" >> "$GITHUB_OUTPUT"; tail -n 1 data/processed/scrum-54/tco_bcb_diario.csv
+            echo "nuevo=si" >> "$GITHUB_OUTPUT"
+            tail -n 1 data/processed/scrum-54/tco_bcb_diario.csv; tail -n 1 data/processed/scrum-54/dolar_paralelo_diario.csv
           fi
 
       - name: Regenerar los datos y la app
@@ -71,11 +84,12 @@ jobs:
         if: steps.cambio.outputs.nuevo == 'si' && github.event_name != 'pull_request'
         run: |
           ULTIMO=$(tail -n 1 data/processed/scrum-54/tco_bcb_diario.csv | cut -d, -f1,2 | tr ',' ' ')
+          PARALELO=$(tail -n 1 data/processed/scrum-54/dolar_paralelo_diario.csv | cut -d, -f1,2 | tr ',' ' ')
           git add data/processed/scrum-54 data/raw/scrum-54 data/processed/simulador/datos_app.json \
                   reports/simulador/MULTIPARTES_Simulador_Compras.html reports/tienda/MULTIPARTES_Tienda.html \
                   docs/GUIA_ESTUDIO_PORTAL.md \
                   data/processed/hu-09 reports/hu-09
           git -c user.name="github-actions[bot]" \
               -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
-              commit -m "Dólar oficial del BCB: ${ULTIMO} (actualización automática, SCRUM-71)"
+              commit -m "Dólar oficial del BCB: ${ULTIMO}; paralelo: ${PARALELO} (actualización automática, SCRUM-71)"
           git push

@@ -28,7 +28,10 @@ globalThis.fetch = async url => {
   if (url.endsWith("/MULTIPARTES_Tienda.html")) return modo === "github_404" ? new Response("no", { status: 404 }) : new Response(readFileSync(TIENDA_LOCAL));
   if (url.endsWith(".html")) return modo === "github_404" ? new Response("no", { status: 404 }) : new Response(readFileSync(HTML_LOCAL));
   salida.urls = (salida.urls || []).concat(url.replace(/^https:\/\/raw\.githubusercontent\.com\/UM-Proyecto\/MINERIA_DATOS\//, ""));
-  return new Response("fecha,tco_bs_por_usd,fuente,fecha_lectura\n2026-11-13,11.67,x,2026-11-13\n2026-11-14,11.65,x,2026-11-14\n");
+  // La última fila del CSV imitado lleva la fecha del dólar incrustado (el worker solo toma el del repositorio si no es
+  // más viejo) y un valor distinto, 11,65, para saber de dónde salió. Antes era el 14-11 fijo y caducó con el dato del 17-11.
+  const f = JSON.parse(readFileSync(DATOS_LOCAL, "utf-8")).tc.oficial.fecha;
+  return new Response(`fecha,tco_bs_por_usd,fuente,fecha_lectura\n2026-11-13,11.67,x,2026-11-13\n${f},11.65,x,${f}\n`);
 };
 
 let k = 0;

@@ -1,0 +1,65 @@
+# Vista previa del portal para revisar el PR del apartado «Minería de datos» sin tocar producción.
+#
+# Publica la versión COMPLETA del servidor (datos y app incluidos, armar_portal.py sin --liviano) en la rama de
+# vista previa «mineria» del proyecto multipartes-univalle: https://mineria.multipartes-univalle.pages.dev
+# Al llevar los datos adentro, no depende de la variable FUENTE_REF (que sigue en main) y no cambia nada de lo que
+# ve producción (https://multipartes-univalle.pages.dev, rama main).
+#
+# OJO: la vista previa usa la misma base D1 que producción. Una cotización guardada o un repuesto cargado desde la
+# vista previa aparece también en producción (Sam lo aceptó el 20-11-2026).
+#
+# Se puede borrar antes de unir el PR: solo sirve para revisar esta rama.
+name: Vista previa del portal (Minería de datos)
+
+on:
+  push:
+    branches: [feature/mineria-datos-canvas]
+  workflow_dispatch:
+
+concurrency:
+  group: portal-preview
+  cancel-in-progress: true
+
+env:
+  RAMA_VISTA: mineria   # nunca «main»: main es producción
+
+jobs:
+  vista-previa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"   # las pruebas del portal necesitan node:sqlite
+
+      - name: No publicar en producción
+        run: |
+          if [ "$RAMA_VISTA" = "main" ] || [ -z "$RAMA_VISTA" ]; then echo "::error::La vista previa no puede ir a main."; exit 1; fi
+
+      - name: Pruebas
+        run: python3 -m unittest discover -s tests
+
+      - name: Armar el servidor completo (con datos y app)
+        run: python3 src/portal/armar_portal.py --salida build/preview
+
+      - name: Publicar la vista previa
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then echo "::error::Falta el secreto CLOUDFLARE_API_TOKEN."; exit 1; fi
+          npx --yes wrangler@3 pages deploy build/preview --project-name multipartes-univalle --branch "$RAMA_VISTA" \
+            --commit-hash "$GITHUB_SHA" --commit-message "Vista previa ${GITHUB_SHA::7}" --commit-dirty=true
+
+      - name: Comprobar que responde
+        run: |
+          URL="https://${RAMA_VISTA}.multipartes-univalle.pages.dev"
+          for i in 1 2 3 4 5 6; do curl -fsS "$URL/api/salud" && break; sleep 15; done
+          curl -fsS "$URL/api/salud"; echo
+          curl -fsS "$URL/api/tc"; echo
+          curl -fsS -o /dev/null -w "empresa: %{http_code}\n" "$URL/empresa"
+          echo "Vista previa: $URL" >> "$GITHUB_STEP_SUMMARY"
