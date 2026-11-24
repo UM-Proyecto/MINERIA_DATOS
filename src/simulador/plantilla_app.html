@@ -883,6 +883,31 @@ details.tecnico[open]>summary::before{transform:rotate(90deg)}
       <details><summary>Fotos: autores y licencias</summary><ul class="creditos" id="catv-cred"></ul></details>
       <p class="pie" id="catv-pie"></p>
     </section>
+    <!-- D8: edición de un repuesto (solo el importador, en el portal). Los estilos van aquí para no tocar el bloque común. -->
+    <style>
+      #ed-dlg{border:0;border-radius:12px;padding:22px;width:min(680px,calc(100vw - 32px));max-height:calc(100vh - 32px);box-shadow:0 20px 60px rgba(0,0,0,.25)}
+      #ed-dlg::backdrop{background:rgba(15,23,42,.45)}
+      #ed-dlg h2{margin:0 0 4px}
+      .ficha .ed{margin-top:6px}
+      #t-csv td,#t-csv th{text-align:left;vertical-align:top}
+      #t-csv .mal{color:var(--bad, #b42318);font-weight:600}
+      .csv-acc{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:end;margin-top:12px}
+      .csv-acc input[type=file]{min-height:44px}
+    </style>
+    <dialog id="ed-dlg" aria-labelledby="ed-tit">
+      <form class="form2" id="f-ed" novalidate>
+        <div class="ancho"><h2 id="ed-tit">Editar repuesto</h2><p class="pie" id="ed-sub"></p></div>
+        <div class="ancho"><label for="ed-nom">Nombre<span class="ayuda">Cómo lo busca el cliente.</span></label><input id="ed-nom" maxlength="80" required></div>
+        <div><label for="ed-cat">Categoría<span class="ayuda">Una de las categorías del catálogo.</span></label><select id="ed-cat" required></select></div>
+        <div><label for="ed-prov">Proveedor<span class="ayuda">De él se toman el plazo, el flete y la condición de envío.</span></label><select id="ed-prov" required></select></div>
+        <div class="ancho"><label for="ed-desc">Descripción<span class="ayuda">Para qué sirve, en una o dos frases.</span></label><input id="ed-desc" maxlength="200"></div>
+        <div><label for="ed-costo">Costo de fábrica en dólares (USD)<span class="ayuda">Precio por unidad que cobra el proveedor.</span></label><input id="ed-costo" type="number" min="0.01" step="0.01" inputmode="decimal" required></div>
+        <div><label for="ed-mar">Margen en %<span class="ayuda">El precio de venta se recalcula con el costo y el margen.</span></label><input id="ed-mar" type="number" min="0" max="300" step="0.1" inputmode="decimal" required></div>
+        <div class="ancho"><label for="ed-stock">Stock vigente<span class="ayuda">Unidades en el almacén hoy. Si lo cambia, se registra un ajuste por la diferencia; las ventas ya registradas no se borran.</span></label><input id="ed-stock" type="number" step="1" inputmode="numeric" required></div>
+        <div class="ancho"><button class="btn1" type="submit" id="ed-ok">Guardar cambios</button> <button class="btn2" type="button" id="ed-cancelar">Cancelar</button>
+          <p class="msg" id="ed-msg" aria-live="polite"></p></div>
+      </form>
+    </dialog>
   </section>
 
   <!-- ============ ENTRAR (SCRUM-78) ============ -->
@@ -934,7 +959,7 @@ details.tecnico[open]>summary::before{transform:rotate(90deg)}
       <div class="card-h"><div><h2>Repuesto nuevo</h2><p>Sin historial de venta, las alertas lo muestran como «Sin datos» hasta que tenga ventas.</p></div></div>
       <form class="form2" id="f-nuevo-rep" novalidate>
         <div class="ancho"><label for="cg-nom">Nombre<span class="ayuda">Cómo lo busca el cliente, por ejemplo «Filtro de aire para motor 1.6».</span></label><input id="cg-nom" maxlength="80" required></div>
-        <div><label for="cg-cat">Categoría<span class="ayuda">Si coincide con una existente, se usa su foto.</span></label><input id="cg-cat" maxlength="60" list="cg-cats" required><datalist id="cg-cats"></datalist></div>
+        <div><label for="cg-cat">Categoría<span class="ayuda">Una de las categorías del catálogo; se usa su foto.</span></label><select id="cg-cat" required></select></div>
         <div><label for="cg-prov">Proveedor<span class="ayuda">De él se toman el plazo, el flete y lo que incluye su precio.</span></label><select id="cg-prov" required></select></div>
         <div class="ancho"><label for="cg-desc">Descripción<span class="ayuda">Para qué sirve, en una o dos frases.</span></label><input id="cg-desc" maxlength="200"></div>
         <div><label for="cg-costo">Costo de fábrica en dólares (USD)<span class="ayuda">Precio por unidad que cobra el proveedor.</span></label><input id="cg-costo" type="number" min="0.01" step="0.01" inputmode="decimal" required></div>
@@ -943,6 +968,24 @@ details.tecnico[open]>summary::before{transform:rotate(90deg)}
         <div><label for="cg-fecha">Fecha de ingreso<span class="ayuda">Cuándo entró al almacén o al catálogo.</span></label><input id="cg-fecha" type="date" required></div>
         <div class="ancho"><button class="btn1" type="submit">Guardar repuesto</button><p class="msg" id="cg-rep-msg" aria-live="polite"></p></div>
       </form>
+    </section>
+    <section class="card">
+      <div class="card-h"><div><h2>Carga masiva por CSV</h2><p>Altas y cambios de varios repuestos a la vez, con una revisión antes de guardar.</p></div></div>
+      <ol class="pie">
+        <li>Descargue la plantilla: trae todos los repuestos actuales, uno por fila.</li>
+        <li>Para cambiar un repuesto, edite su fila. Una celda vacía no cambia nada. La columna «stock» es el stock que usted quiere que quede: si la llena, se registra un ajuste por la diferencia.</li>
+        <li>Para dar de alta un repuesto, agregue una fila con «repuesto_id» vacío y todos los datos, incluida la fecha de ingreso (AAAA-MM-DD).</li>
+        <li>Revise el archivo. No se guarda nada hasta que pulse «Aplicar los cambios», y si alguna fila tiene un error no se aplica ninguna.</li>
+      </ol>
+      <p class="pie" id="csv-reglas"></p>
+      <div class="csv-acc">
+        <button class="btn2" type="button" id="csv-plantilla">Descargar la plantilla</button>
+        <div><label for="csv-archivo">Archivo CSV<span class="ayuda">Separado por comas o por punto y coma, en UTF-8.</span></label><input id="csv-archivo" type="file" accept=".csv,text/csv"></div>
+        <button class="btn1" type="button" id="csv-revisar">Revisar el archivo</button>
+        <button class="btn1" type="button" id="csv-aplicar" hidden>Aplicar los cambios</button>
+      </div>
+      <p class="msg" id="csv-msg" aria-live="polite"></p>
+      <div class="scroll" style="margin-top:10px"><table id="t-csv"></table></div>
     </section>
     <section class="card">
       <div class="card-h"><div><h2>Cliente nuevo</h2><p>Queda disponible para asociarle cotizaciones y aparece en la pantalla de clientes.</p></div></div>
@@ -1924,6 +1967,10 @@ function pintarRotacion(){
 const CAT = {}; D.catalogo.repuestos.forEach(c => CAT[c.repuesto_id] = c);
 const nombreRep = id => CAT[id] ? CAT[id].nombre : id;
 const CATEGORIAS = [...new Set(D.catalogo.repuestos.map(c => c.categoria))];
+// D8: la categoría se elige de esta lista cerrada (la del catálogo del dataset), igual que la valida el servidor.
+const CATEGORIAS_BASE = CATEGORIAS.slice();
+const IMG_CAT = {}; D.catalogo.repuestos.forEach(c => { if(c.imagen && !IMG_CAT[c.categoria]) IMG_CAT[c.categoria] = c.imagen; });
+const puedeEditar = () => PORTAL && SES.rol === "importador";
 if(S.catQ === undefined){ S.catQ = ""; S.catC = ""; }
 // Filtro por vehículo (D9). La tabla de aplicaciones es de demostración; los repuestos cargados en el portal no tienen.
 const FV = FiltroVehiculo, APL = D.catalogo.aplicaciones.filas, APL_DE = FV.indice(APL);
@@ -1961,7 +2008,7 @@ function filtrarCatalogo(){
       <div class="cu"><span class="cat">${esc(c.categoria)}</span><h3>${esc(c.nombre)}</h3><span class="cod">${r.repuesto_id}${r.codigo_carparts ? " · carparts " + r.codigo_carparts : " · cargado en el portal"}</span>
       <p class="desc">${esc(c.descripcion)}</p>${ap ? `<p class="sv" title="${esc(FV.resumen(ap, 99))}"><b>Sirve para:</b> ${esc(FV.resumen(ap, 2))}</p>` : `<p class="sv nr">${FV.SIN_DATO}</p>`}<div class="pre">${bs2(precio)}<span class="ayuda" style="display:inline;margin-left:6px">por unidad</span></div>
       <span class="disp">${st > 0 ? `<span class="insignia si">En almacén: ${nf(st)}</span>` : `<span class="insignia" style="background:var(--warn-soft);color:var(--warn)">Bajo pedido: unos ${nf(pl)} ${pal(pl, "día", "días")}</span>`}</span>
-      <button class="btn2" type="button" data-cot="${r.repuesto_id}" aria-label="Cotizar ${esc(c.nombre)}">Cotizar por cantidad</button></div></article>`; }).join("");
+      <button class="btn2" type="button" data-cot="${r.repuesto_id}" aria-label="Cotizar ${esc(c.nombre)}">Cotizar por cantidad</button>${puedeEditar() ? `<button class="btn2 ed" type="button" data-ed="${r.repuesto_id}" aria-label="Editar ${esc(c.nombre)}">Editar</button>` : ""}</div></article>`; }).join("");
 }
 let tCat = null;
 $("catv-q").addEventListener("input", e => { S.catQ = e.target.value; clearTimeout(tCat); tCat = setTimeout(filtrarCatalogo, 120); });
@@ -1971,7 +2018,37 @@ $("catv-mo").addEventListener("change", e => { S.catMo = e.target.value; S.catAn
 $("catv-an").addEventListener("change", e => { S.catAn = e.target.value; filtrarCatalogo(); });
 $("v-catalogo").addEventListener("click", e => { if(!e.target.closest("#catv-limpiar, [data-limpiar]")) return;
   S.catQ = S.catC = S.catMa = S.catMo = S.catAn = ""; $("catv-q").value = ""; pintarCatalogo(); $("catv-ma").focus(); });
-$("catv-grid").addEventListener("click", e => { const b = e.target.closest("button[data-cot]"); if(b){ S.cotRep = b.dataset.cot; location.hash = "#cotizar"; } });
+$("catv-grid").addEventListener("click", e => { const b = e.target.closest("button[data-cot]"); if(b){ S.cotRep = b.dataset.cot; location.hash = "#cotizar"; }
+  const ed = e.target.closest("button[data-ed]"); if(ed) abrirEdicion(ed.dataset.ed); });
+
+/* ---- D8: editar un repuesto (del dataset o cargado). Se mandan solo los campos que cambiaron. ---- */
+let ED = null;
+function abrirEdicion(id){
+  const r = REP[id], c = CAT[id]; if(!r || !c) return;
+  ED = {id, antes:{nombre:c.nombre, categoria:c.categoria, descripcion:c.descripcion || "", proveedor_id:r.proveedor_id,
+    costo_unitario_usd:r.costo_unitario_usd, margen_pct:r.margen_pct, stock: STOCK_REAL[id] !== undefined ? STOCK_REAL[id] : r.stock_al_2026_11_10}};
+  $("ed-sub").textContent = `${id} · ${r.cargado ? "cargado en el portal" : "del conjunto de datos (los cambios se guardan aparte, sin tocar el original)"}`;
+  $("ed-cat").innerHTML = CATEGORIAS_BASE.map(x => `<option>${esc(x)}</option>`).join("");
+  $("ed-prov").innerHTML = D.proveedores.map(p => `<option value="${p.proveedor_id}">${esc(nombreProv(p))} · ${esc(p.origen)} · ${p.plazo_normal_dias} días</option>`).join("");
+  const a = ED.antes;
+  $("ed-nom").value = a.nombre; $("ed-cat").value = a.categoria; $("ed-prov").value = a.proveedor_id; $("ed-desc").value = a.descripcion;
+  $("ed-costo").value = a.costo_unitario_usd; $("ed-mar").value = a.margen_pct; $("ed-stock").value = a.stock;
+  $("ed-msg").className = "msg"; $("ed-msg").textContent = ""; $("ed-ok").disabled = false;
+  $("ed-dlg").showModal(); $("ed-nom").focus();
+}
+$("ed-cancelar").addEventListener("click", () => $("ed-dlg").close());
+$("f-ed").addEventListener("submit", async e => { e.preventDefault();
+  const m = $("ed-msg"), a = ED.antes, nuevo = {nombre:$("ed-nom").value.trim(), categoria:$("ed-cat").value, descripcion:$("ed-desc").value.trim(),
+    proveedor_id:$("ed-prov").value, costo_unitario_usd:Number($("ed-costo").value), margen_pct:Number($("ed-mar").value), stock:Number($("ed-stock").value)};
+  const cambios = {}; Object.keys(nuevo).forEach(k => { if(nuevo[k] !== a[k]) cambios[k] = nuevo[k]; });
+  if(!Object.keys(cambios).length){ m.className = "msg mal"; m.textContent = "No cambió ningún dato."; return; }
+  if("stock" in cambios && (!Number.isInteger(cambios.stock) || cambios.stock < 0)){ m.className = "msg mal"; m.textContent = "Stock vigente: escriba un número entero de 0 o más."; return; }
+  m.className = "msg"; m.textContent = "Guardando…"; $("ed-ok").disabled = true;
+  try { const r = await api(`/api/repuestos/${ED.id}`, {method:"PATCH", body:cambios});
+    await cargarServidor(); $("ed-dlg").close(); pintarCatalogo();
+    $("catv-n").textContent = `${ED.id} actualizado: ${r.cambios.map(x => NOMBRE_CAMPO[x.campo] || x.campo).join(", ")}.`;
+  } catch(err){ m.className = "msg mal"; m.textContent = err.message; $("ed-ok").disabled = false; } });
+const NOMBRE_CAMPO = {nombre:"nombre", categoria:"categoría", descripcion:"descripción", costo_unitario_usd:"costo en USD", margen_pct:"margen", proveedor_id:"proveedor", stock:"stock"};
 
 /* ==================== COTIZAR (SCRUM-72) ==================== */
 const bs2 = n => "Bs " + nf(n, 2);
@@ -2062,17 +2139,29 @@ function mezclarRepuestos(lista){
 // D6: stock vigente que calcula el servidor (stock al 10-11-2026 o el del alta, menos ventas confirmadas, más ajustes).
 // Reemplaza al que trae la página, en el catálogo, el cotizador, las alertas y el plan.
 let STOCK_VIGENTE = false;
+const STOCK_REAL = {};   // con su signo, para el formulario de edición
 function aplicarStock(st){
   if(!st || !st.repuestos) return;
+  st.repuestos.forEach(x => { STOCK_REAL[x.repuesto_id] = x.stock; });
   // Un stock negativo (venta forzada) entra al motor como 0, igual que en el servidor: el motor toma un negativo por dato inválido.
   st.repuestos.forEach(x => { if(REP[x.repuesto_id]) REP[x.repuesto_id].stock_al_2026_11_10 = Math.max(0, x.stock); });
   STOCK_VIGENTE = true; AL_TC = null;
 }
 const BASE_CLI = D.clientes.lista.length, BASE_VEN = D.clientes.ventas.length;
 function quitarPrivado(){ D.clientes.lista.length = BASE_CLI; D.clientes.ventas.length = BASE_VEN; }
+// D8: ajustes del importador a los 30 del dataset, ya calculados por el servidor (precio incluido).
+function aplicarAjustes(lista){
+  (lista || []).forEach(a => { const r = REP[a.repuesto_id], c = CAT[a.repuesto_id]; if(!r || r.cargado) return;
+    const pv = PRV[a.proveedor_id] || {};
+    Object.assign(r, {costo_unitario_usd:a.costo_unitario_usd, margen_pct:a.margen_pct, costo_puesto_usd:a.costo_puesto_usd, precio_venta_usd:a.precio_venta_usd,
+      proveedor_id:a.proveedor_id, proveedor:pv.nombre, origen:pv.origen, incoterm:pv.incoterm, plazo_normal_dias:pv.plazo_normal_dias,
+      desvio_plazo_dias:pv.desvio_plazo_dias, pct_entregas_a_tiempo:pv.pct_entregas_a_tiempo});
+    if(c) Object.assign(c, {nombre:a.nombre, categoria:a.categoria, descripcion:a.descripcion, imagen: IMG_CAT[a.categoria] || c.imagen}); });
+  AL_TC = null;
+}
 async function cargarServidor(){
-  const [nuevos, stock] = await Promise.all([api("/api/repuestos"), api("/api/stock")]);
-  mezclarRepuestos(nuevos); aplicarStock(stock);
+  const [nuevos, stock, ajustes] = await Promise.all([api("/api/repuestos"), api("/api/stock"), api("/api/ajustes")]);
+  mezclarRepuestos(nuevos); aplicarAjustes(ajustes); aplicarStock(stock);
   if(SES.rol === "importador"){
     quitarPrivado();
     (await api("/api/clientes")).forEach(c => D.clientes.lista.push({cliente_id:c.cliente_id, nombre:c.nombre, tipo:c.tipo, zona:c.zona}));
@@ -2183,7 +2272,8 @@ $("cz-csv").addEventListener("click", async () => {
 
 /* ---- Cargar repuestos y clientes (SCRUM-77) ---- */
 function pintarCargar(){
-  $("cg-cats").innerHTML = CATEGORIAS.map(c => `<option value="${esc(c)}">`).join("");
+  if(!$("cg-cat").options.length) $("cg-cat").innerHTML = CATEGORIAS_BASE.map(c => `<option>${esc(c)}</option>`).join("");
+  $("csv-reglas").textContent = "Categorías admitidas: " + CATEGORIAS_BASE.join(", ") + ". Proveedores: " + D.proveedores.map(p => p.proveedor_id).join(", ") + ". Máximo 500 filas y 256 KB por archivo.";
   if(!$("cg-prov").options.length) $("cg-prov").innerHTML = D.proveedores.map(p => `<option value="${p.proveedor_id}">${esc(nombreProv(p))} · ${esc(p.origen)} · ${p.plazo_normal_dias} días</option>`).join("");
   if(!$("cg-fecha").value) $("cg-fecha").value = new Date().toISOString().slice(0,10);
   const nuevos = D.clientes.lista.slice(BASE_CLI);
@@ -2203,6 +2293,46 @@ $("f-cli").addEventListener("submit", async e => { e.preventDefault(); const m =
   try { const r = await api("/api/clientes", {method:"POST", body:{nombre:$("cc-nom").value, tipo:$("cc-tipo").value, zona:$("cc-zona").value}});
     await cargarServidor(); e.target.reset(); pintarCargar(); m.className = "msg ok"; m.textContent = `Alta hecha: ${r.cliente_id}, ${r.nombre}.`;
   } catch(err){ m.className = "msg mal"; m.textContent = err.message; } });
+
+/* ---- D8: carga masiva por CSV. Primero se revisa (el servidor no escribe nada) y se muestra cada fila; recién con
+   «Aplicar los cambios» se guarda todo junto, y el servidor vuelve a revisar antes de escribir. ---- */
+let CSV_TEXTO = null;
+$("csv-plantilla").addEventListener("click", async () => {
+  try { const r = await api("/api/repuestos/plantilla.csv", {crudo:true});
+    const url = URL.createObjectURL(await r.blob()), a = document.createElement("a"); a.href = url; a.download = "plantilla_repuestos_multipartes.csv"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000);
+  } catch(err){ $("csv-msg").className = "msg mal"; $("csv-msg").textContent = err.message; } });
+async function enviarCsv(aplicar){
+  const r = await fetch("/api/repuestos/csv" + (aplicar ? "?aplicar=1" : ""), {method:"POST", headers:{"content-type":"text/csv; charset=utf-8", "authorization":"Bearer " + SES.token}, body: CSV_TEXTO});
+  let d = null; try { d = await r.json(); } catch(e){}
+  if(!d || (!r.ok && !d.filas)) throw new Error((d && d.error) || "El servidor respondió " + r.status);
+  return d;
+}
+const valorCsv = v => v === null || v === undefined || v === "" ? "vacío" : typeof v === "number" ? nf(v, Number.isInteger(v) ? 0 : 2) : `«${v}»`;
+function pintarInformeCsv(d){
+  $("t-csv").innerHTML = `<thead><tr><th>Fila</th><th>Repuesto</th><th>Qué hace</th><th>Cambios</th><th>Resultado</th></tr></thead><tbody>` + d.filas.map(f =>
+    `<tr><td>${f.fila}</td><td>${esc(f.repuesto_id || "nuevo")}</td><td>${esc(f.accion)}</td><td>${f.error ? "" : f.accion === "alta" ? esc(f.cambios.map(c => `${NOMBRE_CAMPO[c.campo]}: ${valorCsv(c.despues)}`).join("; "))
+      : esc(f.cambios.map(c => `${NOMBRE_CAMPO[c.campo]}: ${valorCsv(c.antes)} → ${valorCsv(c.despues)}`).join("; ") || "—")}</td><td>${f.error ? `<span class="mal">${esc(f.error)}</span>` : "Correcta"}</td></tr>`).join("") + "</tbody>";
+}
+$("csv-archivo").addEventListener("change", () => { CSV_TEXTO = null; $("csv-aplicar").hidden = true; $("t-csv").innerHTML = ""; $("csv-msg").textContent = ""; });
+$("csv-revisar").addEventListener("click", async () => {
+  const m = $("csv-msg"), f = $("csv-archivo").files[0]; $("csv-aplicar").hidden = true;
+  if(!f){ m.className = "msg mal"; m.textContent = "Elija primero un archivo CSV."; return; }
+  if(f.size > 256 * 1024){ m.className = "msg mal"; m.textContent = "El archivo pesa más de 256 KB. Divídalo en partes."; return; }
+  CSV_TEXTO = await f.text(); m.className = "msg"; m.textContent = "Revisando…";
+  try { const d = await enviarCsv(false); pintarInformeCsv(d);
+    if(d.errores){ m.className = "msg mal"; m.textContent = `${d.errores} ${d.errores === 1 ? "fila tiene" : "filas tienen"} errores. Corríjalas en el archivo y revíselo de nuevo; mientras tanto no se puede aplicar nada.`; }
+    else if(!d.altas && !d.ediciones){ m.className = "msg"; m.textContent = "El archivo no trae ningún cambio."; }
+    else { m.className = "msg ok"; m.textContent = `Archivo correcto: ${d.altas} ${d.altas === 1 ? "alta" : "altas"} y ${d.ediciones} ${d.ediciones === 1 ? "repuesto con cambios" : "repuestos con cambios"}${d.sin_cambios ? `; ${d.sin_cambios} sin cambios` : ""}. Revise la tabla y pulse «Aplicar los cambios».`; $("csv-aplicar").hidden = false; }
+  } catch(err){ m.className = "msg mal"; m.textContent = err.message; $("t-csv").innerHTML = ""; } });
+$("csv-aplicar").addEventListener("click", async () => {
+  const m = $("csv-msg"); $("csv-aplicar").disabled = true; m.className = "msg"; m.textContent = "Aplicando…";
+  try { const d = await enviarCsv(true); pintarInformeCsv(d);
+    if(!d.aplicado){ m.className = "msg mal"; m.textContent = d.error || "No se aplicó nada."; return; }
+    await cargarServidor(); pintarCargar(); $("csv-aplicar").hidden = true; CSV_TEXTO = null; $("csv-archivo").value = "";
+    const nuevos = d.filas.filter(f => f.accion === "alta").map(f => f.repuesto_id);
+    m.className = "msg ok"; m.textContent = `Cambios aplicados: ${d.altas} ${d.altas === 1 ? "alta" : "altas"}${nuevos.length ? " (" + nuevos.join(", ") + ")" : ""} y ${d.ediciones} ${d.ediciones === 1 ? "repuesto editado" : "repuestos editados"}. Ya se ven en el catálogo, el cotizador y las alertas.`;
+  } catch(err){ m.className = "msg mal"; m.textContent = err.message; }
+  finally { $("csv-aplicar").disabled = false; } });
 
 /* ==================== MINERÍA DE DATOS (proyecto integrador) ==================== */
 /* Un submenú por técnica. Cada técnica muestra:

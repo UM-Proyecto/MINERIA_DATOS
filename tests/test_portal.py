@@ -231,6 +231,97 @@ class Portal(unittest.TestCase):
         self.assertEqual([(m["cantidad"], m["motivo"], m["usuario"]) for m in mov], [(-2, "venta", "importador"), (-4, "venta", "importador")])
         self.assertTrue(all(m["cotizacion"] for m in mov))
 
+    def test_d8_permisos_y_validacion_de_la_edicion(self):
+        self.assertEqual(self.st("d8_patch_anon"), 401)
+        self.assertEqual(self.st("d8_patch_prov"), 403)
+        for k in ("d8_patch_cat_mal", "d8_patch_campo_mal", "d8_patch_formula", "d8_patch_vacio", "d8_alta_cat_mal"):
+            self.assertEqual(self.st(k), 400, k)
+        self.assertIn("Kit de embrague", self.r["d8_patch_cat_mal"]["cuerpo"]["error"])  # dice cuáles valen
+        self.assertEqual(self.st("d8_patch_no_existe"), 404)
+        self.assertEqual(self.st("d8_csv_prov"), 403)
+        self.assertEqual(self.st("d8_csv_anon"), 401)
+        self.assertEqual(self.st("d8_plantilla_anon"), 401)
+
+    def test_d8_editar_repuesto_del_dataset(self):
+        e = self.r["d8_patch_dataset"]
+        self.assertEqual(e["status"], 200, e)
+        self.assertEqual({c["campo"] for c in e["cuerpo"]["cambios"]}, {"nombre", "categoria", "margen_pct", "stock"})
+        self.assertEqual(self.r["d8_patch_igual"]["cuerpo"]["cambios"], [])  # lo que no cambia no se escribe
+        aj = next(a for a in self.r["d8_ajustes"]["cuerpo"] if a["repuesto_id"] == "REP-0003")
+        self.assertEqual((aj["nombre"], aj["categoria"], aj["margen_pct"]), ("Disco de freno ventilado", "Disco de freno", 50))
+        self.assertAlmostEqual(aj["precio_venta_usd"], round(aj["costo_puesto_usd"] * 1.5, 2))
+        orig = next(r for r in self.d["repuestos"] if r["repuesto_id"] == "REP-0003")
+        self.assertAlmostEqual(aj["costo_puesto_usd"], orig["costo_puesto_usd"], delta=0.011)
+        # el stock no se pisa: queda un movimiento «ajuste» por la diferencia
+        self.assertEqual(self.r["d8"]["rep3_stock"], 2)
+        mov = self.r["d8_mov3"]["cuerpo"]
+        self.assertEqual([(m["cantidad"], m["motivo"]) for m in mov], [(2 - orig["stock_al_2026_11_10"], "ajuste")])
+        # el cotizador del servidor usa el precio nuevo
+        self.assertAlmostEqual(self.r["d8_cot3"]["cuerpo"]["precio_lista_bs"], round(aj["precio_venta_usd"] * 11.65, 2), places=6)
+
+    def test_d8_editar_repuesto_cargado(self):
+        self.assertEqual(self.st("d8_patch_cargado"), 200)
+        n = self.r["d8"]["n002"]
+        self.assertEqual((n["nombre"], n["proveedor_id"], n["stock"], n["descripcion"]), ("Repuesto dos corregido", "PROV-BR-01", 5, ""))
+        self.assertEqual(self.r["d8"]["n002_mod"]["usuario"], "importador")
+        self.assertTrue(self.r["d8"]["n002_mod"]["modificado"])
+        self.assertNotIn("REP-N002", {a["id"] for a in self.r["d8_miprov"]["cuerpo"]["repuestos"]})  # cambió de proveedor
+
+    def test_d8_plantilla(self):
+        p = self.r["d8_plantilla"]
+        self.assertEqual(p["status"], 200)
+        lineas = p["cuerpo"].lstrip("\ufeff").strip().split("\r\n")
+        self.assertEqual(lineas[0], "repuesto_id,nombre,categoria,descripcion,costo_unitario_usd,margen_pct,stock,proveedor_id,fecha_ingreso")
+        self.assertEqual(len(lineas), 1 + 30 + 2)
+        self.assertTrue(lineas[1].startswith("REP-0001,"))
+
+    def test_d8_csv_con_filas_malas_no_aplica_nada(self):
+        r = self.r["d8_csv_malo"]
+        self.assertEqual(r["status"], 422, r)
+        filas = {f["fila"]: f for f in r["cuerpo"]["filas"]}
+        self.assertIsNone(filas[2]["error"])
+        self.assertIsNone(filas[3]["error"])
+        for n, txt in ((4, "categoría"), (5, "stock"), (6, "No existe"), (7, "fila 2"), (8, "fecha"), (9, "fórmula"), (10, "columnas")):
+            self.assertIn(txt, filas[n]["error"], n)
+        self.assertEqual(r["cuerpo"]["errores"], 7)
+        d8 = self.r["d8"]
+        self.assertEqual(d8["n_tras_malo"], d8["n_antes"])            # ninguna alta
+        self.assertNotIn("REP-0004", d8["aj_tras_malo"])               # ninguna edición
+        self.assertEqual(d8["rep6_tras_malo"], self.base("REP-0006"))  # ningún ajuste de stock
+
+    def test_d8_csv_bueno_aplica_todo(self):
+        rv = self.r["d8_csv_revisar"]
+        self.assertEqual(rv["status"], 200, rv)
+        self.assertFalse(rv["cuerpo"]["aplicado"])
+        self.assertEqual((rv["cuerpo"]["errores"], rv["cuerpo"]["altas"], rv["cuerpo"]["ediciones"], rv["cuerpo"]["sin_cambios"]), (0, 2, 3, 1))
+        d8 = self.r["d8"]
+        self.assertEqual(d8["n_tras_revisar"], d8["n_antes"])  # revisar no escribe
+        b = self.r["d8_csv_bueno"]
+        self.assertEqual(b["status"], 200, b)
+        self.assertTrue(b["cuerpo"]["aplicado"])
+        self.assertEqual(d8["n_tras_bueno"], d8["n_antes"] + 2)
+        nuevos = [f["repuesto_id"] for f in b["cuerpo"]["filas"] if f["accion"] == "alta"]
+        self.assertEqual(nuevos, ["REP-N004", "REP-N005"])
+        pub = {r["repuesto_id"]: r for r in d8["pub_tras_bueno"]}
+        self.assertEqual((pub["REP-N004"]["nombre"], pub["REP-N004"]["stock"]), ("Bujía nueva de prueba", 12))
+        self.assertEqual(pub["REP-N003"]["categoria"], "Kit de embrague")
+        self.assertEqual(pub["REP-N003"]["descripcion"], 'Texto con coma, y "comillas"')
+        aj = {a["repuesto_id"]: a for a in d8["aj_tras_bueno"]}
+        self.assertEqual(aj["REP-0004"]["nombre"], "Nombre nuevo para el cuatro")
+        self.assertEqual(d8["rep6_tras_bueno"], 9)
+        otra = self.r["d8_csv_otra_vez"]
+        self.assertEqual(otra["status"], 422)
+        self.assertIn("Ya existe", otra["cuerpo"]["filas"][4]["error"])
+
+    def test_d8_csv_formato_y_topes(self):
+        pc = self.r["d8_csv_punto_coma"]
+        self.assertEqual(pc["status"], 200, pc)
+        self.assertEqual(pc["cuerpo"]["filas"][0]["cambios"][0]["despues"], 12.5)  # coma decimal con punto y coma
+        self.assertEqual(self.st("d8_csv_cab_mal"), 400)
+        self.assertEqual(self.st("d8_csv_sin_filas"), 400)
+        self.assertEqual(self.st("d8_csv_muchas"), 413)
+        self.assertEqual(self.st("d8_csv_grande"), 413)
+
     def test_exportar_csv(self):
         c = self.r["csv"]
         self.assertTrue(c["tipo"].startswith("text/csv"))
@@ -254,7 +345,8 @@ class PortalLiviano(unittest.TestCase):
     def test_liviano_no_incluye_datos(self):
         t = ap.armar(liviano=True)
         self.assertNotIn("DATOS_INCLUIDOS =", t)
-        self.assertLess(len(t), 80_000)
+        # Motor y API, sin los datos (la completa pesa ~1,7 MB). Con la edición y el CSV de D8 la API pasó de ~63 a ~89 KB.
+        self.assertLess(len(t), 120_000)
         self.assertIn("DATOS_INCLUIDOS =", ap.armar())
 
 

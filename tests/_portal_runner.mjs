@@ -116,7 +116,7 @@ await pedir(w, env, "rep_neg", "POST", "/api/repuestos", { nombre: "X", categori
 await pedir(w, env, "rep_fecha_mal", "POST", "/api/repuestos", { nombre: "X", categoria: "Y", costo_unitario_usd: 10, margen_pct: 35, stock: 1, proveedor_id: "PROV-CN-03", fecha_ingreso: "13/11/2026" }, imp);
 await pedir(w, env, "rep_prov_mal", "POST", "/api/repuestos", { nombre: "X", categoria: "Y", costo_unitario_usd: 10, margen_pct: 35, stock: 1, proveedor_id: "PROV-XX", fecha_ingreso: "2026-11-13" }, imp);
 await pedir(w, env, "rep_vacio", "POST", "/api/repuestos", { nombre: " ", categoria: "Y", costo_unitario_usd: 10, margen_pct: 35, stock: 1, proveedor_id: "PROV-CN-03", fecha_ingreso: "2026-11-13" }, imp);
-await pedir(w, env, "rep_ok", "POST", "/api/repuestos", { nombre: "Filtro de aire para motor 1.6", categoria: "Filtro de aire", descripcion: "Filtra el aire.", costo_unitario_usd: 8.5, margen_pct: 40, stock: 0, proveedor_id: "PROV-CN-03", fecha_ingreso: "2026-11-13" }, imp);
+await pedir(w, env, "rep_ok", "POST", "/api/repuestos", { nombre: "Filtro de aceite para motor 1.6", categoria: "Filtro de aceite", descripcion: "Filtra el aire.", costo_unitario_usd: 8.5, margen_pct: 40, stock: 0, proveedor_id: "PROV-CN-03", fecha_ingreso: "2026-11-13" }, imp);
 await pedir(w, env, "repuestos_pub", "GET", "/api/repuestos");
 await pedir(w, env, "cot_nuevo", "POST", "/api/cotizaciones", { repuesto_id: "REP-N001", cantidad: 12 });
 await pedir(w, env, "miprov", "GET", "/api/proveedor", undefined, prov);
@@ -189,6 +189,76 @@ await pedir(w, env, "d6_miprov", "GET", "/api/proveedor", undefined, prov);
 await pedir(w, env, "d6_mov_anon", "GET", "/api/movimientos");
 await pedir(w, env, "d6_mov_prov", "GET", "/api/movimientos", undefined, prov);
 await pedir(w, env, "d6_mov", "GET", "/api/movimientos?repuesto=REP-0005", undefined, imp);
+
+// D8: edición de repuestos (dataset y cargados) y carga masiva por CSV. Solo el importador.
+salida.d8 = {};
+await pedir(w, env, "d8_patch_anon", "PATCH", "/api/repuestos/REP-0003", { nombre: "X" });
+await pedir(w, env, "d8_patch_prov", "PATCH", "/api/repuestos/REP-0003", { nombre: "X" }, prov);
+await pedir(w, env, "d8_patch_cat_mal", "PATCH", "/api/repuestos/REP-0003", { categoria: "Filtro de aire" }, imp);
+await pedir(w, env, "d8_patch_campo_mal", "PATCH", "/api/repuestos/REP-0003", { precio_venta_usd: 1 }, imp);
+await pedir(w, env, "d8_patch_formula", "PATCH", "/api/repuestos/REP-0003", { nombre: "=HIPERVINCULO(\"x\")" }, imp);
+await pedir(w, env, "d8_patch_no_existe", "PATCH", "/api/repuestos/REP-9999", { nombre: "X" }, imp);
+await pedir(w, env, "d8_patch_vacio", "PATCH", "/api/repuestos/REP-0003", {}, imp);
+await pedir(w, env, "d8_alta_cat_mal", "POST", "/api/repuestos", Object.assign({}, repBase, { nombre: "Otro", categoria: "Filtro de aire" }), imp);
+await pedir(w, env, "d8_patch_dataset", "PATCH", "/api/repuestos/REP-0003", { nombre: "Disco de freno ventilado", categoria: "Disco de freno", margen_pct: 50, stock: 2 }, imp);
+await pedir(w, env, "d8_patch_igual", "PATCH", "/api/repuestos/REP-0003", { margen_pct: 50, stock: 2 }, imp);
+await pedir(w, env, "d8_ajustes", "GET", "/api/ajustes");
+salida.d8.rep3_stock = await stockDe("d8_stock_1", "REP-0003");
+await pedir(w, env, "d8_mov3", "GET", "/api/movimientos?repuesto=REP-0003", undefined, imp);
+await pedir(w, env, "d8_cot3", "POST", "/api/cotizaciones", { repuesto_id: "REP-0003", cantidad: 1 });
+await pedir(w, env, "d8_patch_cargado", "PATCH", "/api/repuestos/REP-N002", { nombre: "Repuesto dos corregido", proveedor_id: "PROV-BR-01", stock: 5, descripcion: "" }, imp);
+salida.d8.n002 = (await pedir(w, env, "d8_rep_pub", "GET", "/api/repuestos")).cuerpo.find(r => r.repuesto_id === "REP-N002");
+await pedir(w, env, "d8_miprov", "GET", "/api/proveedor", undefined, prov);
+salida.d8.n002_mod = await env.DB.prepare("SELECT modificado, usuario FROM repuestos WHERE repuesto_id = 'REP-N002'").first();
+
+await pedir(w, env, "d8_plantilla_anon", "GET", "/api/repuestos/plantilla.csv");
+await pedir(w, env, "d8_plantilla", "GET", "/api/repuestos/plantilla.csv", undefined, imp, true);
+const CAB = "repuesto_id,nombre,categoria,descripcion,costo_unitario_usd,margen_pct,stock,proveedor_id,fecha_ingreso";
+const csv = (cuerpo, nombre, aplicar, token) => pedirCsv(nombre, cuerpo, aplicar, token === undefined ? imp : token);
+async function pedirCsv(nombre, cuerpo, aplicar, token) {
+  const h = { "content-type": "text/csv" }; if (token) h.authorization = "Bearer " + token;
+  const r = await w.fetch(new Request("https://portal.prueba/api/repuestos/csv" + (aplicar ? "?aplicar=1" : ""), { method: "POST", headers: h, body: cuerpo }), env);
+  salida[nombre] = { status: r.status, cuerpo: await r.json() };
+  return salida[nombre];
+}
+const nRep = async () => (await pedir(w, env, "d8_n", "GET", "/api/repuestos")).cuerpo.length;
+salida.d8.n_antes = await nRep();
+const malo = [CAB,
+  "REP-0004,Nombre nuevo para el cuatro,,,,,,,",
+  ",Bujía nueva de prueba,Bujía de encendido,Sirve para probar,3.5,40,12,PROV-CN-03,2026-11-24",
+  ",Algo,Filtro de aire,,3,40,1,PROV-CN-03,2026-11-24",
+  "REP-0006,,,,,,-1,,",
+  "REP-9999,Nada,,,,,,,",
+  "REP-0004,Repetido,,,,,,,",
+  "REP-0007,,,,,,,,2026-11-01",
+  ",=1+1,Disco de freno,,3,40,1,PROV-CN-03,2026-11-24",
+  ",Corta,Disco de freno,,3,40,1,PROV-CN-03"].join("\n");
+await csv(malo, "d8_csv_malo", true);
+salida.d8.n_tras_malo = await nRep();
+salida.d8.aj_tras_malo = (await pedir(w, env, "d8_aj2", "GET", "/api/ajustes")).cuerpo.map(a => a.repuesto_id);
+salida.d8.rep6_tras_malo = await stockDe("d8_stock_2", "REP-0006");
+const bueno = [CAB,
+  "REP-0004,Nombre nuevo para el cuatro,,,,,,,",
+  "REP-0006,,,,,,9,,",
+  "REP-0001,,,,,,,,",
+  "REP-N003,,Kit de embrague,\"Texto con coma, y \"\"comillas\"\"\",,,,,",
+  ",Bujía nueva de prueba,Bujía de encendido,Sirve para probar,3.5,40,12,PROV-CN-03,2026-11-24",
+  ",Otra bujía,Bujía de encendido,,4,35,0,PROV-BR-01,2026-11-24", ""].join("\r\n");
+await csv(bueno, "d8_csv_revisar", false);
+salida.d8.n_tras_revisar = await nRep();
+await csv(bueno, "d8_csv_bueno", true);
+salida.d8.n_tras_bueno = await nRep();
+salida.d8.pub_tras_bueno = (await pedir(w, env, "d8_rep_pub2", "GET", "/api/repuestos")).cuerpo;
+salida.d8.aj_tras_bueno = (await pedir(w, env, "d8_aj3", "GET", "/api/ajustes")).cuerpo;
+salida.d8.rep6_tras_bueno = await stockDe("d8_stock_3", "REP-0006");
+await csv(bueno, "d8_csv_otra_vez", true);   // las altas ya existen: se rechaza todo
+await csv("﻿repuesto_id;nombre;categoria;descripcion;costo_unitario_usd;margen_pct;stock;proveedor_id;fecha_ingreso\nREP-0002;;;;12,5;;;;\n", "d8_csv_punto_coma", false);
+await csv("a,b,c\n1,2,3\n", "d8_csv_cab_mal", false);
+await csv(CAB + "\n", "d8_csv_sin_filas", false);
+await csv(CAB + "\n" + "REP-0002,,,,,,,,\n".repeat(501), "d8_csv_muchas", false);
+await csv(CAB + "\n" + ",x,Disco de freno," + "a".repeat(300 * 1024) + ",3,40,1,PROV-CN-03,2026-11-24\n", "d8_csv_grande", false);
+await csv(bueno, "d8_csv_prov", true, prov);
+await csv(bueno, "d8_csv_anon", true, null);
 
 // Otra clave de sesión: el token del servidor anterior no sirve.
 const w2 = await cargar();
