@@ -273,10 +273,10 @@ horas y va firmada con una clave secreta guardada en Cloudflare.
   | D | 2 | 0 | 44 de 100 | Bs 169 | Bs −512 |
 
   Gana la alternativa A.
-- **Dólar de quiebre:** si se espera que el dólar pase de **12,35 Bs** en 90 días, la mejor deja de ser
+- **Dólar de quiebre:** si se espera que el dólar pase de **12,10 Bs** en 90 días, la mejor deja de ser
   A y pasa a ser B.
-- **Qué supuesto pesa más:** el dólar. Moverlo de un extremo al otro cambia la ganancia esperada en Bs 352;
-  el que menos pesa la cambia en Bs 21.
+- **Qué supuesto pesa más:** el dólar. Moverlo de un extremo al otro cambia la ganancia esperada en Bs 341;
+  el que menos pesa la cambia en Bs 17.
 - **Herramientas que respaldan cada alternativa:** el pronóstico de la venta (gráfico con la serie real) y la tabla
   de proveedores con su costo puesto.
 
@@ -460,7 +460,7 @@ de entrega. Lo que no es suyo no se lo entrega el servidor.
 - **Puntaje:** de cada 100 escenarios, en cuántos esa alternativa dejó más ganancia que las otras tres.
 - **Semilla fija (20261112):** el resultado se puede repetir exactamente.
 - **Dólar de quiebre:** se repite la simulación con dólares de 9 a 15 Bs (cada 5 centavos) y se busca dónde cambia
-  la alternativa ganadora: 12,35 Bs en el ejemplo.
+  la alternativa ganadora: 12,10 Bs en el ejemplo.
 - **Sensibilidad:** se lleva cada supuesto de un extremo al otro, sin tocar los demás, y se mide cuánto cambia la
   ganancia.
 - **Funciones:** `Motor.simular`, `Motor.quiebreDolar` y `Motor.sensibilidad`.
@@ -605,7 +605,7 @@ lo que se pronostica y se mide, y una capa de demostración, con reglas escritas
 15. **¿Por qué el puntaje no es una probabilidad de acierto?** Porque compara alternativas entre sí: dice en cuántos
     escenarios de cada 100 una dejó más ganancia que las otras.
 16. **¿Qué es el dólar de quiebre?** El valor del dólar a 90 días desde el que conviene comprar más hoy. Para
-    REP-0022, 12,35 Bs.
+    REP-0022, 12,10 Bs.
 17. **¿Qué es el costo puesto?** Fábrica + flete + aduana, en bolivianos. Para REP-0022 con CIF,
     Bs 207,56.
 18. **¿Qué cambia entre FOB y CIF?** Con FOB se suma el flete (7,8 % desde China); con CIF ya viene en

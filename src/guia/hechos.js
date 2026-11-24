@@ -77,9 +77,9 @@ for (const L of ["A", "B", "C", "D"]) {
   pon(`mc_${L}_gan`, bs(S[L].ganancia_media_bs)); pon(`mc_${L}_p10`, bs(S[L].ganancia_p10_bs));
 }
 pon("mc_mejor", S.mejor);
-const Q = M.quiebreDolar(d, ID, r.proveedor_id, sup, {semilla: d.parametros.semilla, horizonte_dias: 90});
+const Q = M.quiebreDolar(d, ID, r.proveedor_id, sup, {n: d.parametros.simulaciones, semilla: d.parametros.semilla, horizonte_dias: 90});
 pon("mc_quiebre", nf(Q.valor, 2)); pon("mc_quiebre_antes", Q.antes); pon("mc_quiebre_despues", Q.despues);
-const SE = M.sensibilidad(d, ID, r.proveedor_id, sup, {semilla: d.parametros.semilla, horizonte_dias: 90});
+const SE = M.sensibilidad(d, ID, r.proveedor_id, sup, {n: d.parametros.simulaciones, semilla: d.parametros.semilla, horizonte_dias: 90});
 pon("sens_1", {dolar: "el dólar", venta: "la venta", atraso: "el atraso del proveedor"}[SE[0].supuesto]); pon("sens_1_bs", bs(SE[0].rango_bs));
 pon("sens_3_bs", bs(SE[SE.length - 1].rango_bs));
 
