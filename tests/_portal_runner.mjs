@@ -128,7 +128,7 @@ await pedir(w, env, "venta_otra_vez", "POST", "/api/cotizaciones/2/venta", {}, i
 await pedir(w, env, "ventas_cli", "GET", "/api/ventas-clientes", undefined, imp);
 // Error E2 (auditoría del 24-11-2026): la cotización 1 salió de la tienda, sin cliente. Su venta tiene que llegar al
 // tablero de clientes con el cliente aparte CLI-WEB, en vez de perderse.
-await pedir(w, env, "venta_web", "POST", "/api/cotizaciones/1/venta", {}, imp);
+await pedir(w, env, "venta_web", "POST", "/api/cotizaciones/1/venta", { forzar: true }, imp);  // REP-0022 tiene stock 1: con D6 la venta de 10 se fuerza
 await pedir(w, env, "ventas_cli_web", "GET", "/api/ventas-clientes", undefined, imp);
 await pedir(w, env, "csv", "GET", "/api/cotizaciones?formato=csv", undefined, imp, true);
 // Error E3: los catálogos PDF se sirven desde el portal (archivos estáticos de Pages, env.ASSETS).
