@@ -95,6 +95,13 @@ class ArmadoApp(unittest.TestCase):
     def tearDownClass(cls):
         cls.tmp.cleanup()
 
+    def test_mineria_oculta_las_pantallas_que_devuelve_error_e1(self):
+        # Error E1 (auditoría del 24-11-2026): al cambiar de pestaña en «Minería de datos», las pantallas prestadas
+        # volvían a su lugar visibles y quedaban encima. La prueba en el navegador está en el PR; aquí se fija el código.
+        i = self.html.index("function devolverPrestadas(){")
+        cuerpo = self.html[i:self.html.index("\n}", i)]
+        self.assertIn("s.hidden = true", cuerpo)
+
     def test_incrusta_datos_motor_y_logo(self):
         h = self.html
         for marca in ga.MARCAS:

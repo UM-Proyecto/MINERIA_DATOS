@@ -16,6 +16,7 @@ La publicación en Cloudflare está en docs/portal/LEEME.md. Solo usa la bibliot
 """
 import argparse
 import json
+import shutil
 import sys
 from pathlib import Path
 
@@ -26,6 +27,9 @@ DATOS = BASE / "data/processed/simulador/datos_app.json"
 APP = BASE / "reports/simulador/MULTIPARTES_Simulador_Compras.html"
 TIENDA = BASE / "reports/tienda/MULTIPARTES_Tienda.html"
 SALIDA = BASE / "build/portal"
+# Catálogos PDF de MULTIPARTES servidos por el propio portal: el sitio original tiene el certificado vencido desde el
+# 5-10-2026 y el navegador mostraba una advertencia de seguridad (auditoría del 24-11-2026, error E3).
+CATALOGOS = BASE / "reports/tienda/catalogos"
 
 
 def armar(liviano=False):
@@ -56,6 +60,12 @@ def main(argv=None):
     destino = a.salida / "_worker.js"
     destino.write_text(armar(a.liviano), encoding="utf-8")
     print(f"{destino}: {destino.stat().st_size // 1024} KB")
+    if CATALOGOS.is_dir():
+        dest_cat = a.salida / "catalogos"
+        dest_cat.mkdir(exist_ok=True)
+        for pdf in sorted(CATALOGOS.glob("*.pdf")):
+            shutil.copyfile(pdf, dest_cat / pdf.name)
+            print(f"{dest_cat / pdf.name}: {pdf.stat().st_size // 1024} KB")
 
 
 if __name__ == "__main__":

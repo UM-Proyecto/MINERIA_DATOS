@@ -6,7 +6,8 @@ import { createServer } from "node:http";
 import { DatabaseSync } from "node:sqlite";
 import { randomBytes } from "node:crypto";
 import { pathToFileURL } from "node:url";
-import { resolve } from "node:path";
+import { resolve, basename } from "node:path";
+import { readFileSync, existsSync } from "node:fs";
 
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : d; };
 const db = new DatabaseSync(arg("--archivo", ":memory:"));
@@ -19,7 +20,10 @@ class Stmt {
   async run() { db.prepare(this.sql).run(...this.args.map(n)); return { success: true }; }
 }
 const env = { DB: { prepare: s => new Stmt(s), batch: async ss => { for (const s of ss) db.prepare(s.sql).run(...s.args.map(n)); return []; } },
-              SECRETO: randomBytes(32).toString("hex") };
+              SECRETO: randomBytes(32).toString("hex"),
+              // Igual que env.ASSETS de Cloudflare Pages: sirve los archivos estáticos de build/portal (los catálogos PDF).
+              ASSETS: { fetch: async req => { const f = resolve("build/portal/catalogos", basename(new URL(req.url).pathname));
+                return existsSync(f) ? new Response(readFileSync(f), { headers: { "content-type": "application/pdf" } }) : new Response("", { status: 404 }); } } };
 const w = (await import(pathToFileURL(resolve("build/portal/_worker.js")).href)).default;
 const puerto = Number(arg("--puerto", 8788));
 createServer(async (req, res) => {

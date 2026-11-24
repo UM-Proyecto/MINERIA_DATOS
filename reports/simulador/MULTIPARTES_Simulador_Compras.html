@@ -2865,7 +2865,10 @@ async function cargarServidor(){
   if(SES.rol === "importador"){
     quitarPrivado();
     (await api("/api/clientes")).forEach(c => D.clientes.lista.push({cliente_id:c.cliente_id, nombre:c.nombre, tipo:c.tipo, zona:c.zona}));
-    (await api("/api/ventas-clientes")).forEach(v => D.clientes.ventas.push(v));
+    const vc = await api("/api/ventas-clientes");
+    // Las ventas de cotizaciones de la tienda vienen con el cliente CLI-WEB (no tienen cliente registrado).
+    if(vc.some(v => v[2] === "CLI-WEB")) D.clientes.lista.push({cliente_id:"CLI-WEB", nombre:"Tienda web (sin cuenta)", tipo:"Tienda web", zona:"En línea"});
+    vc.forEach(v => D.clientes.ventas.push(v));
   }
 }
 async function iniciarPortal(){
@@ -3022,7 +3025,9 @@ function mnRedibujar(){ const t = mnTab(); (t.nuevas || []).forEach(k => seguro(
   (t.prest || []).forEach(v => { if(["dashboard","predicciones","temporadas"].includes(v)) seguro(MN_PINTAR[v]); if(v === "simulador" && S.rep) pintarVentas(pronostico(S.rep)); }); }
 const PREST = {};   // vista prestada -> marcador de su lugar original
 function devolverPrestadas(){
-  Object.entries(PREST).forEach(([v, ph]) => { const s = $("v-" + v); if(s && ph.nextSibling !== s) ph.after(s); });
+  // Al volver a su lugar, la pantalla se oculta: si no, queda visible encima de «Minería de datos» (error E1 de la
+  // auditoría del 24-11-2026). ir() vuelve a mostrar la que corresponda.
+  Object.entries(PREST).forEach(([v, ph]) => { const s = $("v-" + v); if(!s) return; if(ph.nextSibling !== s) ph.after(s); s.hidden = true; });
   const c = $("mn-prestadas"); if(c) c.innerHTML = "";
 }
 function mnTab(){ return MN_TABS.find(t => t.k === S.mnTec) || MN_TABS[0]; }

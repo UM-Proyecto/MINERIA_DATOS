@@ -250,7 +250,9 @@ $("wa-hero").href = $("wa-fab").href = WA.enlace;
 $("wa-hero").innerHTML = `WhatsApp ventas · ${esc(WA.numero)} <span class="revisar" title="${esc(WA.a_revisar)}" tabindex="0">Por confirmar</span>`;
 $("marcas").innerHTML = C.marcas_vehiculos.map(m => `<li>${esc(m)}</li>`).join("");
 $("por").innerHTML = C.por_que.map(p => `<div><h3>${esc(p[0])}</h3><p>${esc(p[1])}</p></div>`).join("");
-$("pdfs").innerHTML = C.catalogos_pdf.map(p => `<a href="${esc(p[1])}" target="_blank" rel="noopener">${esc(p[0])}<small>catálogo PDF del sitio actual</small></a>`).join("");
+// Los PDF se sirven desde este mismo sitio (catalogos/, junto a la página): el sitio original tiene el certificado
+// vencido y el navegador mostraba una advertencia de seguridad. El contenido JSON conserva la dirección original.
+$("pdfs").innerHTML = C.catalogos_pdf.map(p => `<a href="catalogos/${esc(p[1].split("/").pop())}" target="_blank" rel="noopener">${esc(p[0])}<small>catálogo PDF del sitio actual</small></a>`).join("");
 $("nos-1").textContent = C.quienes_somos; $("nos-2").textContent = C.oficina;
 $("mision").textContent = C.mision; $("vision").textContent = C.vision;
 $("dist").innerHTML = C.distribuidores.map(m => `<li>${esc(m)}${C.distribuidores_a_revisar.includes(m) ? '<span class="revisar" tabindex="0" title="Nombre leído de un archivo del sitio: a confirmar">?</span>' : ""}</li>`).join("");
