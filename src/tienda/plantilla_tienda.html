@@ -86,6 +86,8 @@ section{padding:64px 0}
 .fi h3{margin:0 0 4px;font-size:14.5px;line-height:1.3}.fi .d{font-size:12.5px;color:var(--gr);margin:0}
 .pr{font-size:19px;font-weight:700;color:var(--gd);margin-top:auto;padding-top:6px}.pr small{font-size:12px;color:var(--gr);font-weight:400}
 .st{display:inline-block;align-self:flex-start;font-size:11.5px;border-radius:99px;padding:2px 9px}.st.si{background:#e1f1e8;color:var(--ok)}.st.no{background:var(--ws);color:var(--warn)}
+.ca-vivo{display:flex;gap:10px;align-items:center;justify-content:flex-end;flex-wrap:wrap;font-size:12px;color:#5b615b;margin:6px 0 0}
+.ca-vivo button{min-height:36px;border:1px solid #c9cdc9;background:#fff;border-radius:4px;padding:0 12px;font-weight:600;font-size:12.5px}
 .b2{display:block;width:100%;text-align:center;border:1px solid #c9cdc9;background:#fff;border-radius:4px;min-height:44px;font-weight:600;font-size:13px;margin-top:8px}
 .gris{background:#f1f2f0}
 .pasos{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
@@ -196,6 +198,7 @@ footer{background:#111;color:#c4c4c4;font-size:12.5px;padding:24px 0 90px}
     <div><label for="ca-an">Año</label><select id="ca-an" disabled></select></div>
     <div><button class="limpiar" type="button" id="ca-limpiar" disabled>Limpiar filtros</button></div></div>
   <p class="nota-comp" id="ca-nota-comp">Compatibilidades de demostración (prototipo académico): confírmelas con el vendedor antes de comprar.</p>
+  <div class="ca-vivo" id="ca-vivo" hidden><span id="ca-act-t"></span><button type="button" id="ca-act">Actualizar precios y stock</button></div>
   <p class="cnt" id="ca-n" aria-live="polite"></p><div class="fichas" id="fichas"></div>
   <p class="nota2">Las fotos muestran la familia del repuesto, no la pieza exacta, y tienen licencia libre.</p></div></section>
 
@@ -466,10 +469,16 @@ window.addEventListener("resize", infoCerrar);
    menos las ventas confirmadas y más los ajustes). Lo que trae el HTML es el stock al 10-11-2026. ---- */
 function pintarTodo(){ $("qr-rep").innerHTML = $("co-rep").innerHTML = opciones(); pintarTc(); pintarRubros(); pintarVehiculo(); pintarCatalogo(); pintarCot(); }
 pintarTodo();
-if(PORTAL){
-  const pedir = (ruta, vacio) => fetch(ruta).then(r => r.ok ? r.json() : vacio).catch(() => vacio);
-  const imgCat = {}; T.catalogo.forEach(c => { if(c.imagen && !imgCat[c.categoria]) imgCat[c.categoria] = c.imagen; });
-  Promise.all([pedir("/api/tc", null), pedir("/api/repuestos", []), pedir("/api/stock", null), pedir("/api/ajustes", [])]).then(([tc, nuevos, stock, ajustes]) => {
+/* D7: el catálogo se vuelve a pedir con el botón «Actualizar precios y stock» y al volver a la pestaña. No pierde el
+   rubro, la búsqueda ni el repuesto elegido en el cotizador, porque viven en filtroRubro, el campo de búsqueda y S. */
+const VIVO = {t: 0, cargando: null};
+const haceTxt = ms => { const x = Math.round(ms / 1000); return x < 10 ? "hace un momento" : x < 60 ? `hace ${x} s` : x < 3600 ? `hace ${Math.floor(x / 60)} min` : `hace ${Math.floor(x / 3600)} h`; };
+function pintarActualizado(){ if(VIVO.t) $("ca-act-t").textContent = "Precios y stock actualizados " + haceTxt(Date.now() - VIVO.t); }
+const imgCat = {}; T.catalogo.forEach(c => { if(c.imagen && !imgCat[c.categoria]) imgCat[c.categoria] = c.imagen; });
+const pedir = (ruta, vacio) => fetch(ruta, {cache: "no-store"}).then(r => r.ok ? r.json() : vacio).catch(() => vacio);
+function cargarPortal(){
+  if(VIVO.cargando) return VIVO.cargando;
+  VIVO.cargando = Promise.all([pedir("/api/tc", null), pedir("/api/repuestos", null), pedir("/api/stock", null), pedir("/api/ajustes", null)]).then(([tc, nuevos, stock, ajustes]) => {
     if(tc && tc.fecha >= TC.fecha){ TC.valor = tc.valor; TC.fecha = tc.fecha; }
     (nuevos || []).forEach(n => {
       const r = REP[n.repuesto_id] || {repuesto_id:n.repuesto_id};
@@ -483,8 +492,17 @@ if(PORTAL){
       Object.assign(r, {proveedor_id:a.proveedor_id, precio_venta_usd:a.precio_venta_usd, costo_unitario_usd:a.costo_unitario_usd});
       Object.assign(c, {nombre:a.nombre, categoria:a.categoria, descripcion:a.descripcion, imagen: imgCat[a.categoria] || c.imagen}); });
     if(stock && stock.repuestos) stock.repuestos.forEach(x => { if(REP[x.repuesto_id]) REP[x.repuesto_id].stock_al_2026_11_10 = Math.max(0, x.stock); });
-    pintarTodo();
-  });
+    if(nuevos && stock) VIVO.t = Date.now();
+    $("ca-vivo").hidden = false; pintarActualizado();
+    const y = scrollY; pintarTodo(); scrollTo(0, y);
+  }).finally(() => { VIVO.cargando = null; });
+  return VIVO.cargando;
+}
+if(PORTAL){
+  cargarPortal();
+  $("ca-act").addEventListener("click", e => { const b = e.target; b.disabled = true; cargarPortal().finally(() => { b.disabled = false; }); });
+  document.addEventListener("visibilitychange", () => { if(!document.hidden && Date.now() - VIVO.t > 30000) cargarPortal(); });
+  setInterval(pintarActualizado, 10000);
 }
 })();
 </script>
