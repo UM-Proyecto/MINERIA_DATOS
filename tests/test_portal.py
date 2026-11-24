@@ -322,6 +322,21 @@ class Portal(unittest.TestCase):
         self.assertEqual(self.st("d8_csv_muchas"), 413)
         self.assertEqual(self.st("d8_csv_grande"), 413)
 
+    def test_d7_version_cambia_con_cada_escritura(self):
+        v = dict(self.r["d7"]["pasos"])
+        orden = [k for k, _ in self.r["d7"]["pasos"]]
+        cambia = {"cotizacion", "venta", "cotizacion_2", "venta_forzada", "alta_cliente", "alta_repuesto", "edicion", "ajuste_stock", "csv_aplicar"}
+        for i in range(1, len(orden)):
+            antes, ahora = v[orden[i - 1]], v[orden[i]]
+            if orden[i] in cambia:
+                self.assertNotEqual(antes, ahora, orden[i])
+            else:
+                self.assertEqual(antes, ahora, orden[i])  # lecturas, rechazos y revisiones no cambian la versión
+        self.assertEqual(v["inicio"], "0.0")
+        self.assertEqual(v["cotizacion"], "1.0")  # la cotización nueva cambia por MAX(numero), sin escribir la marca
+        self.assertEqual(self.r["d7"]["ultima"]["cambios"], 7)  # las 7 escrituras del portal
+        self.assertTrue(self.r["d7"]["ultima"]["fecha"])
+
     def test_exportar_csv(self):
         c = self.r["csv"]
         self.assertTrue(c["tipo"].startswith("text/csv"))

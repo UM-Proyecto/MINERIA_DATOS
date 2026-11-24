@@ -375,7 +375,16 @@ body.entrada .inner{max-width:none}
 @media (max-width:760px){.acc{grid-template-columns:1fr}.acc-izq{padding:28px 16px}.acc-izq h1{font-size:26px}.acc-izq img{width:150px}.acc-der{padding:24px 16px}.acc-f{padding:22px}.side .navg{display:none}}
 /* 14. PORTAL (SCRUM-73, 77 y 78) */
 .sesion{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--ink-2)}
+.sesion .act{color:var(--ink-3, var(--ink-2));font-size:11.5px;white-space:nowrap}
 .sesion button{min-height:36px;padding:0 12px;border:1px solid var(--line-2);border-radius:8px;background:#fff;font-size:12.5px}
+/* Revisión visual del 24-11-2026: con «Actualizado hace…» y «Actualizar», la miga y el nombre se partían en dos o
+   tres renglones y a 800 px la página se desbordaba. La miga se recorta con puntos suspensivos, el nombre no se
+   parte, y en pantallas angostas el «hace…» pasa al título del botón y «(demostración)» se oculta. */
+.topbar #miga{min-width:0;flex:1 1 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sesion{flex:0 1 auto;min-width:0;flex-wrap:wrap;justify-content:flex-end;row-gap:4px}
+.sesion > span,.sesion > a,.sesion > button{white-space:nowrap}
+@media (max-width:1100px){ .sesion .act,.sesion .demo{display:none} }
+@media (max-width:1000px){ .topbar{flex-wrap:wrap;justify-content:flex-start;padding:10px 0;gap:6px} .topbar #miga{white-space:normal;flex:1 1 100%} .sesion{justify-content:flex-start} }
 .form2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px}
 .form2 .ancho{grid-column:1/-1}
 .form2 input,.form2 select,.cot-guardar input,.cot-guardar select,.entrar input{width:100%;height:44px;border:1px solid var(--line-2);border-radius:8px;background:#fff;padding:0 12px}
@@ -1232,9 +1241,16 @@ function ir(v){
   document.querySelectorAll(".vista").forEach(s => s.hidden = s.id !== "v-" + v);
   document.querySelectorAll("#menu a").forEach(a => { if(a.dataset.v === v) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current"); });
   $("miga").innerHTML = "Funciones &nbsp;/&nbsp; " + VISTAS.find(x => x[0] === v)[1];
-  ({dashboard:pintarDashboard, predicciones:pintarPredicciones, rotacion:pintarRotacion, alertas:pintarAlertas, simulador:pintarSimulador, proveedores:pintarProveedoresVista, plan:pintarPlan, temporadas:pintarTemporadas, clientes:pintarClientes, catalogo:pintarCatalogo, cotizar:pintarCotizar, cotizaciones:pintarCotizaciones, cargar:pintarCargar, mineria:pintarMineria, miprov:pintarMiProv, entrar:pintarEntrar})[v]();
+  PINTAR[v]();
   pintado[v] = true;
+  // D7: al entrar a una vista con datos guardados se consulta la versión (una lectura liviana) y, si cambió, se
+  // vuelve a pedir todo. Sin versión conocida, se recarga si lo cargado tiene más de unos segundos.
+  if(PORTAL && SES.rol && VIVAS.includes(v)){
+    if(VIVO.version !== null){ if(Date.now() - VIVO.revisado > 5000) revisarVersion(); }
+    else if(Date.now() - VIVO.t > VIEJO_MS) refrescar();
+  }
 }
+const PINTAR = {dashboard:pintarDashboard, predicciones:pintarPredicciones, rotacion:pintarRotacion, alertas:pintarAlertas, simulador:pintarSimulador, proveedores:pintarProveedoresVista, plan:pintarPlan, temporadas:pintarTemporadas, clientes:pintarClientes, catalogo:pintarCatalogo, cotizar:pintarCotizar, cotizaciones:pintarCotizaciones, cargar:pintarCargar, mineria:pintarMineria, miprov:pintarMiProv, entrar:pintarEntrar};
 window.addEventListener("hashchange", () => { ir(location.hash.slice(1)); window.scrollTo(0,0); });
 
 // Explicaciones del ícono «i». Un solo globo para toda la página: clic, toque o Enter lo fija; con mouse también se
@@ -2116,12 +2132,17 @@ async function api(ruta, opc){
   if(!r.ok){ const e = new Error((d && d.error) || "El servidor respondió " + r.status); e.status = r.status; throw e; }
   return d;
 }
+// «Jefatura de compras (demostración)»: la aclaración va aparte para poder ocultarla en pantallas angostas.
+function nombreSesion(n){ const m = /^(.*?)\s*(\([^()]*\))$/.exec(n || ""); return m ? `${esc(m[1])}<span class="demo"> ${esc(m[2])}</span>` : esc(n || ""); }
 function pintarSesion(){
   const el = $("sesion"); if(!PORTAL){ el.hidden = true; return; }
+  sondear();   // D7: con sesión empieza la consulta automática; al salir, se detiene
   el.hidden = false;
-  el.innerHTML = SES.rol ? `<span>${esc(SES.nombre)}</span><a href="/">Tienda</a><button type="button" id="b-salir">Salir</button>` : "";
+  el.innerHTML = SES.rol ? `<span class="act" id="act-txt" aria-live="off"></span><button type="button" id="b-act" title="Volver a pedir al servidor cotizaciones, stock, repuestos y clientes">Actualizar</button><span>${nombreSesion(SES.nombre)}</span><a href="/">Tienda</a><button type="button" id="b-salir">Salir</button>` : "";
+  pintarActualizado();
 }
 $("sesion").addEventListener("click", e => {
+  if(e.target.id === "b-act"){ const b = e.target; b.disabled = true; refrescar().finally(() => { b.disabled = false; }); return; }
   if(e.target.id === "b-salir"){ SES.rol = SES.token = SES.prov = null; SES.nombre = ""; guardado.set(null); quitarPrivado(); pintarSesion(); pintarMenu(); location.hash = "#entrar"; ir("entrar"); }
 });
 
@@ -2168,17 +2189,65 @@ function aplicarAjustes(lista){
   AL_TC = null;
 }
 async function cargarServidor(){
-  const [nuevos, stock, ajustes] = await Promise.all([api("/api/repuestos"), api("/api/stock"), api("/api/ajustes")]);
+  // D7: todo se pide en paralelo y se aplica de una vez, sin esperas en el medio: así una vista que se pinta mientras
+  // tanto nunca ve la lista de clientes vacía ni duplicada.
+  const imp = SES.rol === "importador";
+  const [version, nuevos, stock, ajustes, clientes, ventas] = await Promise.all([api("/api/version").catch(() => null), api("/api/repuestos"), api("/api/stock"), api("/api/ajustes"),
+    imp ? api("/api/clientes") : null, imp ? api("/api/ventas-clientes") : null]);
+  // La versión se pide junto con los datos: si algo cambia en el medio, la consulta siguiente lo detecta y vuelve a pedir.
+  if(version){ VIVO.version = version.v; VIVO.revisado = Date.now(); }
   mezclarRepuestos(nuevos); aplicarAjustes(ajustes); aplicarStock(stock);
-  if(SES.rol === "importador"){
+  if(imp){
     quitarPrivado();
-    (await api("/api/clientes")).forEach(c => D.clientes.lista.push({cliente_id:c.cliente_id, nombre:c.nombre, tipo:c.tipo, zona:c.zona}));
-    const vc = await api("/api/ventas-clientes");
+    clientes.forEach(c => D.clientes.lista.push({cliente_id:c.cliente_id, nombre:c.nombre, tipo:c.tipo, zona:c.zona}));
     // Las ventas de cotizaciones de la tienda vienen con el cliente CLI-WEB (no tienen cliente registrado).
-    if(vc.some(v => v[2] === "CLI-WEB")) D.clientes.lista.push({cliente_id:"CLI-WEB", nombre:"Tienda web (sin cuenta)", tipo:"Tienda web", zona:"En línea"});
-    vc.forEach(v => D.clientes.ventas.push(v));
+    if(ventas.some(v => v[2] === "CLI-WEB")) D.clientes.lista.push({cliente_id:"CLI-WEB", nombre:"Tienda web (sin cuenta)", tipo:"Tienda web", zona:"En línea"});
+    ventas.forEach(v => D.clientes.ventas.push(v));
   }
+  VIVO.t = Date.now(); pintarActualizado();
 }
+
+/* ---- D7: datos en vivo (decisión de Sam del 24-11-2026). Lo guardado en el servidor se vuelve a pedir con el botón
+   «Actualizar», al volver a la pestaña y al entrar a una vista que lo muestra. La vista actual se vuelve a pintar con
+   los mismos filtros y en la misma posición de la página. ---- */
+const VIVAS = ["dashboard", "clientes", "catalogo", "cotizar", "cotizaciones", "alertas", "plan", "rotacion", "proveedores", "cargar", "miprov"];
+const VIVO = {t: 0, cargando: null, error: false, version: null, revisado: 0, timer: null};
+const CADA_MS = 30000;    // consulta automática de /api/version, solo con la pestaña visible
+const VIEJO_MS = 15000;   // al entrar a una vista, si los datos tienen más de 15 s se vuelven a pedir
+async function repintar(){
+  if(!VIVAS.includes(S.vista) || $("ed-dlg").open) return;   // con el editor abierto no se cambia nada debajo
+  const y = scrollY; await PINTAR[S.vista](); scrollTo(0, y);
+}
+function refrescar(){
+  if(!PORTAL || !SES.rol) return Promise.resolve();
+  if(VIVO.cargando) return VIVO.cargando;
+  VIVO.cargando = (async () => {
+    try { await cargarServidor(); VIVO.error = false; await repintar(); }
+    catch(e){ VIVO.error = true; pintarActualizado(); console.warn("Actualizar:", e.message); }
+    finally { VIVO.cargando = null; }
+  })();
+  return VIVO.cargando;
+}
+function haceTxt(ms){ const s = Math.round(ms / 1000);
+  return s < 10 ? "hace un momento" : s < 60 ? `hace ${s} s` : s < 3600 ? `hace ${Math.floor(s / 60)} min` : `hace ${Math.floor(s / 3600)} h`; }
+function pintarActualizado(){ const el = $("act-txt"); if(!el || !VIVO.t) return;
+  el.textContent = VIVO.error ? "No se pudo actualizar; se reintentará." : "Actualizado " + haceTxt(Date.now() - VIVO.t);
+  const b = $("b-act"); if(b) b.title = el.textContent + " Volver a pedir al servidor cotizaciones, stock, repuestos y clientes."; }
+setInterval(pintarActualizado, 10000);
+// Consulta liviana: /api/version lee dos filas. Si la versión cambió (cotización nueva, venta, alta, edición o CSV),
+// se vuelve a pedir todo y se pinta la vista actual.
+async function revisarVersion(){
+  if(!PORTAL || !SES.rol || document.hidden || VIVO.cargando) return;
+  VIVO.revisado = Date.now();
+  try { const r = await api("/api/version"); if(r.v !== VIVO.version) await refrescar(); else { VIVO.error = false; pintarActualizado(); } }
+  catch(e){ VIVO.error = true; pintarActualizado(); }
+}
+// El temporizador existe solo con sesión y con la pestaña visible: con la pestaña oculta no sale ningún pedido.
+function sondear(){
+  clearInterval(VIVO.timer); VIVO.timer = null;
+  if(PORTAL && SES.rol && !document.hidden) VIVO.timer = setInterval(revisarVersion, CADA_MS);
+}
+document.addEventListener("visibilitychange", () => { sondear(); if(!document.hidden) revisarVersion(); });
 async function iniciarPortal(){
   try { const t = await api("/api/tc");
     if(t && t.fecha >= OF.fecha){ OF.valor = t.valor; OF.fecha = t.fecha; INI.tc90 = S.tc90 = t.valor;
