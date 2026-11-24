@@ -377,6 +377,14 @@ body.entrada .inner{max-width:none}
 .sesion{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--ink-2)}
 .sesion .act{color:var(--ink-3, var(--ink-2));font-size:11.5px;white-space:nowrap}
 .sesion button{min-height:36px;padding:0 12px;border:1px solid var(--line-2);border-radius:8px;background:#fff;font-size:12.5px}
+/* Revisión visual del 24-11-2026: con «Actualizado hace…» y «Actualizar», la miga y el nombre se partían en dos o
+   tres renglones y a 800 px la página se desbordaba. La miga se recorta con puntos suspensivos, el nombre no se
+   parte, y en pantallas angostas el «hace…» pasa al título del botón y «(demostración)» se oculta. */
+.topbar #miga{min-width:0;flex:1 1 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sesion{flex:0 1 auto;min-width:0;flex-wrap:wrap;justify-content:flex-end;row-gap:4px}
+.sesion > span,.sesion > a,.sesion > button{white-space:nowrap}
+@media (max-width:1100px){ .sesion .act,.sesion .demo{display:none} }
+@media (max-width:1000px){ .topbar{flex-wrap:wrap;justify-content:flex-start;padding:10px 0;gap:6px} .topbar #miga{white-space:normal;flex:1 1 100%} .sesion{justify-content:flex-start} }
 .form2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px}
 .form2 .ancho{grid-column:1/-1}
 .form2 input,.form2 select,.cot-guardar input,.cot-guardar select,.entrar input{width:100%;height:44px;border:1px solid var(--line-2);border-radius:8px;background:#fff;padding:0 12px}
@@ -3210,11 +3218,13 @@ async function api(ruta, opc){
   if(!r.ok){ const e = new Error((d && d.error) || "El servidor respondió " + r.status); e.status = r.status; throw e; }
   return d;
 }
+// «Jefatura de compras (demostración)»: la aclaración va aparte para poder ocultarla en pantallas angostas.
+function nombreSesion(n){ const m = /^(.*?)\s*(\([^()]*\))$/.exec(n || ""); return m ? `${esc(m[1])}<span class="demo"> ${esc(m[2])}</span>` : esc(n || ""); }
 function pintarSesion(){
   const el = $("sesion"); if(!PORTAL){ el.hidden = true; return; }
   sondear();   // D7: con sesión empieza la consulta automática; al salir, se detiene
   el.hidden = false;
-  el.innerHTML = SES.rol ? `<span class="act" id="act-txt" aria-live="off"></span><button type="button" id="b-act" title="Volver a pedir al servidor cotizaciones, stock, repuestos y clientes">Actualizar</button><span>${esc(SES.nombre)}</span><a href="/">Tienda</a><button type="button" id="b-salir">Salir</button>` : "";
+  el.innerHTML = SES.rol ? `<span class="act" id="act-txt" aria-live="off"></span><button type="button" id="b-act" title="Volver a pedir al servidor cotizaciones, stock, repuestos y clientes">Actualizar</button><span>${nombreSesion(SES.nombre)}</span><a href="/">Tienda</a><button type="button" id="b-salir">Salir</button>` : "";
   pintarActualizado();
 }
 $("sesion").addEventListener("click", e => {
@@ -3307,7 +3317,8 @@ function refrescar(){
 function haceTxt(ms){ const s = Math.round(ms / 1000);
   return s < 10 ? "hace un momento" : s < 60 ? `hace ${s} s` : s < 3600 ? `hace ${Math.floor(s / 60)} min` : `hace ${Math.floor(s / 3600)} h`; }
 function pintarActualizado(){ const el = $("act-txt"); if(!el || !VIVO.t) return;
-  el.textContent = VIVO.error ? "No se pudo actualizar; se reintentará." : "Actualizado " + haceTxt(Date.now() - VIVO.t); }
+  el.textContent = VIVO.error ? "No se pudo actualizar; se reintentará." : "Actualizado " + haceTxt(Date.now() - VIVO.t);
+  const b = $("b-act"); if(b) b.title = el.textContent + " Volver a pedir al servidor cotizaciones, stock, repuestos y clientes."; }
 setInterval(pintarActualizado, 10000);
 // Consulta liviana: /api/version lee dos filas. Si la versión cambió (cotización nueva, venta, alta, edición o CSV),
 // se vuelve a pedir todo y se pinta la vista actual.
