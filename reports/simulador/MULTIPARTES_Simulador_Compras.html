@@ -3029,7 +3029,7 @@ function pintarCatalogo(){
   pintarVehiculoCat();
   filtrarCatalogo();
   $("catv-cred").innerHTML = D.catalogo.fuentes.map(f => `<li><b>${esc(CATEGORIAS.find(c => D.catalogo.repuestos.some(r => r.categoria === c && r.imagen === f.archivo)) || f.archivo)}:</b> «${esc(f.titulo)}», ${esc(f.autor)}, ${esc(f.licencia)}, vía ${esc(f.via)}. <a href="${esc(f.pagina)}" target="_blank" rel="noopener">Ver original</a></li>`).join("");
-  $("catv-pie").textContent = "Precios con el dólar oficial del día; stock al 10-11-2026. Las fotos muestran la categoría del repuesto, no la pieza exacta (historia SCRUM-74 del proyecto).";
+  $("catv-pie").textContent = "Precios con el dólar oficial del día; " + (STOCK_VIGENTE ? "stock vigente: el del 10-11-2026 menos las ventas confirmadas, más los ajustes." : "stock al 10-11-2026.") + " Las fotos muestran la categoría del repuesto, no la pieza exacta (historia SCRUM-74 del proyecto).";
 }
 function filtrarCatalogo(){
   const q = S.catQ.trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
@@ -3126,28 +3126,39 @@ $("sesion").addEventListener("click", e => {
   if(e.target.id === "b-salir"){ SES.rol = SES.token = SES.prov = null; SES.nombre = ""; guardado.set(null); quitarPrivado(); pintarSesion(); pintarMenu(); location.hash = "#entrar"; ir("entrar"); }
 });
 
-// Lo cargado en el servidor se suma a los datos de la app. Es idempotente: se puede llamar después de cada alta.
+// Lo cargado en el servidor se suma a los datos de la app. Es idempotente: se puede llamar después de cada alta, y
+// un repuesto que ya estaba se actualiza (antes se ignoraba, y un cambio de precio o de stock no llegaba).
 function mezclarRepuestos(lista){
   const imgCat = {}; D.catalogo.repuestos.forEach(c => { if(c.imagen) imgCat[c.categoria.toLowerCase()] = c.imagen; });
   lista.forEach(r => {
-    if(REP[r.repuesto_id]) return;
     const pv = PRV[r.proveedor_id] || {};
-    const x = {repuesto_id:r.repuesto_id, codigo_carparts:"", tipo_demanda:"sin historial", clase_abc:"C", proveedor_id:r.proveedor_id,
-      proveedor:pv.nombre, origen:pv.origen, incoterm:pv.incoterm, plazo_normal_dias:pv.plazo_normal_dias, costo_unitario_usd:r.costo_unitario_usd,
-      margen_pct:r.margen_pct, precio_venta_usd:r.precio_venta_usd, stock_al_2026_11_10:r.stock, en_transito_al_2026_11_10:0,
-      punto_pedido_s:"", nivel_maximo_S:"", cargado:true};
-    D.nuevos.push(x); REP[x.repuesto_id] = x; D.ventas[x.repuesto_id] = [];
-    const c = {repuesto_id:r.repuesto_id, codigo_carparts:"", nombre:r.nombre, categoria:r.categoria, descripcion:r.descripcion || "",
-      imagen: imgCat[String(r.categoria).toLowerCase()] || null};
-    D.catalogo.repuestos.push(c); CAT[c.repuesto_id] = c;
+    let x = REP[r.repuesto_id];
+    if(!x){ x = {repuesto_id:r.repuesto_id, codigo_carparts:"", tipo_demanda:"sin historial", clase_abc:"C", en_transito_al_2026_11_10:0,
+        punto_pedido_s:"", nivel_maximo_S:"", cargado:true};
+      D.nuevos.push(x); REP[x.repuesto_id] = x; D.ventas[x.repuesto_id] = []; }
+    Object.assign(x, {proveedor_id:r.proveedor_id, proveedor:pv.nombre, origen:pv.origen, incoterm:pv.incoterm, plazo_normal_dias:pv.plazo_normal_dias,
+      costo_unitario_usd:r.costo_unitario_usd, margen_pct:r.margen_pct, precio_venta_usd:r.precio_venta_usd, stock_al_2026_11_10:r.stock});
+    let c = CAT[r.repuesto_id];
+    if(!c){ c = {repuesto_id:r.repuesto_id, codigo_carparts:""}; D.catalogo.repuestos.push(c); CAT[c.repuesto_id] = c; }
+    Object.assign(c, {nombre:r.nombre, categoria:r.categoria, descripcion:r.descripcion || "", imagen: imgCat[String(r.categoria).toLowerCase()] || null});
     if(!CATEGORIAS.includes(c.categoria)) CATEGORIAS.push(c.categoria);
   });
   AL_TC = null;
 }
+// D6: stock vigente que calcula el servidor (stock al 10-11-2026 o el del alta, menos ventas confirmadas, más ajustes).
+// Reemplaza al que trae la página, en el catálogo, el cotizador, las alertas y el plan.
+let STOCK_VIGENTE = false;
+function aplicarStock(st){
+  if(!st || !st.repuestos) return;
+  // Un stock negativo (venta forzada) entra al motor como 0, igual que en el servidor: el motor toma un negativo por dato inválido.
+  st.repuestos.forEach(x => { if(REP[x.repuesto_id]) REP[x.repuesto_id].stock_al_2026_11_10 = Math.max(0, x.stock); });
+  STOCK_VIGENTE = true; AL_TC = null;
+}
 const BASE_CLI = D.clientes.lista.length, BASE_VEN = D.clientes.ventas.length;
 function quitarPrivado(){ D.clientes.lista.length = BASE_CLI; D.clientes.ventas.length = BASE_VEN; }
 async function cargarServidor(){
-  mezclarRepuestos(await api("/api/repuestos"));
+  const [nuevos, stock] = await Promise.all([api("/api/repuestos"), api("/api/stock")]);
+  mezclarRepuestos(nuevos); aplicarStock(stock);
   if(SES.rol === "importador"){
     quitarPrivado();
     (await api("/api/clientes")).forEach(c => D.clientes.lista.push({cliente_id:c.cliente_id, nombre:c.nombre, tipo:c.tipo, zona:c.zona}));
@@ -3238,8 +3249,19 @@ const cli0 = id => { const c = D.clientes.lista.find(x => x.cliente_id === id); 
 $("t-cz").addEventListener("click", e => { const b = e.target.closest("button[data-pdf]"); if(b && CZ_FILAS[b.dataset.pdf]) CotizacionDoc.abrir(docDe(CZ_FILAS[b.dataset.pdf])); });
 function filtrosCz(){ const q = new URLSearchParams(); if($("cz-cli").value) q.set("cliente", $("cz-cli").value); if($("cz-rep").value) q.set("repuesto", $("cz-rep").value); if($("cz-mes").value) q.set("mes", $("cz-mes").value); return q; }
 ["cz-cli","cz-rep","cz-mes"].forEach(id => $(id).addEventListener("change", pintarCotizaciones));
+// D6: marcar la venta descuenta la cantidad del stock. Si no alcanza, el servidor responde 409 y se pregunta si las
+// unidades salieron igual del almacén; solo entonces se reintenta con forzar.
+async function marcarVenta(n, forzar){ return api(`/api/cotizaciones/${n}/venta`, {method:"POST", body: forzar ? {forzar:true} : {}}); }
 $("t-cz").addEventListener("click", async e => { const b = e.target.closest("button[data-venta]"); if(!b) return;
-  b.disabled = true; try { await api(`/api/cotizaciones/${b.dataset.venta}/venta`, {method:"POST", body:{}}); await cargarServidor(); pintarCotizaciones(); } catch(err){ $("cz-msg").className = "msg mal"; $("cz-msg").textContent = err.message; b.disabled = false; } });
+  b.disabled = true;
+  try {
+    let r;
+    try { r = await marcarVenta(b.dataset.venta, false); }
+    catch(err){ if(err.status !== 409 || !confirm(err.message + "\n\n¿Confirmar la venta de todos modos?")) throw err; r = await marcarVenta(b.dataset.venta, true); }
+    await cargarServidor(); await pintarCotizaciones();
+    $("cz-msg").className = "msg ok";
+    $("cz-msg").textContent = `Venta registrada: la cotización N° ${r.numero} descontó ${nf(r.cantidad)} unidades de ${nombreRep(r.repuesto_id)}. Stock: ${nf(r.stock_antes)} → ${nf(r.stock_despues)}.`;
+  } catch(err){ $("cz-msg").className = "msg mal"; $("cz-msg").textContent = err.message; b.disabled = false; } });
 $("cz-csv").addEventListener("click", async () => {
   try { const q = filtrosCz(); q.set("formato", "csv"); const r = await api("/api/cotizaciones?" + q.toString(), {crudo:true});
     const url = URL.createObjectURL(await r.blob()), a = document.createElement("a"); a.href = url; a.download = "cotizaciones_multipartes.csv"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000);

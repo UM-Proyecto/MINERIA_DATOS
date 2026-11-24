@@ -188,6 +188,49 @@ class Portal(unittest.TestCase):
         self.assertEqual(self.r["rep_tras_borrar"]["cuerpo"]["repuesto_id"], "REP-N003")
         self.assertEqual(self.r["cli_base_vieja"]["cuerpo"]["cliente_id"], "CLI-N008")
 
+    def base(self, rid):
+        return next(r["stock_al_2026_11_10"] for r in self.d["repuestos"] if r["repuesto_id"] == rid)
+
+    def test_d6_venta_descuenta_stock(self):
+        d6 = self.r["d6"]
+        self.assertEqual(d6["rep1_tras_venta"], self.base("REP-0001") - 3)
+        self.assertEqual(d6["rep5_antes"], self.base("REP-0005"))
+        self.assertEqual(d6["rep5_tras_cotizar"], self.base("REP-0005"))  # cotizar no descuenta ni reserva
+        v = self.r["d6_venta_justa"]
+        self.assertEqual(v["status"], 200, v)
+        self.assertEqual((v["cuerpo"]["stock_antes"], v["cuerpo"]["stock_despues"]), (4, 0))
+        self.assertEqual(d6["rep5_tras_venta"], 0)
+        self.assertEqual(d6["cot_sin_stock"], {"en_stock": 0, "por_pedir": 2})  # el cotizador ve el stock vigente
+        self.assertEqual(d6["n002_pub"], 0)  # repuesto cargado con stock 2, vendido 2
+        mp = {a["id"]: a["stock"] for a in self.r["d6_miprov"]["cuerpo"]["repuestos"]}
+        self.assertEqual(mp["REP-0001"], self.base("REP-0001") - 3)
+        antes = {a["id"]: a["stock"] for a in self.r["miprov"]["cuerpo"]["repuestos"]}
+        self.assertEqual(antes["REP-0001"], self.base("REP-0001"))
+
+    def test_d6_venta_que_deja_negativo_409_y_forzar(self):
+        r = self.r["d6_venta_negativa"]
+        self.assertEqual(r["status"], 409)
+        self.assertIn("No hay stock suficiente", r["cuerpo"]["error"])
+        self.assertEqual((r["cuerpo"]["stock"], r["cuerpo"]["stock_despues"]), (0, -2))
+        self.assertEqual(self.r["d6"]["rep5_tras_409"], 0)  # el 409 no escribe nada
+        self.assertEqual(self.r["d6"]["cot6_tras_409"], 0)
+        self.assertEqual(self.st("d6_forzar_texto"), 409)  # solo forzar: true fuerza
+        f = self.r["d6_venta_forzada"]
+        self.assertEqual(f["status"], 200, f)
+        self.assertTrue(f["cuerpo"]["forzada"])
+        self.assertEqual(self.r["d6"]["rep5_forzado"], -2)
+        self.assertEqual(self.st("d6_forzada_otra_vez"), 404)  # no descuenta dos veces
+        self.assertEqual(self.r["d6"]["rep5_final"], -2)
+        # con stock negativo, el motor recibe 0: en almacén no hay nada y todo va por pedir
+        self.assertEqual(self.r["d6"]["cot_con_negativo"], {"stock": 0, "en_stock": 0, "por_pedir": 3})
+
+    def test_d6_movimientos(self):
+        self.assertEqual(self.st("d6_mov_anon"), 401)
+        self.assertEqual(self.st("d6_mov_prov"), 403)
+        mov = self.r["d6_mov"]["cuerpo"]
+        self.assertEqual([(m["cantidad"], m["motivo"], m["usuario"]) for m in mov], [(-2, "venta", "importador"), (-4, "venta", "importador")])
+        self.assertTrue(all(m["cotizacion"] for m in mov))
+
     def test_exportar_csv(self):
         c = self.r["csv"]
         self.assertTrue(c["tipo"].startswith("text/csv"))

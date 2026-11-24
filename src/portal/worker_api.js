@@ -41,6 +41,15 @@ const ESQUEMA = [
      fecha_ingreso TEXT NOT NULL, alta TEXT NOT NULL)`,
   // Último número entregado de cada código correlativo (CLI-N…, REP-N…). Ver siguientes().
   `CREATE TABLE IF NOT EXISTS secuencias (nombre TEXT PRIMARY KEY, ultimo INTEGER NOT NULL)`,
+  // D6 (decisión de Sam del 24-11-2026): el stock se descuenta al confirmar la venta. El stock vigente de un repuesto
+  // es su stock base (el del dataset al 10-11-2026 para REP-0001…0030; la columna stock para los cargados) más la
+  // suma de estos movimientos. Cantidad con signo: una venta resta, un ajuste suma o resta.
+  `CREATE TABLE IF NOT EXISTS movimientos_stock (
+     id INTEGER PRIMARY KEY AUTOINCREMENT, repuesto_id TEXT NOT NULL, cantidad INTEGER NOT NULL CHECK (cantidad <> 0),
+     motivo TEXT NOT NULL CHECK (motivo IN ('venta', 'ajuste')), cotizacion INTEGER, fecha TEXT NOT NULL, usuario TEXT NOT NULL)`,
+  `CREATE INDEX IF NOT EXISTS movimientos_por_repuesto ON movimientos_stock (repuesto_id)`,
+  // Una cotización descuenta stock una sola vez, aunque dos pedidos de venta lleguen juntos.
+  `CREATE UNIQUE INDEX IF NOT EXISTS una_venta_por_cotizacion ON movimientos_stock (cotizacion) WHERE motivo = 'venta'`,
 ];
 
 // ------------------------------------------------------------------ utilidades
@@ -176,13 +185,30 @@ async function dolar() {
 
 // ------------------------------------------------------------------ datos combinados
 
-async function repuestosCargados(db) {
-  return (await db.prepare("SELECT * FROM repuestos ORDER BY repuesto_id").all()).results;
+// Lo guardado que cambia los datos del dataset: repuestos cargados y suma de movimientos de stock por repuesto. Las dos
+// lecturas van en una db.batch, que D1 cuenta como una sola consulta.
+async function leerEstado(db) {
+  const [c, m] = await db.batch([
+    db.prepare("SELECT * FROM repuestos ORDER BY repuesto_id"),
+    db.prepare("SELECT repuesto_id, SUM(cantidad) AS s FROM movimientos_stock GROUP BY repuesto_id"),
+  ]);
+  const mov = {};
+  m.results.forEach(x => { mov[x.repuesto_id] = Number(x.s) || 0; });
+  return { cargados: c.results, mov: mov };
 }
+
+// Stock base de un repuesto: el del dataset o el que se cargó en el alta. Los movimientos se suman aparte.
+function stockBase(est, id) {
+  const r = DATOS.repuestos.find(x => x.repuesto_id === id);
+  if (r) return Number(r.stock_al_2026_11_10) || 0;
+  const c = est.cargados.find(x => x.repuesto_id === id);
+  return c ? c.stock : 0;
+}
+const stockVigente = (est, id) => stockBase(est, id) + (est.mov[id] || 0);
 
 // Convierte un repuesto cargado al formato del motor. Sin historial de venta, sin punto de pedido ni en camino:
 // el motor lo marca «Sin datos» en las alertas en vez de inventar esas cifras.
-function comoRepuesto(r) {
+function comoRepuesto(r, est) {
   const prov = DATOS.proveedores.find(p => p.proveedor_id === r.proveedor_id) || {};
   return {
     repuesto_id: r.repuesto_id, codigo_carparts: "", tipo_demanda: "sin historial", clase_abc: "C",
@@ -190,14 +216,21 @@ function comoRepuesto(r) {
     incoterm: prov.incoterm || "", plazo_normal_dias: prov.plazo_normal_dias,
     costo_unitario_usd: r.costo_unitario_usd, margen_pct: r.margen_pct,
     precio_venta_usd: Math.round(r.costo_unitario_usd * (1 + r.margen_pct / 100) * 100) / 100,
-    stock_al_2026_11_10: r.stock, en_transito_al_2026_11_10: 0, punto_pedido_s: "", nivel_maximo_S: "",
+    stock_al_2026_11_10: paraMotor(r.stock + ((est && est.mov[r.repuesto_id]) || 0)), en_transito_al_2026_11_10: 0, punto_pedido_s: "", nivel_maximo_S: "",
     cargado: true, fecha_ingreso: r.fecha_ingreso,
   };
 }
 
-function datosCon(cargados) {
+// Los datos del dataset con lo guardado encima: el stock vigente (base + movimientos) y los repuestos cargados. El
+// motor (cotizar, alertas) lee el stock de stock_al_2026_11_10, así que ahí va el vigente. Una venta forzada puede dejar
+// el stock en negativo; el motor trata un stock negativo como dato inválido («Sin datos»), así que recibe 0: no hay
+// unidades en el almacén. El valor con signo lo dan /api/stock y el historial de movimientos.
+const paraMotor = n => Math.max(0, n);
+function datosCon(est) {
   const d = Object.assign({}, DATOS);
-  d.repuestos = DATOS.repuestos.concat(cargados.map(comoRepuesto));
+  d.repuestos = DATOS.repuestos.map(r => est.mov[r.repuesto_id]
+    ? Object.assign({}, r, { stock_al_2026_11_10: paraMotor(stockVigente(est, r.repuesto_id)) }) : r)
+    .concat(est.cargados.map(r => comoRepuesto(r, est)));
   return d;
 }
 
@@ -244,12 +277,27 @@ async function api(req, env, url) {
 
   // Catálogo público: repuestos cargados por el importador (sin datos internos).
   if (ruta === "/api/repuestos" && m === "GET") {
-    const db = await base(env);
-    return json((await repuestosCargados(db)).map(r => ({
+    const est = await leerEstado(await base(env));
+    return json(est.cargados.map(r => ({
       repuesto_id: r.repuesto_id, nombre: r.nombre, categoria: r.categoria, descripcion: r.descripcion,
       precio_venta_usd: comoRepuesto(r).precio_venta_usd, costo_unitario_usd: r.costo_unitario_usd, margen_pct: r.margen_pct,
-      stock: r.stock, proveedor_id: r.proveedor_id, fecha_ingreso: r.fecha_ingreso,
+      stock: paraMotor(stockVigente(est, r.repuesto_id)), proveedor_id: r.proveedor_id, fecha_ingreso: r.fecha_ingreso,
     })));
+  }
+
+  // D6: stock vigente de todos los repuestos (dataset y cargados), para la tienda y el área de la empresa. Público y
+  // sin datos internos: solo el código y las unidades.
+  if (ruta === "/api/stock" && m === "GET") {
+    const est = await leerEstado(await base(env));
+    const ids = DATOS.repuestos.map(r => r.repuesto_id).concat(est.cargados.map(r => r.repuesto_id));
+    return json({ base: "2026-11-10", repuestos: ids.map(id => ({ repuesto_id: id, stock: stockVigente(est, id) })) });
+  }
+  // Historial de movimientos de stock (ventas y ajustes), del más nuevo al más viejo.
+  if (ruta === "/api/movimientos" && m === "GET") {
+    await exigir(env, req, "importador");
+    const db = await base(env), rep = url.searchParams.get("repuesto");
+    const q = "SELECT * FROM movimientos_stock" + (rep ? " WHERE repuesto_id = ?" : "") + " ORDER BY id DESC LIMIT 1000";
+    return json((await (rep ? db.prepare(q).bind(rep) : db.prepare(q)).all()).results);
   }
 
   // SCRUM-73: cada cotización se guarda sola al emitirse. El cliente no necesita cuenta.
@@ -265,7 +313,7 @@ async function api(req, env, url) {
     const correo = texto(b.correo, "El correo", 120, false);
     if (correo && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(correo)) return error(400, "El correo no tiene una forma válida, por ejemplo nombre@empresa.com.");
     if (clienteId && !(await existeCliente(db, clienteId))) return error(400, "Ese cliente no existe.");
-    const d = datosCon(await repuestosCargados(db));
+    const d = datosCon(await leerEstado(db));
     if (!d.repuestos.some(r => r.repuesto_id === repId)) return error(400, "Ese repuesto no existe.");
     const tc = await dolar();
     const c = Motor.cotizar(d, repId, cantidad, tc.valor);
@@ -298,12 +346,35 @@ async function api(req, env, url) {
   }
   const venta = ruta.match(/^\/api\/cotizaciones\/(\d+)\/venta$/);
   if (venta && m === "POST") {
-    await exigir(env, req, "importador");
+    // D6: marcar la venta descuenta del stock la cantidad cotizada. La cotización sola no descuenta ni reserva.
+    const s = await exigir(env, req, "importador");
+    const b = await leerJson(req);
+    const forzar = b.forzar === true;
     const db = await base(env);
-    const r = await db.prepare("UPDATE cotizaciones SET convertida = 1, fecha_venta = ? WHERE numero = ? AND convertida = 0 RETURNING numero")
-      .bind(ahora(), Number(venta[1])).first();
-    if (!r) return error(404, "No existe esa cotización o ya estaba marcada como venta.");
-    return json({ numero: r.numero, convertida: 1 });
+    const num = Number(venta[1]);
+    const cot = await db.prepare("SELECT numero, repuesto_id, cantidad, convertida FROM cotizaciones WHERE numero = ?").bind(num).first();
+    if (!cot || cot.convertida) return error(404, "No existe esa cotización o ya estaba marcada como venta.");
+    const est = await leerEstado(db);
+    const base0 = stockBase(est, cot.repuesto_id), antes = base0 + (est.mov[cot.repuesto_id] || 0), despues = antes - cot.cantidad;
+    if (despues < 0 && !forzar) {
+      return json({ error: `No hay stock suficiente: ${cot.repuesto_id} tiene ${antes} unidades y la cotización es de ${cot.cantidad}. ` +
+        `Si las unidades sí salieron del almacén, confirme la venta de todos modos; el stock quedará en ${despues}.`,
+        stock: antes, cantidad: cot.cantidad, stock_despues: despues }, 409);
+    }
+    // El movimiento y la marca de venta van en una misma db.batch, que D1 ejecuta como una transacción. Las dos
+    // sentencias repiten las condiciones (cotización sin vender y stock suficiente, salvo que se fuerce): si otra
+    // venta se coló entre la lectura de arriba y esta escritura, no se escribe nada y se avisa.
+    const f = ahora();
+    const [, u] = await db.batch([
+      db.prepare(`INSERT INTO movimientos_stock (repuesto_id, cantidad, motivo, cotizacion, fecha, usuario)
+          SELECT repuesto_id, -cantidad, 'venta', numero, ?, ? FROM cotizaciones c WHERE numero = ? AND convertida = 0
+          AND (? = 1 OR ? + COALESCE((SELECT SUM(cantidad) FROM movimientos_stock WHERE repuesto_id = c.repuesto_id), 0) - cantidad >= 0)`)
+        .bind(f, s.u, num, forzar ? 1 : 0, base0),
+      db.prepare(`UPDATE cotizaciones SET convertida = 1, fecha_venta = ? WHERE numero = ? AND convertida = 0
+          AND EXISTS (SELECT 1 FROM movimientos_stock WHERE cotizacion = ? AND motivo = 'venta') RETURNING numero`).bind(f, num, num),
+    ]);
+    if (!u.results.length) return error(409, "El stock o la cotización cambiaron mientras se marcaba la venta. Vuelva a cargar la lista e intente de nuevo.");
+    return json({ numero: num, convertida: 1, repuesto_id: cot.repuesto_id, cantidad: cot.cantidad, stock_antes: antes, stock_despues: despues, forzada: despues < 0 });
   }
 
   // Ventas que salieron de cotizaciones, para el tablero de clientes (SCRUM-76).
@@ -359,7 +430,7 @@ async function api(req, env, url) {
   if (ruta === "/api/proveedor" && m === "GET") {
     const s = await exigir(env, req, "proveedor");
     const db = await base(env);
-    const d = datosCon(await repuestosCargados(db));
+    const d = datosCon(await leerEstado(db));
     const tc = await dolar();
     const al = Motor.alertas(d, tc.valor).filter(a => {
       const r = d.repuestos.find(x => x.repuesto_id === a.id);

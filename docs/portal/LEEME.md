@@ -55,7 +55,7 @@ protege lo que se guarda en la base, no esos datos de ejemplo.
 | `src/portal/worker_api.js` | Rutas de la API y la página. Corre en Cloudflare Pages (modo avanzado, `_worker.js`) con una base D1 |
 | `src/portal/armar_portal.py` | Arma `build/portal/_worker.js`: motor del simulador + `datos_app.json` + la app + la API |
 | `src/portal/servir_local.mjs` | Sirve el portal en `http://localhost:8788` con una base SQLite en memoria, para probar sin Cloudflare |
-| `tests/test_portal.py` y `tests/_portal_runner.mjs` | 11 pruebas de la API contra una D1 simulada |
+| `tests/test_portal.py` y `tests/_portal_runner.mjs` | Pruebas de la API contra una D1 simulada |
 
 El servidor recalcula cada cotización con el mismo motor de la app (`Motor.cotizar`) y con el dólar oficial del día.
 No usa el precio que manda el navegador. El dólar lo lee del CSV de SCRUM-54 publicado en este repositorio, que la
@@ -63,13 +63,38 @@ tarea diaria de SCRUM-71 actualiza; si no lo puede leer, usa el valor que trae i
 
 ### Base de datos
 
-Tres tablas, que se crean solas en el primer pedido:
+Las tablas se crean solas en el primer pedido (`CREATE TABLE IF NOT EXISTS`):
 - `cotizaciones`: número correlativo, fecha (UTC), cliente, repuesto, cantidad, dólar y su fecha, precio de lista,
   descuento, total, si se convirtió en venta, y el correo al que se «envió» con su hora (`correo`, `correo_enviado`,
   SCRUM-83). Estas dos columnas se agregaron después de publicar el portal: la primera vez que el servidor arranca
   con una base vieja, revisa `PRAGMA table_info` y las agrega con `ALTER TABLE … ADD COLUMN`, sin tocar las filas.
 - `clientes`: los dados de alta en el portal (`CLI-N001`, …);
-- `repuestos`: los cargados en el portal (`REP-N001`, …).
+- `repuestos`: los cargados en el portal (`REP-N001`, …);
+- `secuencias`: el último número entregado de cada código correlativo (`clientes`, `repuestos`). Antes el código se
+  calculaba con `COUNT(*) + 1` y un borrado hacía repetir un código existente. Ahora cada alta toma el mayor entre el
+  último entregado y el máximo numérico que ya existe en la tabla, más uno, así que una base anterior a este cambio
+  sigue desde su máximo;
+- `movimientos_stock` (D6, decisión de Sam del 24-11-2026): cada salida o entrada de stock, con el repuesto, la
+  cantidad con signo, el motivo (`venta` o `ajuste`), el número de cotización en las ventas, la fecha (UTC) y el
+  usuario. Un índice único impide que una cotización descuente dos veces.
+
+### Stock vigente (D6)
+
+El stock vigente de un repuesto es su **stock base** más la suma de sus movimientos. El stock base es el del dataset
+al 10-11-2026 (`stock_al_2026_11_10`) para `REP-0001`…`REP-0030` y la columna `stock` del alta para los cargados.
+
+- **Cotizar no descuenta ni reserva.** Dos cotizaciones seguidas ven las mismas unidades.
+- **Marcar la venta descuenta** la cantidad cotizada. La marca de venta y el movimiento se escriben en una misma
+  `db.batch`, que D1 ejecuta como una transacción; las dos sentencias repiten las condiciones (cotización sin vender
+  y stock suficiente), así que si otra venta se cuela entre la lectura y la escritura no se escribe nada.
+- Si la venta deja el stock en negativo, el servidor responde **409** con el stock que hay y cuánto quedaría. El
+  importador puede confirmarla de todos modos (la pantalla lo pregunta y reenvía con `{"forzar": true}`), por ejemplo
+  si las unidades sí salieron del almacén y el conteo estaba atrasado.
+- Un stock negativo se ve con su signo en `/api/stock` y en el historial. Al motor (cotizador, alertas, vista del
+  proveedor) le llega como 0, porque el motor toma un número negativo por dato inválido.
+- Las ventas marcadas **antes** de este cambio no descuentan: no tienen movimiento y el stock base no se tocó.
+- La tienda, el catálogo y el cotizador del área de la empresa, las alertas y el plan leen el stock vigente de
+  `/api/stock` al cargar la página y después de cada venta o alta. La vista del proveedor lo calcula en el servidor.
 
 Un repuesto cargado no tiene historial de venta. Aparece en el catálogo, el cotizador, las alertas (como «Sin datos»,
 con el motivo) y el plan, pero no en las vistas que necesitan historial: simulador, temporadas y predicciones. En rotación aparece como «Sin datos».
@@ -80,10 +105,12 @@ con el motivo) y el plan, pero no en las vistas que necesitan historial: simulad
 |---|---|---|
 | `GET /api/tc` | Todos | Dólar oficial del día, con su fecha y de dónde salió |
 | `POST /api/entrar` | Todos | Devuelve un token de sesión de 8 horas, firmado con HMAC-SHA256 |
-| `GET /api/repuestos` | Todos | Repuestos cargados (para el catálogo) |
+| `GET /api/repuestos` | Todos | Repuestos cargados (para el catálogo), con el stock vigente |
+| `GET /api/stock` | Todos | Stock vigente de todos los repuestos: `{"base": "2026-11-10", "repuestos": [{"repuesto_id", "stock"}]}`. Sin datos internos |
+| `GET /api/movimientos` | Importador | Historial de movimientos de stock, del más nuevo al más viejo; filtro `repuesto` |
 | `POST /api/cotizaciones` | Todos | Emite y guarda una cotización |
 | `GET /api/cotizaciones` | Importador | Lista con filtros `cliente`, `repuesto` y `mes`; con `formato=csv`, exporta |
-| `POST /api/cotizaciones/{n}/venta` | Importador | Marca la cotización como venta |
+| `POST /api/cotizaciones/{n}/venta` | Importador | Marca la cotización como venta y descuenta el stock en la misma transacción. 409 si deja el stock negativo, salvo `{"forzar": true}` |
 | `GET /api/ventas-clientes` | Importador | Ventas salidas de cotizaciones, para el tablero de clientes |
 | `GET` y `POST /api/clientes` | Importador | Lista y alta de clientes |
 | `POST /api/repuestos` | Importador | Carga de un repuesto |

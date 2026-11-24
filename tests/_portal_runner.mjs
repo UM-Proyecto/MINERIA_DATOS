@@ -159,6 +159,37 @@ await pedir(w, env, "rep_tras_borrar", "POST", "/api/repuestos", Object.assign({
   await pedir(w4, { DB: vieja, SECRETO: SEC }, "cli_base_vieja", "POST", "/api/clientes", { nombre: "C", tipo: "Particular", zona: "Sur" }, imp);
 }
 
+// D6: marcar la venta descuenta el stock; la cotización sola no. El stock vigente lo ven /api/stock, /api/repuestos,
+// el cotizador del servidor y la vista del proveedor.
+const stockDe = async (nombre, id) => (await pedir(w, env, nombre, "GET", "/api/stock")).cuerpo.repuestos.find(r => r.repuesto_id === id).stock;
+salida.d6 = {};
+salida.d6.rep1_tras_venta = await stockDe("stock_1", "REP-0001");          // la venta de la cotización 2 (3 u.) ya descontó
+salida.d6.rep5_antes = await stockDe("stock_2", "REP-0005");
+const c5 = (await pedir(w, env, "d6_cot5", "POST", "/api/cotizaciones", { repuesto_id: "REP-0005", cantidad: 4 })).cuerpo.numero;
+salida.d6.rep5_tras_cotizar = await stockDe("stock_3", "REP-0005");
+await pedir(w, env, "d6_venta_justa", "POST", `/api/cotizaciones/${c5}/venta`, {}, imp);
+salida.d6.rep5_tras_venta = await stockDe("stock_4", "REP-0005");
+const c6 = (await pedir(w, env, "d6_cot6", "POST", "/api/cotizaciones", { repuesto_id: "REP-0005", cantidad: 2 })).cuerpo;
+salida.d6.cot_sin_stock = { en_stock: c6.en_stock, por_pedir: c6.por_pedir };
+await pedir(w, env, "d6_venta_negativa", "POST", `/api/cotizaciones/${c6.numero}/venta`, {}, imp);
+salida.d6.rep5_tras_409 = await stockDe("stock_5", "REP-0005");
+salida.d6.cot6_tras_409 = (await pedir(w, env, "d6_lista", "GET", "/api/cotizaciones?repuesto=REP-0005", undefined, imp)).cuerpo.filas.find(f => f.numero === c6.numero).convertida;
+await pedir(w, env, "d6_forzar_texto", "POST", `/api/cotizaciones/${c6.numero}/venta`, { forzar: "si" }, imp);
+await pedir(w, env, "d6_venta_forzada", "POST", `/api/cotizaciones/${c6.numero}/venta`, { forzar: true }, imp);
+salida.d6.rep5_forzado = await stockDe("stock_6", "REP-0005");
+await pedir(w, env, "d6_forzada_otra_vez", "POST", `/api/cotizaciones/${c6.numero}/venta`, { forzar: true }, imp);
+salida.d6.rep5_final = await stockDe("stock_7", "REP-0005");
+const c8 = (await pedir(w, env, "d6_cot_negativo", "POST", "/api/cotizaciones", { repuesto_id: "REP-0005", cantidad: 3 })).cuerpo;
+salida.d6.cot_con_negativo = { stock: c8.stock, en_stock: c8.en_stock, por_pedir: c8.por_pedir };
+// Repuesto cargado (REP-N002, stock base 2): /api/repuestos muestra el vigente.
+const c7 = (await pedir(w, env, "d6_cot7", "POST", "/api/cotizaciones", { repuesto_id: "REP-N002", cantidad: 2 })).cuerpo.numero;
+await pedir(w, env, "d6_venta_cargado", "POST", `/api/cotizaciones/${c7}/venta`, {}, imp);
+salida.d6.n002_pub = (await pedir(w, env, "d6_rep_pub", "GET", "/api/repuestos")).cuerpo.find(r => r.repuesto_id === "REP-N002").stock;
+await pedir(w, env, "d6_miprov", "GET", "/api/proveedor", undefined, prov);
+await pedir(w, env, "d6_mov_anon", "GET", "/api/movimientos");
+await pedir(w, env, "d6_mov_prov", "GET", "/api/movimientos", undefined, prov);
+await pedir(w, env, "d6_mov", "GET", "/api/movimientos?repuesto=REP-0005", undefined, imp);
+
 // Otra clave de sesión: el token del servidor anterior no sirve.
 const w2 = await cargar();
 await pedir(w2, { DB: d1(), SECRETO: "y".repeat(40) }, "otra_clave", "GET", "/api/yo", undefined, imp);
