@@ -39,6 +39,8 @@ const ESQUEMA = [
      repuesto_id TEXT PRIMARY KEY, nombre TEXT NOT NULL, categoria TEXT NOT NULL, descripcion TEXT NOT NULL,
      costo_unitario_usd REAL NOT NULL, margen_pct REAL NOT NULL, stock INTEGER NOT NULL, proveedor_id TEXT NOT NULL,
      fecha_ingreso TEXT NOT NULL, alta TEXT NOT NULL)`,
+  // Último número entregado de cada código correlativo (CLI-N…, REP-N…). Ver siguientes().
+  `CREATE TABLE IF NOT EXISTS secuencias (nombre TEXT PRIMARY KEY, ultimo INTEGER NOT NULL)`,
 ];
 
 // ------------------------------------------------------------------ utilidades
@@ -199,6 +201,22 @@ function datosCon(cargados) {
   return d;
 }
 
+// Reserva los próximos «cuantos» códigos de una serie (CLI-N001, REP-N001, …). Antes se usaba COUNT(*) + 1: si se
+// borraba una fila, el alta siguiente repetía un código existente y la clave primaria fallaba. Ahora el último número
+// entregado queda en la tabla secuencias, y se compara con el máximo que ya existe en la tabla, para que una base
+// anterior a este cambio (o una fila cargada a mano) no choque. El UPDATE es una sola sentencia: dos altas al mismo
+// tiempo reciben números distintos. Si después falla el INSERT, ese número queda sin usar, y no importa.
+async function siguientes(db, serie, tabla, col, prefijo, cuantos) {
+  const n = cuantos || 1, desde = prefijo.length + 1;
+  const [, r] = await db.batch([
+    db.prepare("INSERT OR IGNORE INTO secuencias (nombre, ultimo) VALUES (?, 0)").bind(serie),
+    db.prepare(`UPDATE secuencias SET ultimo = MAX(ultimo, (SELECT COALESCE(MAX(CAST(substr(${col}, ${desde}) AS INTEGER)), 0)
+        FROM ${tabla} WHERE ${col} LIKE '${prefijo}%')) + ? WHERE nombre = ? RETURNING ultimo`).bind(n, serie),
+  ]);
+  const ultimo = r.results[0].ultimo;
+  return Array.from({ length: n }, (_, i) => prefijo + String(ultimo - n + 1 + i).padStart(3, "0"));
+}
+
 async function existeCliente(db, id) {
   if (DATOS.clientes.lista.some(c => c.cliente_id === id)) return true;
   return !!(await db.prepare("SELECT 1 FROM clientes WHERE cliente_id = ?").bind(id).first());
@@ -312,8 +330,7 @@ async function api(req, env, url) {
     const tipo = texto(b.tipo, "El tipo", 40, true);
     const zona = texto(b.zona, "La zona", 40, true);
     if (!TIPOS_CLIENTE.includes(tipo)) return error(400, "El tipo debe ser uno de: " + TIPOS_CLIENTE.join(", ") + ".");
-    const n = await db.prepare("SELECT COUNT(*) AS n FROM clientes").first();
-    const id = "CLI-N" + String((n.n || 0) + 1).padStart(3, "0");
+    const [id] = await siguientes(db, "clientes", "clientes", "cliente_id", "CLI-N");
     await db.prepare("INSERT INTO clientes (cliente_id, nombre, tipo, zona, alta) VALUES (?, ?, ?, ?, ?)").bind(id, nombre, tipo, zona, ahora()).run();
     return json({ cliente_id: id, nombre: nombre, tipo: tipo, zona: zona }, 201);
   }
@@ -331,8 +348,7 @@ async function api(req, env, url) {
     const fecha = texto(b.fecha_ingreso, "La fecha de ingreso", 10, true);
     if (!DATOS.proveedores.some(p => p.proveedor_id === prov)) return error(400, "Ese proveedor no existe.");
     if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha) || isNaN(Date.parse(fecha + "T00:00:00Z"))) return error(400, "La fecha va como AAAA-MM-DD.");
-    const n = await db.prepare("SELECT COUNT(*) AS n FROM repuestos").first();
-    const id = "REP-N" + String((n.n || 0) + 1).padStart(3, "0");
+    const [id] = await siguientes(db, "repuestos", "repuestos", "repuesto_id", "REP-N");
     await db.prepare(`INSERT INTO repuestos (repuesto_id, nombre, categoria, descripcion, costo_unitario_usd, margen_pct, stock,
         proveedor_id, fecha_ingreso, alta) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
       .bind(id, nombre, categoria, descripcion, costo, margen, stock, prov, fecha, ahora()).run();

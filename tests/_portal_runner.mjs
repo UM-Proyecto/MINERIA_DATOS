@@ -15,7 +15,11 @@ function d1() {
     async first() { const r = this.p().get(...this.args.map(n)); return r === undefined ? null : { ...r }; }
     async run() { this.p().run(...this.args.map(n)); return { success: true }; }
   }
-  return { prepare: sql => new Stmt(sql), batch: async ss => { for (const s of ss) db.prepare(s.sql).run(...s.args.map(n)); return []; } };
+  return { prepare: sql => new Stmt(sql), batch: async ss => {
+    // Como D1: todas las sentencias en una transacción (si una falla, no queda ninguna) y un resultado por sentencia.
+    db.exec("BEGIN");
+    try { const r = ss.map(s => ({ results: db.prepare(s.sql).all(...s.args.map(n)).map(x => ({ ...x })), success: true })); db.exec("COMMIT"); return r; }
+    catch (e) { db.exec("ROLLBACK"); throw e; } } };
 }
 
 import { readFileSync } from "node:fs";
@@ -135,6 +139,24 @@ await pedir(w, env, "csv", "GET", "/api/cotizaciones?formato=csv", undefined, im
   await pedir(w, envA, "pdf_raro", "GET", "/catalogos/../_worker.js", undefined, undefined, true);
   await pedir(w, { DB: d1(), SECRETO: SEC }, "pdf_sin_assets", "GET", "/catalogos/catalogo_baja.pdf");
   salida.pdf_pedidos = pedidos;
+}
+
+// Códigos correlativos seguros ante borrados: con COUNT(*) + 1, borrar CLI-N001 hacía que el alta siguiente repitiera
+// CLI-N002 y la clave primaria fallara con un 500.
+await pedir(w, env, "cli_2", "POST", "/api/clientes", { nombre: "Taller Dos", tipo: "Particular", zona: "Sur" }, imp);
+await env.DB.prepare("DELETE FROM clientes WHERE cliente_id = 'CLI-N001'").run();
+await pedir(w, env, "cli_tras_borrar", "POST", "/api/clientes", { nombre: "Taller Tres", tipo: "Particular", zona: "Sur" }, imp);
+const repBase = { categoria: "Filtro de aceite", costo_unitario_usd: 5, margen_pct: 35, stock: 2, proveedor_id: "PROV-CN-03", fecha_ingreso: "2026-11-20" };
+await pedir(w, env, "rep_2", "POST", "/api/repuestos", Object.assign({ nombre: "Repuesto dos" }, repBase), imp);
+await env.DB.prepare("DELETE FROM repuestos WHERE repuesto_id = 'REP-N001'").run();
+await pedir(w, env, "rep_tras_borrar", "POST", "/api/repuestos", Object.assign({ nombre: "Repuesto tres" }, repBase), imp);
+// Una base anterior a la tabla secuencias, con altas hechas, sigue desde el máximo existente.
+{
+  const vieja = d1();
+  await vieja.prepare("CREATE TABLE clientes (cliente_id TEXT PRIMARY KEY, nombre TEXT NOT NULL, tipo TEXT NOT NULL, zona TEXT NOT NULL, alta TEXT NOT NULL)").run();
+  await vieja.prepare("INSERT INTO clientes VALUES ('CLI-N001','a','Particular','x','2026-11-01'), ('CLI-N007','b','Particular','x','2026-11-01')").run();
+  const w4 = await cargar();
+  await pedir(w4, { DB: vieja, SECRETO: SEC }, "cli_base_vieja", "POST", "/api/clientes", { nombre: "C", tipo: "Particular", zona: "Sur" }, imp);
 }
 
 // Otra clave de sesión: el token del servidor anterior no sirve.

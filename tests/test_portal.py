@@ -179,6 +179,15 @@ class Portal(unittest.TestCase):
             self.assertTrue(f.is_file(), pdf)
             self.assertEqual(f.read_bytes()[:5], b"%PDF-")
 
+    def test_codigo_nuevo_sin_choque_tras_borrar(self):
+        self.assertEqual(self.r["cli_2"]["cuerpo"]["cliente_id"], "CLI-N002")
+        self.assertEqual(self.st("cli_tras_borrar"), 201)
+        self.assertEqual(self.r["cli_tras_borrar"]["cuerpo"]["cliente_id"], "CLI-N003")
+        self.assertEqual(self.r["rep_2"]["cuerpo"]["repuesto_id"], "REP-N002")
+        self.assertEqual(self.st("rep_tras_borrar"), 201)
+        self.assertEqual(self.r["rep_tras_borrar"]["cuerpo"]["repuesto_id"], "REP-N003")
+        self.assertEqual(self.r["cli_base_vieja"]["cuerpo"]["cliente_id"], "CLI-N008")
+
     def test_exportar_csv(self):
         c = self.r["csv"]
         self.assertTrue(c["tipo"].startswith("text/csv"))

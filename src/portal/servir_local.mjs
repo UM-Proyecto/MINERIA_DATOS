@@ -19,7 +19,11 @@ class Stmt {
   async first() { const r = db.prepare(this.sql).get(...this.args.map(n)); return r === undefined ? null : { ...r }; }
   async run() { db.prepare(this.sql).run(...this.args.map(n)); return { success: true }; }
 }
-const env = { DB: { prepare: s => new Stmt(s), batch: async ss => { for (const s of ss) db.prepare(s.sql).run(...s.args.map(n)); return []; } },
+const env = { DB: { prepare: s => new Stmt(s), batch: async ss => {
+    // Como D1: todas las sentencias en una transacción (si una falla, no queda ninguna) y un resultado por sentencia.
+    db.exec("BEGIN");
+    try { const r = ss.map(s => ({ results: db.prepare(s.sql).all(...s.args.map(n)).map(x => ({ ...x })), success: true })); db.exec("COMMIT"); return r; }
+    catch (e) { db.exec("ROLLBACK"); throw e; } } },
               SECRETO: randomBytes(32).toString("hex"),
               // Igual que env.ASSETS de Cloudflare Pages: sirve los archivos estáticos de build/portal (los catálogos PDF).
               ASSETS: { fetch: async req => { const f = resolve("build/portal/catalogos", basename(new URL(req.url).pathname));
