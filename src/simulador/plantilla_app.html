@@ -410,7 +410,14 @@ body.entrada .inner{max-width:none}
 .ficha .disp{font-size:12px}
 .ficha .btn2{margin-top:8px;min-height:44px;width:100%}
 .creditos li{margin:4px 0;font-size:12.5px;color:var(--ink-2)}
-@media (max-width:760px){.cat-fil{grid-template-columns:1fr}}
+/* Filtro por vehículo (D9): marca → modelo → año, encadenados; compatibilidades de demostración. */
+.cat-veh{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) auto;gap:16px;align-items:end;margin-top:12px}
+.cat-veh select:disabled{background:#f1f2f0;color:var(--ink-3)}
+.cat-veh .btn2:disabled{opacity:.5;cursor:default}
+.ficha .sv{font-size:12px;color:var(--ink-2);line-height:1.45}.ficha .sv b{font-weight:600}.ficha .sv.nr{color:var(--ink-3);font-style:italic}
+.cat-vacio{grid-column:1/-1;border:1px dashed var(--line-2);border-radius:var(--r);padding:22px;text-align:center;color:var(--ink-2);font-size:14px}
+.cat-vacio .btn2{margin-top:10px}
+@media (max-width:760px){.cat-fil{grid-template-columns:1fr}.cat-veh{grid-template-columns:1fr 1fr;gap:10px 12px}}
 
 /* 11. DASHBOARD, PREDICCIONES Y ROTACIÓN (SCRUM-79, 80 y 81) */
 /* Una línea por pantalla: qué técnica usa y para qué decisión de compra sirve (objetivo general del trabajo). */
@@ -864,6 +871,13 @@ details.tecnico[open]>summary::before{transform:rotate(90deg)}
         <div><label for="catv-q">Buscar<span class="ayuda">Por nombre, categoría o código del repuesto.</span></label><input id="catv-q" type="search" autocomplete="off"></div>
         <div><label for="catv-c">Categoría<span class="ayuda">Agrupa los repuestos que cumplen la misma función.</span></label><select id="catv-c"></select></div>
       </div>
+      <div class="cat-veh" role="group" aria-label="Filtrar por vehículo">
+        <div><label for="catv-ma">Marca<span class="ayuda">Del vehículo del cliente.</span></label><select id="catv-ma"></select></div>
+        <div><label for="catv-mo">Modelo<span class="ayuda">Se elige después de la marca.</span></label><select id="catv-mo" disabled></select></div>
+        <div><label for="catv-an">Año<span class="ayuda">Se elige después del modelo.</span></label><select id="catv-an" disabled></select></div>
+        <div><button class="btn2" type="button" id="catv-limpiar" disabled>Limpiar filtros</button></div>
+      </div>
+      <p class="pie">Compatibilidades de demostración (prototipo académico): confírmelas con el proveedor antes de vender.</p>
       <p class="pie" id="catv-n" aria-live="polite"></p>
       <div class="cat-grid" id="catv-grid"></div>
       <details><summary>Fotos: autores y licencias</summary><ul class="creditos" id="catv-cred"></ul></details>
@@ -1911,10 +1925,22 @@ const CAT = {}; D.catalogo.repuestos.forEach(c => CAT[c.repuesto_id] = c);
 const nombreRep = id => CAT[id] ? CAT[id].nombre : id;
 const CATEGORIAS = [...new Set(D.catalogo.repuestos.map(c => c.categoria))];
 if(S.catQ === undefined){ S.catQ = ""; S.catC = ""; }
+// Filtro por vehículo (D9). La tabla de aplicaciones es de demostración; los repuestos cargados en el portal no tienen.
+const FV = FiltroVehiculo, APL = D.catalogo.aplicaciones.filas, APL_DE = FV.indice(APL);
+if(S.catMa === undefined){ S.catMa = ""; S.catMo = ""; S.catAn = ""; }
+function pintarVehiculoCat(){
+  const op = (v, t) => `<option value="${esc(v)}">${esc(t)}</option>`;
+  $("catv-ma").innerHTML = op("", "Todas") + FV.marcas(APL).map(m => op(m, m)).join(""); $("catv-ma").value = S.catMa;
+  $("catv-mo").innerHTML = op("", S.catMa ? "Todos" : "Elija la marca") + FV.modelos(APL, S.catMa).map(m => op(m, m)).join("");
+  $("catv-mo").disabled = !S.catMa; $("catv-mo").value = S.catMo;
+  $("catv-an").innerHTML = op("", S.catMo ? "Todos" : "Elija el modelo") + FV.anios(APL, S.catMa, S.catMo).map(a => op(a, a)).join("");
+  $("catv-an").disabled = !S.catMo; $("catv-an").value = S.catAn;
+}
 function pintarCatalogo(){
   $("catv-c").innerHTML = '<option value="">Todas</option>' + CATEGORIAS.map(c => `<option>${esc(c)}</option>`).join("");
   $("catv-c").value = S.catC;
   if(document.activeElement !== $("catv-q")) $("catv-q").value = S.catQ;
+  pintarVehiculoCat();
   filtrarCatalogo();
   $("catv-cred").innerHTML = D.catalogo.fuentes.map(f => `<li><b>${esc(CATEGORIAS.find(c => D.catalogo.repuestos.some(r => r.categoria === c && r.imagen === f.archivo)) || f.archivo)}:</b> «${esc(f.titulo)}», ${esc(f.autor)}, ${esc(f.licencia)}, vía ${esc(f.via)}. <a href="${esc(f.pagina)}" target="_blank" rel="noopener">Ver original</a></li>`).join("");
   $("catv-pie").textContent = "Precios con el dólar oficial del día; stock al 10-11-2026. Las fotos muestran la categoría del repuesto, no la pieza exacta (historia SCRUM-74 del proyecto).";
@@ -1923,19 +1949,28 @@ function filtrarCatalogo(){
   const q = S.catQ.trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
   const norm = t => String(t).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
   const lista = todos().filter(r => { const c = CAT[r.repuesto_id];
-    return (!S.catC || c.categoria === S.catC) && (!q || norm(c.nombre + " " + c.categoria + " " + r.repuesto_id + " " + r.codigo_carparts).includes(q)); });
-  $("catv-n").textContent = lista.length === todos().length ? `Los ${lista.length} repuestos.` : lista.length ? `${lista.length} de ${todos().length} repuestos.` : "Ningún repuesto coincide con la búsqueda.";
+    return (!S.catC || c.categoria === S.catC) && (!q || norm(c.nombre + " " + c.categoria + " " + r.repuesto_id + " " + r.codigo_carparts).includes(q))
+      && FV.coincide(APL_DE[r.repuesto_id], {marca: S.catMa, modelo: S.catMo, anio: S.catAn}); });
+  const veh = [S.catMa, S.catMo, S.catAn].filter(Boolean).join(" ");
+  $("catv-limpiar").disabled = !(q || S.catC || S.catMa);
+  $("catv-n").textContent = lista.length === todos().length ? `Los ${lista.length} repuestos.` : lista.length ? `${lista.length} de ${todos().length} repuestos${veh ? " para " + veh : ""}.` : "Ningún repuesto coincide con los filtros elegidos.";
+  if(!lista.length){ $("catv-grid").innerHTML = `<div class="cat-vacio">No hay repuestos ${veh ? "registrados para " + esc(veh) : "que coincidan"}${veh && (q || S.catC) ? " con la búsqueda y la categoría elegidas" : ""}. Pruebe con otro filtro.<br><button class="btn2" type="button" data-limpiar>Limpiar filtros</button></div>`; return; }
   const tc = tcHoy();
-  $("catv-grid").innerHTML = lista.map(r => { const c = CAT[r.repuesto_id], precio = Motor.cotizar(DM(), r.repuesto_id, 1, tc).precio_lista_bs, st = r.stock_al_2026_11_10, pl = PRV[r.proveedor_id].plazo_normal_dias;
+  $("catv-grid").innerHTML = lista.map(r => { const c = CAT[r.repuesto_id], ap = APL_DE[r.repuesto_id], precio = Motor.cotizar(DM(), r.repuesto_id, 1, tc).precio_lista_bs, st = r.stock_al_2026_11_10, pl = PRV[r.proveedor_id].plazo_normal_dias;
     return `<article class="ficha">${c.imagen && D.imagenes[c.imagen] ? `<img class="foto" src="${D.imagenes[c.imagen]}" alt="Foto de referencia: ${esc(c.categoria.toLowerCase())}" loading="lazy" width="480" height="360">` : '<div class="sinfoto">Sin foto todavía</div>'}
       <div class="cu"><span class="cat">${esc(c.categoria)}</span><h3>${esc(c.nombre)}</h3><span class="cod">${r.repuesto_id}${r.codigo_carparts ? " · carparts " + r.codigo_carparts : " · cargado en el portal"}</span>
-      <p class="desc">${esc(c.descripcion)}</p><div class="pre">${bs2(precio)}<span class="ayuda" style="display:inline;margin-left:6px">por unidad</span></div>
+      <p class="desc">${esc(c.descripcion)}</p>${ap ? `<p class="sv" title="${esc(FV.resumen(ap, 99))}"><b>Sirve para:</b> ${esc(FV.resumen(ap, 2))}</p>` : `<p class="sv nr">${FV.SIN_DATO}</p>`}<div class="pre">${bs2(precio)}<span class="ayuda" style="display:inline;margin-left:6px">por unidad</span></div>
       <span class="disp">${st > 0 ? `<span class="insignia si">En almacén: ${nf(st)}</span>` : `<span class="insignia" style="background:var(--warn-soft);color:var(--warn)">Bajo pedido: unos ${nf(pl)} ${pal(pl, "día", "días")}</span>`}</span>
       <button class="btn2" type="button" data-cot="${r.repuesto_id}" aria-label="Cotizar ${esc(c.nombre)}">Cotizar por cantidad</button></div></article>`; }).join("");
 }
 let tCat = null;
 $("catv-q").addEventListener("input", e => { S.catQ = e.target.value; clearTimeout(tCat); tCat = setTimeout(filtrarCatalogo, 120); });
 $("catv-c").addEventListener("change", e => { S.catC = e.target.value; filtrarCatalogo(); });
+$("catv-ma").addEventListener("change", e => { S.catMa = e.target.value; S.catMo = S.catAn = ""; pintarVehiculoCat(); filtrarCatalogo(); });
+$("catv-mo").addEventListener("change", e => { S.catMo = e.target.value; S.catAn = ""; pintarVehiculoCat(); filtrarCatalogo(); });
+$("catv-an").addEventListener("change", e => { S.catAn = e.target.value; filtrarCatalogo(); });
+$("v-catalogo").addEventListener("click", e => { if(!e.target.closest("#catv-limpiar, [data-limpiar]")) return;
+  S.catQ = S.catC = S.catMa = S.catMo = S.catAn = ""; $("catv-q").value = ""; pintarCatalogo(); $("catv-ma").focus(); });
 $("catv-grid").addEventListener("click", e => { const b = e.target.closest("button[data-cot]"); if(b){ S.cotRep = b.dataset.cot; location.hash = "#cotizar"; } });
 
 /* ==================== COTIZAR (SCRUM-72) ==================== */

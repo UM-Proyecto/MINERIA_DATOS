@@ -6,6 +6,8 @@ Junta en un solo JSON lo que la app necesita y que ya existe en el repositorio:
 - el dólar paralelo del 23-10-2026 (HU-32), que se muestra marcado PRIVADO;
 - el catálogo ILUSTRATIVO de SCRUM-74 (nombre, categoría, descripción e imagen de cada repuesto) y la fuente de
   cada foto; las fotos las incrusta generar_app.py;
+- las aplicaciones ILUSTRATIVAS de cada repuesto (a qué marca, modelo y años de vehículo sirve; decisión D9), que arma
+  src/scrum-74/armar_aplicaciones.py y alimentan los filtros por vehículo del catálogo;
 - los clientes SINTÉTICOS de SCRUM-76 y sus compras (repartidas sobre las ventas reales);
 - el resultado del clasificador de SCRUM-80 (probabilidad de venta del mes siguiente, con su validación), que calcula
   src/scrum-80/predecir_venta.py; sin ese archivo la app muestra que falta correr el script;
@@ -29,6 +31,7 @@ S55 = BASE / "data/processed/scrum-55"
 TCO = BASE / "data/processed/scrum-54/tco_bcb_diario.csv"
 PARALELO = BASE / "data/processed/scrum-54/dolar_paralelo_diario.csv"  # serie diaria, referencia privada
 CATALOGO = BASE / "data/processed/scrum-74/catalogo.csv"
+APLICACIONES = BASE / "data/processed/scrum-74/aplicaciones.csv"  # repuesto ↔ vehículo, ILUSTRATIVO (D9)
 FUENTES_IMG = BASE / "data/raw/scrum-74/fuentes_imagenes.csv"
 CLIENTES = BASE / "data/processed/scrum-76/clientes.csv"
 VENTAS_CLI = BASE / "data/processed/scrum-76/ventas_por_cliente.csv"
@@ -83,6 +86,18 @@ def paralelo():
             "serie": [[r["fecha"], float(r["paralelo_bs_por_usd"])] for r in filas]}
 
 
+def aplicaciones():
+    """Filas [repuesto_id, marca, modelo, año desde, año hasta, motor], en listas para que el JSON pese poco. La
+    procedencia va una sola vez: toda la tabla es ILUSTRATIVA y el script que la arma se detiene si no lo es."""
+    filas = leer(APLICACIONES)
+    procedencias = {r["procedencia"] for r in filas}
+    if procedencias != {"ILUSTRATIVO"}:
+        raise SystemExit(f"{APLICACIONES}: se esperaba procedencia ILUSTRATIVO y hay {sorted(procedencias)}")
+    return {"procedencia": "ILUSTRATIVO", "campos": ["repuesto_id", "marca", "modelo", "anio_desde", "anio_hasta", "motor"],
+            "filas": [[r["repuesto_id"], r["marca"], r["modelo"], int(r["anio_desde"]), int(r["anio_hasta"]), r["motor"]]
+                      for r in filas]}
+
+
 def preparar():
     repuestos = [convertir(r) for r in leer(S55 / "repuestos.csv")]
     repuestos.sort(key=lambda r: r["repuesto_id"])
@@ -119,7 +134,8 @@ def preparar():
         "ventas": dict(sorted(ventas.items())),
         "clasificacion": {"puntos": puntos, "conteo": dict(sorted(conteo.items()))},
         "catalogo": {"repuestos": sorted(leer(CATALOGO), key=lambda r: r["repuesto_id"]),
-                     "fuentes": leer(FUENTES_IMG)},
+                     "fuentes": leer(FUENTES_IMG),
+                     "aplicaciones": aplicaciones()},
         "clientes": {"lista": [{k: c[k] for k in ("cliente_id", "nombre", "tipo", "zona")} for c in leer(CLIENTES)],
                      "ventas": [[v["mes"], v["repuesto_id"], v["cliente_id"], int(v["unidades"])] for v in leer(VENTAS_CLI)]},
         "prediccion": json.loads(PREDICCION.read_text(encoding="utf-8")) if PREDICCION.exists() else None,

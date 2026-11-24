@@ -68,6 +68,15 @@ section{padding:64px 0}
 .pdf a:first-child{background:#6b6e72;color:#fff}.pdf a:last-child{background:var(--g);color:#fff}.pdf small{display:block;font-weight:400;text-transform:none;opacity:.85}
 .fil{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:8px}
 .cnt{font-size:13px;color:var(--gr);margin:6px 0 16px}
+/* Filtro por vehículo (D9): marca → modelo → año, encadenados. Las compatibilidades son de demostración. */
+.filv{display:grid;grid-template-columns:repeat(3,1fr) auto;gap:16px;align-items:end}
+.filv select:disabled{background:#f1f2f0;color:var(--gr)}
+.limpiar{min-height:46px;padding:0 18px;border:1px solid #c9cdc9;background:#fff;border-radius:4px;font-weight:600;font-size:13px}
+.limpiar:disabled{opacity:.5;cursor:default}
+.nota-comp{font-size:12px;color:var(--gr);margin:8px 0 0}
+.sv{font-size:12px;color:#3c4148;margin:2px 0 0;line-height:1.45}.sv b{font-weight:600}.sv.nr{color:var(--gr);font-style:italic}
+.vacio{grid-column:1/-1;background:#fff;border:1px dashed #c9cdc9;border-radius:6px;padding:22px;text-align:center;color:#3c4148;font-size:14px}
+.vacio .limpiar{margin-top:10px}
 .fichas{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
 .fi{background:#fff;border:1px solid var(--line);border-radius:6px;overflow:hidden;display:flex;flex-direction:column}
 .fi img,.fi .sinfoto{width:100%;aspect-ratio:4/3;object-fit:contain;background:#f0f1ef;display:block}
@@ -136,6 +145,7 @@ footer{background:#111;color:#c4c4c4;font-size:12.5px;padding:24px 0 90px}
   .hero{padding:30px 0 40px}.hg{grid-template-columns:1fr;gap:24px}.hero h1{font-size:28px}.hero p{font-size:15px}
   section{padding:40px 0}.ti .n{font-size:44px}.ti h2{font-size:21px}
   .por,.pasos,.eg,.nos,.cot,.fil{grid-template-columns:1fr}.rus{grid-template-columns:1fr 1fr;gap:12px}.ru b{font-size:13px}
+  .filv{grid-template-columns:1fr 1fr;gap:10px 12px}.filv label{margin-top:4px}
   .fichas{grid-template-columns:1fr 1fr;gap:10px}.fb{padding:10px}.fi h3{font-size:13px}.fi .d{display:none}.pr{font-size:16px}
   .sucs{grid-template-columns:1fr}.ml{justify-content:flex-start;font-size:13px}.cot{padding:16px}
 }
@@ -180,6 +190,12 @@ footer{background:#111;color:#c4c4c4;font-size:12.5px;padding:24px 0 90px}
 <section id="catalogo"><div class="w"><div class="ti"><span class="n" aria-hidden="true">03</span><div><h2>Catálogo con precios</h2><p>Precio por unidad en bolivianos con el dólar oficial de hoy, y cuánto hay en almacén.</p></div></div>
   <div class="fil"><div><label for="ca-q">Buscar</label><input id="ca-q" type="search" autocomplete="off" placeholder="Nombre, rubro o código"></div>
     <div><label for="ca-r">Rubro</label><select id="ca-r"></select></div></div>
+  <div class="filv" role="group" aria-label="Filtrar por vehículo">
+    <div><label for="ca-ma" data-i="Marca del vehículo|Elija la marca de su vehículo y después el modelo y el año. Las compatibilidades de este prototipo son de demostración: confírmelas con el vendedor.">Marca</label><select id="ca-ma"></select></div>
+    <div><label for="ca-mo">Modelo</label><select id="ca-mo" disabled></select></div>
+    <div><label for="ca-an">Año</label><select id="ca-an" disabled></select></div>
+    <div><button class="limpiar" type="button" id="ca-limpiar" disabled>Limpiar filtros</button></div></div>
+  <p class="nota-comp" id="ca-nota-comp">Compatibilidades de demostración (prototipo académico): confírmelas con el vendedor antes de comprar.</p>
   <p class="cnt" id="ca-n" aria-live="polite"></p><div class="fichas" id="fichas"></div>
   <p class="nota2">Las fotos muestran la familia del repuesto, no la pieza exacta, y tienen licencia libre.</p></div></section>
 
@@ -283,16 +299,42 @@ function pintarRubros(){
 }
 $("rubros").addEventListener("click", e => { const b = e.target.closest("button[data-rubro]"); if(!b) return; filtroRubro = b.dataset.rubro; $("ca-r").value = filtroRubro; pintarCatalogo(); location.hash = "#catalogo"; });
 
+/* ---- filtro por vehículo (D9): marca → modelo → año, sobre la tabla de aplicaciones de demostración ---- */
+const FV = FiltroVehiculo, APL = T.aplicaciones.filas, APL_DE = FV.indice(APL);
+const V = {marca: "", modelo: "", anio: ""};
+const opt = (v, t) => `<option value="${esc(v)}">${esc(t)}</option>`;
+function pintarVehiculo(){
+  $("ca-ma").innerHTML = opt("", "Todas") + FV.marcas(APL).map(m => opt(m, m)).join("");
+  $("ca-ma").value = V.marca;
+  const mos = FV.modelos(APL, V.marca);
+  $("ca-mo").innerHTML = opt("", V.marca ? "Todos" : "Elija la marca") + mos.map(m => opt(m, m)).join("");
+  $("ca-mo").disabled = !V.marca; $("ca-mo").value = V.modelo;
+  const ans = FV.anios(APL, V.marca, V.modelo);
+  $("ca-an").innerHTML = opt("", V.modelo ? "Todos" : "Elija el modelo") + ans.map(a => opt(a, a)).join("");
+  $("ca-an").disabled = !V.modelo; $("ca-an").value = V.anio;
+}
+$("ca-ma").addEventListener("change", e => { V.marca = e.target.value; V.modelo = V.anio = ""; pintarVehiculo(); pintarCatalogo(); });
+$("ca-mo").addEventListener("change", e => { V.modelo = e.target.value; V.anio = ""; pintarVehiculo(); pintarCatalogo(); });
+$("ca-an").addEventListener("change", e => { V.anio = e.target.value; pintarCatalogo(); });
+function limpiarFiltros(){ V.marca = V.modelo = V.anio = ""; filtroRubro = ""; $("ca-q").value = ""; $("ca-r").value = ""; pintarVehiculo(); pintarCatalogo(); $("ca-ma").focus(); }
+document.addEventListener("click", e => { if(e.target.closest("#ca-limpiar, [data-limpiar]")) limpiarFiltros(); });
+const vehiculoTxt = () => V.marca ? [V.marca, V.modelo, V.anio].filter(Boolean).join(" ") : "";
+
 /* ---- catálogo ---- */
 const norm = t => String(t).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 function precioLista(id){ try { return Motor.cotizar(D, id, 1, TC.valor).precio_lista_bs; } catch(e){ return null; } }
 function pintarCatalogo(){
   const q = norm($("ca-q").value.trim());
-  const lista = T.catalogo.filter(c => (!filtroRubro || rubroDe(c) === filtroRubro) && (!q || norm(c.nombre + " " + c.categoria + " " + rubroDe(c) + " " + c.repuesto_id).includes(q)));
-  $("ca-n").textContent = lista.length === T.catalogo.length ? `Los ${lista.length} productos.` : lista.length ? `${lista.length} de ${T.catalogo.length} productos.` : "Ningún producto coincide. Pruebe con otra palabra o consulte por WhatsApp.";
-  $("fichas").innerHTML = lista.map(c => { const r = REP[c.repuesto_id], st = r.stock_al_2026_11_10, pv = D.proveedores.find(p => p.proveedor_id === r.proveedor_id) || {};
+  const lista = T.catalogo.filter(c => (!filtroRubro || rubroDe(c) === filtroRubro) && (!q || norm(c.nombre + " " + c.categoria + " " + rubroDe(c) + " " + c.repuesto_id).includes(q))
+    && FV.coincide(APL_DE[c.repuesto_id], V));
+  const veh = vehiculoTxt(), activo = !!(q || filtroRubro || V.marca);
+  $("ca-limpiar").disabled = !activo;
+  $("ca-n").textContent = lista.length === T.catalogo.length ? `Los ${lista.length} productos.` : lista.length ? `${lista.length} de ${T.catalogo.length} productos${veh ? " para " + veh : ""}.` : "Ningún producto coincide con los filtros elegidos.";
+  if(!lista.length){ $("fichas").innerHTML = `<div class="vacio">No hay repuestos ${veh ? "registrados para " + esc(veh) : "que coincidan"}${veh && (q || filtroRubro) ? " con la búsqueda y el rubro elegidos" : ""}. Pruebe con otro filtro o consulte por WhatsApp.<br><button class="limpiar" type="button" data-limpiar>Limpiar filtros</button></div>`; return; }
+  $("fichas").innerHTML = lista.map(c => { const ap = APL_DE[c.repuesto_id]; const r = REP[c.repuesto_id], st = r.stock_al_2026_11_10, pv = D.proveedores.find(p => p.proveedor_id === r.proveedor_id) || {};
     return `<article class="fi">${c.imagen && T.imagenes[c.imagen] ? `<img src="${T.imagenes[c.imagen]}" alt="" loading="lazy" width="480" height="360">` : '<div class="sinfoto">Sin foto todavía</div>'}
       <div class="fb"><span class="k">${esc(rubroDe(c))}</span><h3>${esc(c.nombre)}</h3><p class="d">${esc(c.descripcion || "")}</p>
+      ${ap ? `<p class="sv" title="${esc(FV.resumen(ap, 99))}"><b>Sirve para:</b> ${esc(FV.resumen(ap, 2))}</p>` : `<p class="sv nr">${FV.SIN_DATO}</p>`}
       <div class="pr">${bs(precioLista(c.repuesto_id))}<small> por unidad</small></div>
       ${st > 0 ? `<span class="st si">En almacén: ${nf(st,0)}</span>` : `<span class="st no">Bajo pedido: unos ${nf(pv.plazo_normal_dias,0)} días</span>`}
       <button class="b2" type="button" data-cot="${c.repuesto_id}">Cotizar</button></div></article>`; }).join("");
@@ -420,7 +462,7 @@ window.addEventListener("scroll", infoCerrar, {passive:true, capture:true});
 window.addEventListener("resize", infoCerrar);
 
 /* ---- arranque. En el portal se suman el dólar del día y los repuestos cargados por el importador. ---- */
-function pintarTodo(){ $("qr-rep").innerHTML = $("co-rep").innerHTML = opciones(); pintarTc(); pintarRubros(); pintarCatalogo(); pintarCot(); }
+function pintarTodo(){ $("qr-rep").innerHTML = $("co-rep").innerHTML = opciones(); pintarTc(); pintarRubros(); pintarVehiculo(); pintarCatalogo(); pintarCot(); }
 pintarTodo();
 if(PORTAL){
   Promise.all([fetch("/api/tc").then(r => r.ok ? r.json() : null).catch(() => null), fetch("/api/repuestos").then(r => r.ok ? r.json() : []).catch(() => [])]).then(([tc, nuevos]) => {
