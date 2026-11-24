@@ -260,6 +260,36 @@ await csv(CAB + "\n" + ",x,Disco de freno," + "a".repeat(300 * 1024) + ",3,40,1,
 await csv(bueno, "d8_csv_prov", true, prov);
 await csv(bueno, "d8_csv_anon", true, null);
 
+// D7: /api/version cambia con cada escritura y solo con ellas. Base nueva para contar desde cero.
+{
+  const env7 = { DB: d1(), SECRETO: SEC }, w7 = await cargar();
+  const ver = async () => (await pedir(w7, env7, "d7_tmp", "GET", "/api/version")).cuerpo;
+  const pasos = [];
+  const paso = async (nombre, fn) => { if (fn) await fn(); pasos.push([nombre, (await ver()).v]); };
+  const p7 = (n, met, ruta, cuerpo, tok) => pedir(w7, env7, n, met, ruta, cuerpo, tok);
+  await paso("inicio");
+  await paso("cotizacion", () => p7("d7_cot", "POST", "/api/cotizaciones", { repuesto_id: "REP-0005", cantidad: 3 }));
+  await paso("lecturas", async () => { await p7("x", "GET", "/api/stock"); await p7("x", "GET", "/api/repuestos"); await p7("x", "GET", "/api/cotizaciones", undefined, imp); await p7("x", "GET", "/api/ajustes"); });
+  await paso("venta", () => p7("d7_venta", "POST", "/api/cotizaciones/1/venta", {}, imp));
+  await paso("venta_repetida", () => p7("x", "POST", "/api/cotizaciones/1/venta", {}, imp));
+  await p7("d7_cot2", "POST", "/api/cotizaciones", { repuesto_id: "REP-0005", cantidad: 3 });
+  await paso("cotizacion_2");
+  await paso("venta_409", () => p7("d7_409", "POST", "/api/cotizaciones/2/venta", {}, imp));
+  await paso("venta_forzada", () => p7("x", "POST", "/api/cotizaciones/2/venta", { forzar: true }, imp));
+  await paso("alta_cliente", () => p7("x", "POST", "/api/clientes", { nombre: "Taller V", tipo: "Particular", zona: "Sur" }, imp));
+  await paso("alta_repuesto", () => p7("x", "POST", "/api/repuestos", Object.assign({ nombre: "Repuesto V" }, repBase), imp));
+  await paso("alta_invalida", () => p7("x", "POST", "/api/repuestos", Object.assign({ nombre: "Repuesto W" }, repBase, { stock: -1 }), imp));
+  await paso("edicion", () => p7("x", "PATCH", "/api/repuestos/REP-0007", { margen_pct: 40 }, imp));
+  await paso("edicion_sin_cambios", () => p7("x", "PATCH", "/api/repuestos/REP-0007", { margen_pct: 40 }, imp));
+  await paso("ajuste_stock", () => p7("x", "PATCH", "/api/repuestos/REP-0007", { stock: 1 }, imp));
+  const CAB7 = "repuesto_id,nombre,categoria,descripcion,costo_unitario_usd,margen_pct,stock,proveedor_id,fecha_ingreso";
+  const csv7 = async (cuerpo, aplicar) => { const r = await w7.fetch(new Request("https://portal.prueba/api/repuestos/csv" + (aplicar ? "?aplicar=1" : ""), { method: "POST", headers: { "content-type": "text/csv", authorization: "Bearer " + imp }, body: cuerpo }), env7); return r.status; };
+  await paso("csv_revisar", () => csv7(CAB7 + "\nREP-0008,Nombre V,,,,,,,\n", false));
+  await paso("csv_malo", () => csv7(CAB7 + "\nREP-0008,Nombre V,,,,,-1,,\n", true));
+  await paso("csv_aplicar", () => csv7(CAB7 + "\nREP-0008,Nombre V,,,,,,,\n", true));
+  salida.d7 = { pasos: pasos, ultima: await ver() };
+}
+
 // Otra clave de sesión: el token del servidor anterior no sirve.
 const w2 = await cargar();
 await pedir(w2, { DB: d1(), SECRETO: "y".repeat(40) }, "otra_clave", "GET", "/api/yo", undefined, imp);

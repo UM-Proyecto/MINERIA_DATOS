@@ -60,6 +60,9 @@ const ESQUEMA = [
   `CREATE TABLE IF NOT EXISTS ajustes_repuestos (
      repuesto_id TEXT PRIMARY KEY, nombre TEXT, categoria TEXT, descripcion TEXT, costo_unitario_usd REAL, margen_pct REAL,
      proveedor_id TEXT, modificado TEXT NOT NULL, usuario TEXT NOT NULL)`,
+  // D7: marca de último cambio. Cada escritura del portal (venta, alta, edición, CSV y, con ellas, los movimientos
+  // de stock) suma 1 en la misma db.batch. Las cotizaciones nuevas no la tocan: ya cambian MAX(numero).
+  `CREATE TABLE IF NOT EXISTS marca (clave TEXT PRIMARY KEY, valor INTEGER NOT NULL, fecha TEXT NOT NULL)`,
 ];
 
 // ------------------------------------------------------------------ utilidades
@@ -284,6 +287,14 @@ function datosCon(est) {
   return d;
 }
 
+// D7: sentencia que suma 1 a la marca de cambios. Va dentro de la misma db.batch que la escritura, así la marca y el
+// dato cambian juntos o no cambia ninguno. «cond» es una condición SQL opcional (con sus parámetros) para no contar
+// una escritura que al final no ocurrió.
+function marcarCambio(db, f, cond, args) {
+  return db.prepare(`INSERT INTO marca (clave, valor, fecha) SELECT 'cambios', 1, ? WHERE ${cond || "1"}
+      ON CONFLICT (clave) DO UPDATE SET valor = valor + 1, fecha = excluded.fecha`).bind(f, ...(args || []));
+}
+
 // ------------------------------------------------------------------ edición de repuestos (D8)
 
 // Categorías admitidas: las del catálogo del dataset. Lista cerrada, para que no vuelva a entrar un filtro de aire en
@@ -477,6 +488,16 @@ async function api(req, env, url) {
   const ruta = url.pathname, m = req.method;
 
   if (ruta === "/api/salud" && m === "GET") return json({ ok: true });
+
+  // D7: versión de lo guardado, para que el navegador consulte cada 30 s sin volver a bajar todo. Lee dos filas: el
+  // máximo número de cotización (sale del índice de la clave primaria) y la marca de cambios. «v» cambia con cada
+  // cotización nueva y con cada escritura del portal.
+  if (ruta === "/api/version" && m === "GET") {
+    const r = await (await base(env)).prepare(`SELECT (SELECT COALESCE(MAX(numero), 0) FROM cotizaciones) AS cotizaciones,
+        (SELECT valor FROM marca WHERE clave = 'cambios') AS cambios, (SELECT fecha FROM marca WHERE clave = 'cambios') AS fecha`).first();
+    const c = r.cambios || 0;
+    return json({ v: r.cotizaciones + "." + c, cotizaciones: r.cotizaciones, cambios: c, fecha: r.fecha || null });
+  }
   if (ruta === "/api/tc" && m === "GET") return json(await dolar());
 
   if (ruta === "/api/entrar" && m === "POST") {
@@ -588,6 +609,7 @@ async function api(req, env, url) {
         .bind(f, s.u, num, forzar ? 1 : 0, base0),
       db.prepare(`UPDATE cotizaciones SET convertida = 1, fecha_venta = ? WHERE numero = ? AND convertida = 0
           AND EXISTS (SELECT 1 FROM movimientos_stock WHERE cotizacion = ? AND motivo = 'venta') RETURNING numero`).bind(f, num, num),
+      marcarCambio(db, f, "EXISTS (SELECT 1 FROM movimientos_stock WHERE cotizacion = ? AND motivo = 'venta' AND fecha = ?)", [num, f]),
     ]);
     if (!u.results.length) return error(409, "El stock o la cotización cambiaron mientras se marcaba la venta. Vuelva a cargar la lista e intente de nuevo.");
     return json({ numero: num, convertida: 1, repuesto_id: cot.repuesto_id, cantidad: cot.cantidad, stock_antes: antes, stock_despues: despues, forzada: despues < 0 });
@@ -618,7 +640,8 @@ async function api(req, env, url) {
     const zona = texto(b.zona, "La zona", 40, true);
     if (!TIPOS_CLIENTE.includes(tipo)) return error(400, "El tipo debe ser uno de: " + TIPOS_CLIENTE.join(", ") + ".");
     const [id] = await siguientes(db, "clientes", "clientes", "cliente_id", "CLI-N");
-    await db.prepare("INSERT INTO clientes (cliente_id, nombre, tipo, zona, alta) VALUES (?, ?, ?, ?, ?)").bind(id, nombre, tipo, zona, ahora()).run();
+    const f = ahora();
+    await db.batch([db.prepare("INSERT INTO clientes (cliente_id, nombre, tipo, zona, alta) VALUES (?, ?, ?, ?, ?)").bind(id, nombre, tipo, zona, f), marcarCambio(db, f)]);
     return json({ cliente_id: id, nombre: nombre, tipo: tipo, zona: zona }, 201);
   }
   if (ruta === "/api/repuestos" && m === "POST") {
@@ -627,9 +650,10 @@ async function api(req, env, url) {
     const db = await base(env);
     const v = validarRepuesto(b, true);
     const [id] = await siguientes(db, "repuestos", "repuestos", "repuesto_id", "REP-N");
-    await db.prepare(`INSERT INTO repuestos (repuesto_id, nombre, categoria, descripcion, costo_unitario_usd, margen_pct, stock,
+    const f = ahora();
+    await db.batch([db.prepare(`INSERT INTO repuestos (repuesto_id, nombre, categoria, descripcion, costo_unitario_usd, margen_pct, stock,
         proveedor_id, fecha_ingreso, alta) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-      .bind(id, v.nombre, v.categoria, v.descripcion, v.costo_unitario_usd, v.margen_pct, v.stock, v.proveedor_id, v.fecha_ingreso, ahora()).run();
+      .bind(id, v.nombre, v.categoria, v.descripcion, v.costo_unitario_usd, v.margen_pct, v.stock, v.proveedor_id, v.fecha_ingreso, f), marcarCambio(db, f)]);
     return json({ repuesto_id: id, nombre: v.nombre }, 201);
   }
 
@@ -679,7 +703,7 @@ async function api(req, env, url) {
             proveedor_id, fecha_ingreso, alta) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
           .bind(ids[i], v.nombre, v.categoria, v.descripcion, v.costo_unitario_usd, v.margen_pct, v.stock, v.proveedor_id, v.fecha_ingreso, r.fecha)); });
     }
-    if (stmts.length) await db.batch(stmts);
+    if (stmts.length) await db.batch(stmts.concat([marcarCambio(db, r.fecha)]));
     return json(Object.assign({ aplicado: true }, resumen));
   }
 
@@ -696,8 +720,8 @@ async function api(req, env, url) {
     if (!actual(est, id)) return error(404, "No existe ese repuesto.");
     const v = validarRepuesto(b, false, k => k in b && b[k] !== null);
     if (!Object.keys(v).length) return error(400, "No hay ningún campo para cambiar.");
-    const plan = planEdicion(db, est, id, v, s.u, ahora());
-    if (plan.stmts.length) await db.batch(plan.stmts);
+    const f = ahora(), plan = planEdicion(db, est, id, v, s.u, f);
+    if (plan.stmts.length) await db.batch(plan.stmts.concat([marcarCambio(db, f)]));
     return json({ repuesto_id: id, cambios: plan.cambios });
   }
 

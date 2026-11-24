@@ -469,16 +469,19 @@ window.addEventListener("resize", infoCerrar);
    menos las ventas confirmadas y más los ajustes). Lo que trae el HTML es el stock al 10-11-2026. ---- */
 function pintarTodo(){ $("qr-rep").innerHTML = $("co-rep").innerHTML = opciones(); pintarTc(); pintarRubros(); pintarVehiculo(); pintarCatalogo(); pintarCot(); }
 pintarTodo();
-/* D7: el catálogo se vuelve a pedir con el botón «Actualizar precios y stock» y al volver a la pestaña. No pierde el
-   rubro, la búsqueda ni el repuesto elegido en el cotizador, porque viven en filtroRubro, el campo de búsqueda y S. */
-const VIVO = {t: 0, cargando: null};
+/* D7: el catálogo se vuelve a pedir con el botón «Actualizar precios y stock» y al volver a la pestaña, si la versión
+   de lo guardado cambió (/api/version, una lectura liviana). No pierde el rubro, la búsqueda ni el repuesto elegido en
+   el cotizador, porque viven en filtroRubro, el campo de búsqueda y S. La tienda no consulta sola cada 30 s: es
+   pública y anónima, y cada pestaña abierta sumaría pedidos al plan gratuito (ver el PR de D7). */
+const VIVO = {t: 0, cargando: null, version: null};
 const haceTxt = ms => { const x = Math.round(ms / 1000); return x < 10 ? "hace un momento" : x < 60 ? `hace ${x} s` : x < 3600 ? `hace ${Math.floor(x / 60)} min` : `hace ${Math.floor(x / 3600)} h`; };
 function pintarActualizado(){ if(VIVO.t) $("ca-act-t").textContent = "Precios y stock actualizados " + haceTxt(Date.now() - VIVO.t); }
 const imgCat = {}; T.catalogo.forEach(c => { if(c.imagen && !imgCat[c.categoria]) imgCat[c.categoria] = c.imagen; });
 const pedir = (ruta, vacio) => fetch(ruta, {cache: "no-store"}).then(r => r.ok ? r.json() : vacio).catch(() => vacio);
 function cargarPortal(){
   if(VIVO.cargando) return VIVO.cargando;
-  VIVO.cargando = Promise.all([pedir("/api/tc", null), pedir("/api/repuestos", null), pedir("/api/stock", null), pedir("/api/ajustes", null)]).then(([tc, nuevos, stock, ajustes]) => {
+  VIVO.cargando = Promise.all([pedir("/api/tc", null), pedir("/api/repuestos", null), pedir("/api/stock", null), pedir("/api/ajustes", null), pedir("/api/version", null)]).then(([tc, nuevos, stock, ajustes, version]) => {
+    if(version) VIVO.version = version.v;
     if(tc && tc.fecha >= TC.fecha){ TC.valor = tc.valor; TC.fecha = tc.fecha; }
     (nuevos || []).forEach(n => {
       const r = REP[n.repuesto_id] || {repuesto_id:n.repuesto_id};
@@ -501,7 +504,8 @@ function cargarPortal(){
 if(PORTAL){
   cargarPortal();
   $("ca-act").addEventListener("click", e => { const b = e.target; b.disabled = true; cargarPortal().finally(() => { b.disabled = false; }); });
-  document.addEventListener("visibilitychange", () => { if(!document.hidden && Date.now() - VIVO.t > 30000) cargarPortal(); });
+  document.addEventListener("visibilitychange", () => { if(document.hidden || Date.now() - VIVO.t < 30000) return;
+    pedir("/api/version", null).then(v => { if(!v || v.v !== VIVO.version) cargarPortal(); else { VIVO.t = Date.now(); pintarActualizado(); } }); });
   setInterval(pintarActualizado, 10000);
 }
 })();

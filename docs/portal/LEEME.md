@@ -81,6 +81,10 @@ Las tablas se crean solas en el primer pedido (`CREATE TABLE IF NOT EXISTS`):
   costo, margen y proveedor), con la fecha y el usuario de la última modificación. Cada columna no nula se pone
   encima del dato del dataset, que no se toca. El stock no está aquí: se ajusta con un movimiento.
 
+- `marca` (D7): una fila, `cambios`, con un contador y la fecha del último cambio. Toda escritura del portal (venta,
+  alta de cliente o de repuesto, edición, CSV y, con ellas, los movimientos de stock) le suma 1 en la misma
+  `db.batch`. Las cotizaciones nuevas no la tocan, porque ya cambian `MAX(numero)`.
+
 Columnas agregadas a tablas existentes, con `ALTER TABLE … ADD COLUMN` la primera vez que el servidor arranca con
 una base vieja (revisa `PRAGMA table_info` y no toca las filas): `cotizaciones.correo` y `correo_enviado`
 (SCRUM-83), y `repuestos.modificado` y `repuestos.usuario` (D8).
@@ -102,6 +106,19 @@ al 10-11-2026 (`stock_al_2026_11_10`) para `REP-0001`…`REP-0030` y la columna 
 - Las ventas marcadas **antes** de este cambio no descuentan: no tienen movimiento y el stock base no se tocó.
 - La tienda, el catálogo y el cotizador del área de la empresa, las alertas y el plan leen el stock vigente de
   `/api/stock` al cargar la página y después de cada venta o alta. La vista del proveedor lo calcula en el servidor.
+
+### Datos en vivo (D7)
+
+Decisión de Sam del 24-11-2026: botón «Actualizar» y consulta automática cada 30 segundos. El servidor ya servía
+fresco lo guardado en D1; el retraso estaba en el navegador.
+
+- **Área de la empresa**: botón «Actualizar» en la barra de sesión, con «Actualizado hace …» al lado. Vuelve a pedir
+  repuestos, stock, ajustes, clientes y ventas y pinta la vista actual con los mismos filtros y en la misma posición.
+- **Consulta automática**: con sesión y con la pestaña visible, cada 30 s el navegador pide `GET /api/version`, que
+  lee dos filas. Si la versión cambió, vuelve a pedir todo. Con la pestaña oculta el temporizador se apaga y no sale
+  ningún pedido; al volver a la pestaña, y al entrar a una vista con datos guardados, se consulta la versión enseguida.
+- **Tienda**: botón «Actualizar precios y stock» y consulta de la versión al volver a la pestaña. No consulta sola cada
+  30 s: es pública y anónima, y cada pestaña abierta sumaría pedidos al plan gratuito.
 
 ### Edición de repuestos y carga masiva por CSV (D8)
 
@@ -146,6 +163,7 @@ con el motivo) y el plan, pero no en las vistas que necesitan historial: simulad
 
 | Método y ruta | Quién | Qué hace |
 |---|---|---|
+| `GET /api/version` | Todos | Versión de lo guardado: `{"v": "<máx. cotización>.<cambios>", "cotizaciones", "cambios", "fecha"}` |
 | `GET /api/tc` | Todos | Dólar oficial del día, con su fecha y de dónde salió |
 | `POST /api/entrar` | Todos | Devuelve un token de sesión de 8 horas, firmado con HMAC-SHA256 |
 | `GET /api/repuestos` | Todos | Repuestos cargados (para el catálogo), con el stock vigente |

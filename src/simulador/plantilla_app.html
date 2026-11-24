@@ -1235,8 +1235,12 @@ function ir(v){
   $("miga").innerHTML = "Funciones &nbsp;/&nbsp; " + VISTAS.find(x => x[0] === v)[1];
   PINTAR[v]();
   pintado[v] = true;
-  // D7: al entrar a una vista con datos guardados, si lo cargado tiene más de unos segundos se vuelve a pedir.
-  if(PORTAL && SES.rol && VIVAS.includes(v) && Date.now() - VIVO.t > VIEJO_MS) refrescar();
+  // D7: al entrar a una vista con datos guardados se consulta la versión (una lectura liviana) y, si cambió, se
+  // vuelve a pedir todo. Sin versión conocida, se recarga si lo cargado tiene más de unos segundos.
+  if(PORTAL && SES.rol && VIVAS.includes(v)){
+    if(VIVO.version !== null){ if(Date.now() - VIVO.revisado > 5000) revisarVersion(); }
+    else if(Date.now() - VIVO.t > VIEJO_MS) refrescar();
+  }
 }
 const PINTAR = {dashboard:pintarDashboard, predicciones:pintarPredicciones, rotacion:pintarRotacion, alertas:pintarAlertas, simulador:pintarSimulador, proveedores:pintarProveedoresVista, plan:pintarPlan, temporadas:pintarTemporadas, clientes:pintarClientes, catalogo:pintarCatalogo, cotizar:pintarCotizar, cotizaciones:pintarCotizaciones, cargar:pintarCargar, mineria:pintarMineria, miprov:pintarMiProv, entrar:pintarEntrar};
 window.addEventListener("hashchange", () => { ir(location.hash.slice(1)); window.scrollTo(0,0); });
@@ -2122,6 +2126,7 @@ async function api(ruta, opc){
 }
 function pintarSesion(){
   const el = $("sesion"); if(!PORTAL){ el.hidden = true; return; }
+  sondear();   // D7: con sesión empieza la consulta automática; al salir, se detiene
   el.hidden = false;
   el.innerHTML = SES.rol ? `<span class="act" id="act-txt" aria-live="off"></span><button type="button" id="b-act" title="Volver a pedir al servidor cotizaciones, stock, repuestos y clientes">Actualizar</button><span>${esc(SES.nombre)}</span><a href="/">Tienda</a><button type="button" id="b-salir">Salir</button>` : "";
   pintarActualizado();
@@ -2177,8 +2182,10 @@ async function cargarServidor(){
   // D7: todo se pide en paralelo y se aplica de una vez, sin esperas en el medio: así una vista que se pinta mientras
   // tanto nunca ve la lista de clientes vacía ni duplicada.
   const imp = SES.rol === "importador";
-  const [nuevos, stock, ajustes, clientes, ventas] = await Promise.all([api("/api/repuestos"), api("/api/stock"), api("/api/ajustes"),
+  const [version, nuevos, stock, ajustes, clientes, ventas] = await Promise.all([api("/api/version").catch(() => null), api("/api/repuestos"), api("/api/stock"), api("/api/ajustes"),
     imp ? api("/api/clientes") : null, imp ? api("/api/ventas-clientes") : null]);
+  // La versión se pide junto con los datos: si algo cambia en el medio, la consulta siguiente lo detecta y vuelve a pedir.
+  if(version){ VIVO.version = version.v; VIVO.revisado = Date.now(); }
   mezclarRepuestos(nuevos); aplicarAjustes(ajustes); aplicarStock(stock);
   if(imp){
     quitarPrivado();
@@ -2194,7 +2201,8 @@ async function cargarServidor(){
    «Actualizar», al volver a la pestaña y al entrar a una vista que lo muestra. La vista actual se vuelve a pintar con
    los mismos filtros y en la misma posición de la página. ---- */
 const VIVAS = ["dashboard", "clientes", "catalogo", "cotizar", "cotizaciones", "alertas", "plan", "rotacion", "proveedores", "cargar", "miprov"];
-const VIVO = {t: 0, cargando: null, error: false};
+const VIVO = {t: 0, cargando: null, error: false, version: null, revisado: 0, timer: null};
+const CADA_MS = 30000;    // consulta automática de /api/version, solo con la pestaña visible
 const VIEJO_MS = 15000;   // al entrar a una vista, si los datos tienen más de 15 s se vuelven a pedir
 async function repintar(){
   if(!VIVAS.includes(S.vista) || $("ed-dlg").open) return;   // con el editor abierto no se cambia nada debajo
@@ -2215,7 +2223,20 @@ function haceTxt(ms){ const s = Math.round(ms / 1000);
 function pintarActualizado(){ const el = $("act-txt"); if(!el || !VIVO.t) return;
   el.textContent = VIVO.error ? "No se pudo actualizar; se reintentará." : "Actualizado " + haceTxt(Date.now() - VIVO.t); }
 setInterval(pintarActualizado, 10000);
-document.addEventListener("visibilitychange", () => { if(!document.hidden) refrescar(); });
+// Consulta liviana: /api/version lee dos filas. Si la versión cambió (cotización nueva, venta, alta, edición o CSV),
+// se vuelve a pedir todo y se pinta la vista actual.
+async function revisarVersion(){
+  if(!PORTAL || !SES.rol || document.hidden || VIVO.cargando) return;
+  VIVO.revisado = Date.now();
+  try { const r = await api("/api/version"); if(r.v !== VIVO.version) await refrescar(); else { VIVO.error = false; pintarActualizado(); } }
+  catch(e){ VIVO.error = true; pintarActualizado(); }
+}
+// El temporizador existe solo con sesión y con la pestaña visible: con la pestaña oculta no sale ningún pedido.
+function sondear(){
+  clearInterval(VIVO.timer); VIVO.timer = null;
+  if(PORTAL && SES.rol && !document.hidden) VIVO.timer = setInterval(revisarVersion, CADA_MS);
+}
+document.addEventListener("visibilitychange", () => { sondear(); if(!document.hidden) revisarVersion(); });
 async function iniciarPortal(){
   try { const t = await api("/api/tc");
     if(t && t.fecha >= OF.fecha){ OF.valor = t.valor; OF.fecha = t.fecha; INI.tc90 = S.tc90 = t.valor;
