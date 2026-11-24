@@ -2216,8 +2216,6 @@ const D = JSON.parse(document.getElementById("datos").textContent);
 const $ = id => document.getElementById(id);
 const OF = D.tc.oficial, PA = D.tc.paralelo, PAR = D.parametros;
 const OPC = {n: PAR.simulaciones, semilla: PAR.semilla, horizonte_dias: 90};
-// Quiebre y sensibilidad corren el motor varias veces: sin «n», el motor usa 400 futuros por corrida (~100 ms en total).
-const OPC_AN = {semilla: PAR.semilla, horizonte_dias: 90};
 const REP = {}; D.repuestos.forEach(r => REP[r.repuesto_id] = r);
 const PRV = {}; D.proveedores.forEach(p => PRV[p.proveedor_id] = p);
 // El stock de SCRUM-55 es al 10-11-2026 (columna stock_al_2026_11_10); el dólar puede ser de un día posterior.
@@ -2557,12 +2555,12 @@ function recalcular(){
     ultimo = R; pintarAlternativas(R);
     setTimeout(() => {
       if(g !== gen) return;
-      const Q = seguro(() => Motor.quiebreDolar(D, S.rep, S.prov, s, OPC_AN), $("q-cuerpo"));
+      const Q = seguro(() => Motor.quiebreDolar(D, S.rep, S.prov, s, OPC), $("q-cuerpo"));
       $("c-quiebre").removeAttribute("aria-busy");
       if(Q !== undefined) pintarQuiebre(Q, s);
       setTimeout(() => {
         if(g !== gen) return;
-        const T = seguro(() => Motor.sensibilidad(D, S.rep, S.prov, s, OPC_AN), $("t-cuerpo"));
+        const T = seguro(() => Motor.sensibilidad(D, S.rep, S.prov, s, OPC), $("t-cuerpo"));
         $("c-sens").removeAttribute("aria-busy");
         if(T) pintarSens(T);
       }, 0);
