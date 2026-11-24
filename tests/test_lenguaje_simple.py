@@ -128,3 +128,56 @@ class OcultarAlternativasEnCero(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+@unittest.skipUnless(shutil.which("node"), "hace falta Node")
+class SingularYPlural(unittest.TestCase):
+    """Revisión visual del 24-11-2026: el simulador decía «1 unidades». Se prueban nf y pal tal cual están en la
+    plantilla, y que ningún contador conocido quede con el plural fijo."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.p = PLANTILLA.read_text(encoding="utf-8")
+        cls.fn = re.search(r"function pal\(.*?\n", cls.p).group(0) + re.search(r"function nf\(.*?\n}\n", cls.p, re.S).group(0)
+
+    def test_pal(self):
+        js = ('console.log(JSON.stringify([pal(1,"unidad","unidades"), pal(2,"unidad","unidades"), pal(0,"unidad","unidades"),'
+              ' pal(1,"unidad","unidades",1), pal(0.6,"unidad","unidades"), pal(1.4,"unidad","unidades"), pal(-1,"día","días")]))')
+        out = json.loads(subprocess.run(["node", "-e", self.fn + js], capture_output=True, text=True, check=True).stdout)
+        self.assertEqual(out, ["unidad", "unidades", "unidades", "unidades", "unidad", "unidad", "días"])
+
+    def test_sin_plural_fijo_tras_una_cifra(self):
+        # Control positivo: la forma vieja del stock del simulador la detecta este mismo patrón.
+        rx = re.compile(r"\$\{nf\([^()]*\)\}(?: |<small>)(?:unidades|días|meses)\b|\$\{(?:stock|pedir|vig|A\.length)\}<small>(?:unidades|repuestos)\b")
+        self.assertTrue(rx.search("${nf(stock)}<small>unidades"))
+        self.assertEqual(rx.findall(self.p), [])
+
+
+class PestanasDeMineria(unittest.TestCase):
+    """Decisión de Sam del 24-11-2026: cada pestaña de «Minería de datos» se nombra con la pregunta de negocio que
+    responde. El nombre de la técnica va en chico debajo del título, no en el botón. MN_TABS está dentro de una región
+    técnica (la explicación de cada técnica), así que la prueba general de términos no la ve: esta revisa los botones."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.p = PLANTILLA.read_text(encoding="utf-8")
+        bloque = cls.p[cls.p.index("const MN_TABS = ["):cls.p.index("/* técnico: fin */", cls.p.index("const MN_TABS = ["))]
+        cls.preguntas = re.findall(r'\{k:"\w+", p:"([^"]+)"', bloque)
+        cls.tecnicas = re.findall(r'tec:"([^"]+)"', bloque)
+
+    def test_nueve_pestanas_con_pregunta_y_tecnica(self):
+        self.assertEqual(len(self.preguntas), 9)
+        self.assertEqual(len(self.tecnicas), 9)
+        for q in self.preguntas:
+            self.assertTrue(q.startswith("¿") and q.endswith("?"), q)
+
+    def test_botones_sin_terminos_tecnicos(self):
+        # Control positivo: los nombres de antes del cambio los detecta el mismo patrón.
+        for viejo in ("Regresión logística", "Simulación de Monte Carlo", "Punto de pedido (s, S)", "Índice estacional"):
+            self.assertTrue(RX.search(viejo), viejo)
+        self.assertEqual([q for q in self.preguntas if RX.search(q)], [])
+
+    def test_boton_y_titulo_usan_la_pregunta(self):
+        self.assertIn("${esc(t.p)}</button>", self.p)
+        self.assertIn('<h2>${esc(tab.p)}</h2><p class="mn-tec">${esc(tab.tec)}</p>', self.p)
+        self.assertNotIn("${esc(t.t)}</button>", self.p)

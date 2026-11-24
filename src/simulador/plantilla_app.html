@@ -449,6 +449,17 @@ svg.chart .pm{fill:none;stroke:var(--graphite);stroke-width:2}
 .rt-mat td.cel .n{font-size:24px;font-weight:700;line-height:1.1}
 .rt-mat td.cel .r{font-size:13px;font-weight:600;margin-top:2px}
 .rt-mat td.cel .q{font-size:12px;color:var(--ink-2);margin-top:2px}
+/* En el celular la matriz se apila: cada fila (cuánto vende) es un bloque y cada casilla dice su columna. */
+@media (max-width:600px){
+  .rt-mat thead{display:none}
+  .rt-mat,.rt-mat tbody,.rt-mat tr,.rt-mat td{display:block;width:auto}
+  .rt-mat tr{margin-bottom:12px;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  .rt-mat td:first-child{width:auto;padding:10px 12px;background:var(--bg,#f6f7f5)}
+  .rt-mat td:first-child::before{content:"Vende en dinero: ";font-weight:600}
+  .rt-mat td.cel{border-left:0;border-top:1px solid var(--line);text-align:left}
+  .rt-mat td.cel::before{content:attr(data-col);display:block;font-size:12px;font-weight:600;color:var(--ink-2);margin-bottom:4px}
+}
+#mn-intro .mn-tec{font-size:12.5px;color:var(--ink-2);margin:-4px 0 8px;font-weight:600}
 .rt-mat td.cel.p1{background:#e1f1e8} .rt-mat td.cel.p2{background:#f1f7f2} .rt-mat td.cel.p3{background:#fbf1d9} .rt-mat td.cel.p4{background:#fbe7e4}
 .chips{display:flex;flex-direction:column;align-items:flex-start;gap:4px}
 .al-chip{display:inline-block;font-size:11px;font-weight:600;line-height:1.5;border-radius:99px;padding:2px 8px;white-space:nowrap}
@@ -1053,6 +1064,8 @@ const PRV = {}; D.proveedores.forEach(p => PRV[p.proveedor_id] = p);
 const FECHA_STOCK = "2026-11-10";
 
 /* ---- Formato. Se agrupan los miles a mano: toLocaleString("es") no agrupa números de 4 cifras en Chromium. ---- */
+// Singular o plural según cómo se ve la cifra: «1 unidad», «1,0 unidades», «2 unidades».
+function pal(n, sing, plur, d = 0){ return nf(n, d) === "1" ? sing : plur; }
 function nf(n, d = 0){
   if(n === null || n === undefined || !isFinite(n)) return "—";
   const neg = n < 0, s = Math.abs(n).toFixed(d), [e, f] = s.split(".");
@@ -1211,9 +1224,9 @@ function pintarAlertas(){
   const al = seguro(alertas, $("t-alertas")); if(!al) return;
   const pedir = al.filter(a => a.est === 0).length, vig = al.filter(a => a.est === 1).length, camino = al.reduce((s,a) => s + (a.en_camino || 0), 0), sinDatos = al.filter(a => a.est === 3).length;
   $("al-kpis").innerHTML = `
-    <div class="kpi"><div class="t">Pedir esta semana${info("Pedir esta semana", "Repuestos cuyo stock, sumado a lo que viene en camino, ya no alcanza para cubrir la venta mientras llega un pedido nuevo. Conviene pedirlos ahora.")}</div><div class="v c-bad">${pedir}<small>repuestos</small></div><div class="d">llegaron al mínimo para pedir</div></div>
-    <div class="kpi"><div class="t">En vigilancia${info("En vigilancia", "Repuestos que todavía tienen stock, pero que llegarán al mínimo para pedir antes de que pueda llegar un pedido nuevo. Conviene pedirlos pronto.")}</div><div class="v c-warn">${vig}<small>repuestos</small></div><div class="d">llegarán al mínimo antes de que pueda llegar un pedido nuevo</div></div>
-    <div class="kpi"><div class="t">En camino${info("En camino", "Unidades de pedidos ya hechos que todavía no llegaron al almacén. Se cuentan como stock futuro al decidir qué pedir.")}</div><div class="v">${nf(camino)}<small>unidades</small></div><div class="d">de pedidos ya hechos que todavía no llegan</div></div>
+    <div class="kpi"><div class="t">Pedir esta semana${info("Pedir esta semana", "Repuestos cuyo stock, sumado a lo que viene en camino, ya no alcanza para cubrir la venta mientras llega un pedido nuevo. Conviene pedirlos ahora.")}</div><div class="v c-bad">${pedir}<small>${pal(pedir, "repuesto", "repuestos")}</small></div><div class="d">llegaron al mínimo para pedir</div></div>
+    <div class="kpi"><div class="t">En vigilancia${info("En vigilancia", "Repuestos que todavía tienen stock, pero que llegarán al mínimo para pedir antes de que pueda llegar un pedido nuevo. Conviene pedirlos pronto.")}</div><div class="v c-warn">${vig}<small>${pal(vig, "repuesto", "repuestos")}</small></div><div class="d">llegarán al mínimo antes de que pueda llegar un pedido nuevo</div></div>
+    <div class="kpi"><div class="t">En camino${info("En camino", "Unidades de pedidos ya hechos que todavía no llegaron al almacén. Se cuentan como stock futuro al decidir qué pedir.")}</div><div class="v">${nf(camino)}<small>${pal(camino, "unidad", "unidades")}</small></div><div class="d">de pedidos ya hechos que todavía no llegan</div></div>
     <div class="kpi"><div class="t">Dólar de hoy${info("Dólar de hoy", "Tipo de cambio oficial publicado por el Banco Central de Bolivia: cuántos bolivianos cuesta un dólar. Con este valor se calcula el costo de lo que hay que pedir.")}</div><div class="v">${nf(tcHoy(),2)}<small>Bs</small></div><div class="d">oficial del Banco Central de Bolivia · actualizado el ${fecha(OF.fecha)}</div></div>`;
   const filas = S.verTodas ? al : al.slice(0, 12);
   $("t-alertas").innerHTML = `<thead><tr><th>Repuesto${info("Repuesto", "Debajo del código va el código en la base de ventas, cómo se vende (todos los meses, seguido o de vez en cuando) y su importancia en las ventas.")}</th><th>Estado</th><th>Stock<span class="ayuda">en almacén</span></th><th>En camino</th><th>Pedir cuando queden${info("Pedir cuando queden", "Cantidad de stock en la que hay que pedir. Cubre la venta esperada mientras llega el pedido, más una reserva para imprevistos por si se vende más o el proveedor se atrasa.")}</th><th>Plazo${info("Plazo", "Días que tarda el proveedor en entregar, desde que se hace el pedido hasta que llega al almacén.")}</th><th>Venta en el plazo${info("Venta en el plazo", "Unidades que se espera vender mientras llega el pedido, según el pronóstico. Si supera al stock más lo que viene en camino, faltará mercadería.")}</th><th>Cantidad sugerida${info("Cantidad sugerida", "Unidades a pedir para volver al nivel de reposición, descontando el stock y lo que viene en camino.")}</th><th>Costo final en Santa Cruz${info("Costo final en Santa Cruz", "Lo que cuesta tener el pedido en el almacén de Santa Cruz: precio de fábrica, flete y gastos de aduana, en bolivianos.")}</th><th style="text-align:left">Proveedor</th></tr></thead><tbody>` +
@@ -1253,7 +1266,7 @@ function controles(){
   $("f-cat").value = S.cat;
   const lista = D.repuestos.filter(r => !S.cat || r.tipo_demanda + "|" + r.clase_abc === S.cat);
   if(!lista.some(r => r.repuesto_id === S.rep)){ S.rep = lista[0].repuesto_id; S.prov = REP[S.rep].proveedor_id; }
-  $("f-rep").innerHTML = lista.map(r => `<option value="${r.repuesto_id}">${r.repuesto_id} · ${esc(nombreRep(r.repuesto_id))} (${nf(r.stock_al_2026_11_10 / ventaDia(r.repuesto_id))} días)</option>`).join("");
+  $("f-rep").innerHTML = lista.map(r => `<option value="${r.repuesto_id}">${r.repuesto_id} · ${esc(nombreRep(r.repuesto_id))} (${nf(r.stock_al_2026_11_10 / ventaDia(r.repuesto_id))} ${pal(r.stock_al_2026_11_10 / ventaDia(r.repuesto_id), "día", "días")})</option>`).join("");
   $("f-rep").value = S.rep;
   if(!S.prov) S.prov = REP[S.rep].proveedor_id;
   const provs = seguro(listaProveedores) || [];
@@ -1267,7 +1280,7 @@ function etiquetas(){
   const p = PRV[S.prov];
   $("v-tc").innerHTML = `${nf(S.tc90,2)}<small>Bs por dólar (hoy: ${nf(tcHoy(),2)})</small>`;
   $("v-ven").innerHTML = `${S.venta > 0 ? "+" : ""}${nf(S.venta)} %<small>respecto del pronóstico</small>`;
-  $("v-atr").innerHTML = `${nf(S.atraso)}<small>días de atraso sobre su plazo normal de ${p.plazo_normal_dias} días</small>`;
+  $("v-atr").innerHTML = `${nf(S.atraso)}<small>${pal(S.atraso, "día", "días")} de atraso sobre su plazo normal de ${p.plazo_normal_dias} días</small>`;
   $("atr-ayuda").textContent = `Este proveedor entregó a tiempo ${p.pct_entregas_a_tiempo} de cada 100 pedidos.`;
 }
 
@@ -1320,14 +1333,14 @@ function pintarFijos(){
   const stock = r.stock_al_2026_11_10, alcanza = stock / dia, plazo = p.plazo_normal_dias + S.atraso;
   const est = alcanza < plazo ? ["bad","Urgente"] : alcanza < plazo + 30 ? ["warn","Margen corto"] : ["ok","Con margen"];
   // Venta en palabras (veredicto #25): «se vende 1 cada 2 meses» en vez de «0,02 unidades por día · método SBA».
-  const mes = dia * 30, ritmo = mes >= 1 ? `${nf(mes,1)}<small>unidades al mes</small>` : mes > 0 ? `1<small>cada ${nf(1 / mes)} ${Math.round(1 / mes) === 1 ? "mes" : "meses"}</small>` : `0<small>unidades</small>`;
+  const mes = dia * 30, ritmo = mes >= 1 ? `${nf(mes,1)}<small>${pal(mes, "unidad", "unidades", 1)} al mes</small>` : mes > 0 ? `1<small>cada ${nf(1 / mes)} ${Math.round(1 / mes) === 1 ? "mes" : "meses"}</small>` : `0<small>unidades</small>`;
   const metodo = f.metodo === "SBA" ? "pronóstico para repuestos que se venden de vez en cuando" : "promedio de los últimos 12 meses";
   $("kpis").innerHTML = `
-    <div class="kpi"><div class="t">Stock actual${info("Stock actual", "Unidades de este repuesto en el almacén a la fecha indicada. Debajo, las unidades de pedidos ya hechos que todavía no llegan.")}</div><div class="v">${nf(stock)}<small>unidades</small></div><div class="d">al ${fecha(FECHA_STOCK)} · ${nf(r.en_transito_al_2026_11_10)} en camino</div></div>
-    <div class="kpi"><div class="t">Venta pronosticada${info("Venta pronosticada", "Cuánto se espera vender, según el historial de ventas y el ajuste que usted eligió en el supuesto de venta. Para los repuestos que se venden de vez en cuando se usa un pronóstico pensado para ese tipo de venta, que no exagera como un promedio simple.")}</div><div class="v">${mes >= 1 ? "" : "se vende "}${ritmo}</div><div class="d">${nf(dia,2)} unidades por día · ${metodo}</div></div>
-    <div class="kpi"><div class="t">El stock alcanza para${info("El stock alcanza para", "Días que dura el stock actual al ritmo de venta pronosticado, si no llega ningún pedido. Se compara con el plazo del proveedor para saber si hay margen.")}</div><div class="v c-${est[0]}">${alcanza > 999 ? "+999" : nf(alcanza)}<small>días</small><span class="est ${est[0]}">${est[1]}</span></div><div class="d">a ese ritmo de venta</div></div>
-    <div class="kpi"><div class="t">Entrega del proveedor${info("Entrega del proveedor", "Días que tarda en llegar un pedido: el plazo normal del proveedor más el atraso que usted supuso.")}</div><div class="v">${nf(plazo)}<small>días</small></div><div class="d">${p.plazo_normal_dias} días de plazo normal + ${S.atraso} de atraso supuesto</div></div>`;
-  $("situ").innerHTML = `El stock le alcanza ${alcanza > 999 ? "más de 999" : nf(alcanza)} días y el proveedor tarda ${nf(plazo)}: ${est[1].toLowerCase()}. ` + (stock === 0 ? "<strong>El stock está en cero.</strong> Las ventas recientes pueden estar subestimadas por falta de mercadería. " : "")
+    <div class="kpi"><div class="t">Stock actual${info("Stock actual", "Unidades de este repuesto en el almacén a la fecha indicada. Debajo, las unidades de pedidos ya hechos que todavía no llegan.")}</div><div class="v">${nf(stock)}<small>${pal(stock, "unidad", "unidades")}</small></div><div class="d">al ${fecha(FECHA_STOCK)} · ${nf(r.en_transito_al_2026_11_10)} en camino</div></div>
+    <div class="kpi"><div class="t">Venta pronosticada${info("Venta pronosticada", "Cuánto se espera vender, según el historial de ventas y el ajuste que usted eligió en el supuesto de venta. Para los repuestos que se venden de vez en cuando se usa un pronóstico pensado para ese tipo de venta, que no exagera como un promedio simple.")}</div><div class="v">${mes >= 1 ? "" : "se vende "}${ritmo}</div><div class="d">${nf(dia,2)} ${pal(dia, "unidad", "unidades", 2)} por día · ${metodo}</div></div>
+    <div class="kpi"><div class="t">El stock alcanza para${info("El stock alcanza para", "Días que dura el stock actual al ritmo de venta pronosticado, si no llega ningún pedido. Se compara con el plazo del proveedor para saber si hay margen.")}</div><div class="v c-${est[0]}">${alcanza > 999 ? "+999" : nf(alcanza)}<small>${pal(alcanza, "día", "días")}</small><span class="est ${est[0]}">${est[1]}</span></div><div class="d">a ese ritmo de venta</div></div>
+    <div class="kpi"><div class="t">Entrega del proveedor${info("Entrega del proveedor", "Días que tarda en llegar un pedido: el plazo normal del proveedor más el atraso que usted supuso.")}</div><div class="v">${nf(plazo)}<small>${pal(plazo, "día", "días")}</small></div><div class="d">${p.plazo_normal_dias} días de plazo normal + ${S.atraso} de atraso supuesto</div></div>`;
+  $("situ").innerHTML = `El stock le alcanza ${alcanza > 999 ? "más de 999" : nf(alcanza)} ${pal(alcanza, "día", "días")} y el proveedor tarda ${nf(plazo)}: ${est[1].toLowerCase()}. ` + (stock === 0 ? "<strong>El stock está en cero.</strong> Las ventas recientes pueden estar subestimadas por falta de mercadería. " : "")
     + (alcanza < plazo ? "<strong>El stock se agota antes de que llegue un pedido hecho hoy.</strong> Conviene decidir hoy mismo." : alcanza < plazo + 30 ? "<strong>El margen después de la entrega es corto.</strong> Conviene decidir pronto." : "<strong>Hay margen para esperar.</strong> Ninguna alternativa es urgente.");
   $("h-rep2").textContent = S.rep;
   $("h-sub").textContent = `${S.rep} · ${nombreProv(p)} (precio: ${incoTxt(p.incoterm)}) · dólar esperado ${nf(S.tc90,2)} Bs · venta ${S.venta > 0 ? "+" : ""}${S.venta} % · atraso de ${S.atraso} días · precio de venta ${S.sigue ? "ajustado al dólar" : "fijo"}`;
@@ -1346,7 +1359,7 @@ function pintarVentas(f){
   const ticks = [0, Math.round(mx / 2), Math.floor(mx)];
   const barras = se.map((x,i) => `<rect x="${(X(i) + bw*.15).toFixed(1)}" y="${Y(x[1]).toFixed(1)}" width="${(bw*.7).toFixed(1)}" height="${(H - pb - Y(x[1])).toFixed(1)}"><title>${x[0]}: ${x[1]} u</title></rect>`).join("");
   const xs = se.map((x,i) => i % 6 === 0 ? `<text x="${X(i) + bw/2}" y="${H-24}" text-anchor="middle">${MES[+x[0].slice(5)-1]} ${x[0].slice(2,4)}</text>` : "").join("");
-  $("chart-ven").innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Ventas mensuales de ${S.rep} y pronóstico de ${nf(f.unidades_mes,1)} unidades por mes">
+  $("chart-ven").innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Ventas mensuales de ${S.rep} y pronóstico de ${nf(f.unidades_mes,1)} ${pal(f.unidades_mes, "unidad", "unidades", 1)} por mes">
     ${ticks.map(t => `<line class="grid" x1="${pl}" x2="${W-pr}" y1="${Y(t)}" y2="${Y(t)}"/><text x="${pl-6}" y="${Y(t)+4}" text-anchor="end">${t}</text>`).join("")}
     <g class="barras">${barras}</g>
     <line x1="${X(n - 12)}" x2="${X(n + 3)}" y1="${Y(f.unidades_mes)}" y2="${Y(f.unidades_mes)}" stroke="var(--brand)" stroke-width="2.5"/>
@@ -1358,7 +1371,7 @@ function pintarVentas(f){
     ? `Este repuesto ${PATRON[REP[S.rep].tipo_demanda] || REP[S.rep].tipo_demanda}. Para esa forma de venta se usa un pronóstico pensado para repuestos que se venden de vez en cuando, que no exagera como un promedio simple.`
     : "Este repuesto se vende casi todos los meses, así que alcanza con el promedio de los últimos 12 meses.";
   const um = f.unidades_mes;
-  $("pro-lec").textContent = um >= 1 ? `Se espera vender ${nf(um,1)} unidades por mes.` : um > 0 ? `Se espera vender ${Math.abs(um - .5) < .05 ? "media unidad" : nf(um,1) + " unidades"} por mes: más o menos 1 cada ${nf(1 / um)} ${Math.round(1 / um) === 1 ? "mes" : "meses"}.` : "No se espera vender en los próximos meses.";
+  $("pro-lec").textContent = um >= 1 ? `Se espera vender ${nf(um,1)} ${pal(um, "unidad", "unidades", 1)} por mes.` : um > 0 ? `Se espera vender ${Math.abs(um - .5) < .05 ? "media unidad" : nf(um,1) + " unidades"} por mes: más o menos 1 cada ${nf(1 / um)} ${Math.round(1 / um) === 1 ? "mes" : "meses"}.` : "No se espera vender en los próximos meses.";
   $("t-ven").innerHTML = "<thead><tr><th>Mes</th><th>Unidades vendidas</th></tr></thead><tbody>" + se.map(x => `<tr><td>${x[0]}</td><td>${x[1]}</td></tr>`).join("") + "</tbody>";
 }
 
@@ -1420,8 +1433,8 @@ function pintarAlternativas(R){
       <dl class="dato"><dt>Cantidad a pedir${info("Cantidad a pedir", "Unidades que entran en este pedido." + (k === "A" ? " Pide al menos una, aunque el stock alcance." : ""))}</dt><dd>${o.cantidad === 0 ? "Nada por ahora" : nf(o.cantidad) + (o.cantidad === 1 ? " unidad" : " unidades")}${o.cantidad_30_dias > 0 ? `<small>${nf(o.cantidad_hoy)} hoy y ${nf(o.cantidad_30_dias)} en 30 días</small>` : ""}</dd></dl>
       <dl class="dato"><dt>Costo final en Santa Cruz${info("Costo final en Santa Cruz", "Lo que se paga hasta tener el pedido en el almacén: precio de fábrica, flete, aduana y el trámite de cada envío.")}</dt><dd>${bs(c.total_bs)}<small>${o.cantidad ? desg : "sin pedido"}</small></dd></dl>
       <dl class="dato"><dt>Margen después de la entrega${info("Margen después de la entrega", "Días de venta que todavía cubre el stock cuando llega el pedido. Si es negativo, falta mercadería antes de que llegue.")}</dt><dd class="${mc}">${md < 0 ? "Falta stock" : nf(md) + " días"}<small>${md < 0 ? "se pierden " + nf(-md) + " días de venta" : "de venta cubiertos"}</small></dd></dl>
-      <dl class="dato"><dt>Riesgo de quedarse sin stock${info("Riesgo de quedarse sin stock", "En cuántos de cada 100 escenarios se pierde al menos una venta por falta de stock, y cuántas unidades se pierden en promedio.")}</dt><dd><span class="${rc}">${r} de 100</span><small>escenarios · ${nf(o.unidades_perdidas,1)} unidades perdidas en promedio</small></dd></dl>
-      <dl class="dato"><dt>Dinero parado en stock${info("Dinero parado en stock", "Dinero invertido en mercadería que todavía no se vendió y que no está disponible en caja. Debajo, en cuántos días se recupera vendiendo.")}</dt><dd>${bs(o.capital_inmovilizado_bs)}<small>se vende en ${nf(o.dias_venta_capital)} días</small></dd></dl>
+      <dl class="dato"><dt>Riesgo de quedarse sin stock${info("Riesgo de quedarse sin stock", "En cuántos de cada 100 escenarios se pierde al menos una venta por falta de stock, y cuántas unidades se pierden en promedio.")}</dt><dd><span class="${rc}">${r} de 100</span><small>escenarios · ${nf(o.unidades_perdidas,1)} ${pal(o.unidades_perdidas, "unidad", "unidades", 1)} perdidas en promedio</small></dd></dl>
+      <dl class="dato"><dt>Dinero parado en stock${info("Dinero parado en stock", "Dinero invertido en mercadería que todavía no se vendió y que no está disponible en caja. Debajo, en cuántos días se recupera vendiendo.")}</dt><dd>${bs(o.capital_inmovilizado_bs)}<small>se vende en ${nf(o.dias_venta_capital)} ${pal(o.dias_venta_capital, "día", "días")}</small></dd></dl>
       <dl class="dato"><dt>Ganancia esperada en 90 días${info("Ganancia esperada en 90 días", "Ventas menos costos, en promedio de todos los escenarios. El stock que sobra al día 90 se valora a lo que costaría reponerlo. Debajo, la ganancia en un mal caso: el peor de cada 10.")}</dt><dd>${bs(o.ganancia_media_bs)}<small>en un mal caso (el peor de cada 10): ${bs(o.ganancia_p10_bs)}</small></dd></dl>
       <div class="porque"><div class="lt">¿Por qué esta alternativa?</div><p>${a.por}</p><div class="tools">${a.t2.map(x => TOOL[x]).join("")}${TOOL.sim}</div></div>
       <button class="elegir" type="button" data-alt="${k}" aria-pressed="${sel}">${sel ? "Elegida ✓" : "Elegir esta alternativa"}</button>
@@ -1576,12 +1589,12 @@ function pintarTemporadas(){
     <div class="kpi"><div class="t">Mes de mayor venta${info("Mes de mayor venta", "El mes del año con la venta promedio más alta, comparada con el promedio de los 12 meses. Conviene tener stock antes de que empiece.")}</div><div class="v">${capital(MES_L[p.mes_pico - 1])}</div><div class="d">vende ${vsNormal(ip)}</div></div>
     <div class="kpi"><div class="t">Mes de menor venta${info("Mes de menor venta", "El mes del año con la venta promedio más baja. Conviene no acumular stock para ese mes.")}</div><div class="v">${capital(MES_L[p.mes_flojo - 1])}</div><div class="d">vende ${vsNormal(iflo)}</div></div>
     <div class="kpi"><div class="t">Meses de temporada alta${info("Meses de temporada alta", "Cantidad de meses del año que venden más que un mes normal. Son las barras verdes del gráfico.")}</div><div class="v">${p.meses_fuertes.length}<small>de 12</small></div><div class="d">venden más que un mes normal</div></div>
-    <div class="kpi"><div class="t">Venta promedio${info("Venta promedio", "Unidades vendidas por mes en promedio, considerando los 12 meses del año. Es la línea oscura del gráfico.")}</div><div class="v">${nf(p.media,1)}<small>unidades por mes</small></div><div class="d">promedio de los 12 meses</div></div>`;
+    <div class="kpi"><div class="t">Venta promedio${info("Venta promedio", "Unidades vendidas por mes en promedio, considerando los 12 meses del año. Es la línea oscura del gráfico.")}</div><div class="v">${nf(p.media,1)}<small>${pal(p.media, "unidad", "unidades", 1)} por mes</small></div><div class="d">promedio de los 12 meses</div></div>`;
   const W = Math.max(320, Math.round($("chart-tm").clientWidth || 900)), H = 260, pl = 48, pb = 44, pr = 12;
   const mx = Math.max(...p.promedio_mes.map(v => v || 0), p.media) * 1.15, bw = (W - pl - pr) / 12;
   const X = i => pl + i * bw, Y = v => 10 + (1 - v / mx) * (H - pb - 10);
   const ticks = [0, mx / 2, mx / 1.15].map(t => Math.round(t * 10) / 10);
-  const barras = p.promedio_mes.map((v,i) => v === null ? "" : `<rect class="bm${p.meses_fuertes.includes(i + 1) ? " f" : ""}" x="${(X(i) + bw*.18).toFixed(1)}" y="${Y(v).toFixed(1)}" width="${(bw*.64).toFixed(1)}" height="${Math.max(0, H - pb - Y(v)).toFixed(1)}" rx="3"><title>${capital(MES_L[i])}: ${nf(v,2)} unidades en promedio (${p.observaciones[i]} años con dato)</title></rect>`).join("");
+  const barras = p.promedio_mes.map((v,i) => v === null ? "" : `<rect class="bm${p.meses_fuertes.includes(i + 1) ? " f" : ""}" x="${(X(i) + bw*.18).toFixed(1)}" y="${Y(v).toFixed(1)}" width="${(bw*.64).toFixed(1)}" height="${Math.max(0, H - pb - Y(v)).toFixed(1)}" rx="3"><title>${capital(MES_L[i])}: ${nf(v,2)} ${pal(v, "unidad", "unidades", 2)} en promedio (${p.observaciones[i]} años con dato)</title></rect>`).join("");
   $("chart-tm").innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Venta promedio por mes de ${esc(quien)}. Mes de mayor venta: ${MES_L[p.mes_pico - 1]}; de menor venta: ${MES_L[p.mes_flojo - 1]}">
     ${ticks.map(t => `<line class="grid" x1="${pl}" x2="${W-pr}" y1="${Y(t)}" y2="${Y(t)}"/><text x="${pl-6}" y="${Y(t)+4}" text-anchor="end">${nf(t, mx < 11.5 ? 1 : 0)}</text>`).join("")}
     ${barras}
@@ -1704,9 +1717,9 @@ function pintarDashboard(){
   const top = T.clientes[0], rep = T.repuestos[0], empate = T.repuestos.filter(r => r.unidades === rep.unidades);
   const var12 = T.prev12_bs > 0 ? (T.ult12_bs - T.prev12_bs) / T.prev12_bs * 100 : null;
   $("db-kpis").innerHTML = `
-    <div class="kpi"><div class="t">Ventas totales${info("Ventas totales", `Unidades vendidas desde ${mesL(T.meses[0])} multiplicadas por el precio de lista de hoy, en bolivianos con el dólar oficial del Banco Central de Bolivia. Se usa un solo precio para poder comparar períodos.`)}</div><div class="v">${bs(T.total.monto_bs)}</div><div class="d">${nf(T.total.unidades)} unidades, de ${mesL(T.meses[0])} a ${mesL(T.ultimo_mes)}</div></div>
+    <div class="kpi"><div class="t">Ventas totales${info("Ventas totales", `Unidades vendidas desde ${mesL(T.meses[0])} multiplicadas por el precio de lista de hoy, en bolivianos con el dólar oficial del Banco Central de Bolivia. Se usa un solo precio para poder comparar períodos.`)}</div><div class="v">${bs(T.total.monto_bs)}</div><div class="d">${nf(T.total.unidades)} ${pal(T.total.unidades, "unidad", "unidades")}, de ${mesL(T.meses[0])} a ${mesL(T.ultimo_mes)}</div></div>
     <div class="kpi"><div class="t">Ventas de los últimos 12 meses${info("Ventas de los últimos 12 meses", `Ventas en bolivianos de los 12 meses que terminan en ${mesL(T.ultimo_mes)}, el último mes con datos, comparadas con los 12 meses anteriores. Un porcentaje positivo indica que se vendió más.`)}</div><div class="v">${bs(T.ult12_bs)}</div><div class="d">${var12 === null ? "sin año anterior para comparar" : (var12 >= 0 ? "+" : "−") + nf(Math.abs(var12)) + " % respecto de los 12 meses anteriores"}</div></div>
-    <div class="kpi"><div class="t">Repuesto más vendido${info("Repuesto más vendido", `El repuesto con más unidades vendidas desde ${mesL(T.meses[0])}. Si dos repuestos empatan en unidades, va primero el que vendió más en bolivianos.`)}</div><div class="v txt">${esc(nombreRep(rep.id))}</div><div class="d">${rep.id} · ${nf(rep.unidades)} unidades (${nf(rep.pct_unidades,1)} %)</div><span class="ayuda">${empate.length > 1 ? `Empata en unidades con ${empate.slice(1).map(r => r.id).join(", ")}; va primero por el monto vendido.` : "Unidades vendidas desde " + mesL(T.meses[0]) + "."}</span></div>
+    <div class="kpi"><div class="t">Repuesto más vendido${info("Repuesto más vendido", `El repuesto con más unidades vendidas desde ${mesL(T.meses[0])}. Si dos repuestos empatan en unidades, va primero el que vendió más en bolivianos.`)}</div><div class="v txt">${esc(nombreRep(rep.id))}</div><div class="d">${rep.id} · ${nf(rep.unidades)} ${pal(rep.unidades, "unidad", "unidades")} (${nf(rep.pct_unidades,1)} %)</div><span class="ayuda">${empate.length > 1 ? `Empata en unidades con ${empate.slice(1).map(r => r.id).join(", ")}; va primero por el monto vendido.` : "Unidades vendidas desde " + mesL(T.meses[0]) + "."}</span></div>
     <div class="kpi"><div class="t">Cliente que más compra${info("Cliente que más compra", "El cliente con más compras en bolivianos desde el inicio de los datos. Debajo, su parte del total.")}</div><div class="v txt">${esc(nomCli(top.nombre))}</div><div class="d">${bs(top.monto_bs)} · ${nf(top.pct_total,1)} % del total</div><span class="ayuda">Los 5 clientes que más compran suman el ${nf(T.top5_pct)} % de las ventas.</span></div>`;
   // Demanda por mes, con promedio móvil de 12 meses para ver la tendencia sin el ruido de cada mes.
   const dm = T.demanda_mes, W = Math.max(320, Math.round($("chart-db").clientWidth || 900)), H = 270, pl = 48, pb = 46, pr = 12;
@@ -1716,9 +1729,9 @@ function pintarDashboard(){
   const pico = dm.reduce((b,x,i) => x.unidades > dm[b].unidades ? i : b, 0);
   const ticks = [0, Math.round(mx / 2.24), Math.round(mx / 1.12)];
   const etiq = dm.map((x,i) => x.mes.slice(5) === "01" || (i === 0 && W >= 640) ? `<text x="${X(i) + bw/2}" y="${H-26}" text-anchor="${i === 0 ? "start" : "middle"}">${i === 0 ? mesL(x.mes) : x.mes.slice(0,4)}</text>` : "").join("");
-  $("chart-db").innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Unidades vendidas por mes de ${mesL(dm[0].mes)} a ${mesL(T.ultimo_mes)}. Mes más alto: ${mesL(dm[pico].mes)} con ${nf(dm[pico].unidades)} unidades">
+  $("chart-db").innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Unidades vendidas por mes de ${mesL(dm[0].mes)} a ${mesL(T.ultimo_mes)}. Mes más alto: ${mesL(dm[pico].mes)} con ${nf(dm[pico].unidades)} ${pal(dm[pico].unidades, "unidad", "unidades")}">
     ${ticks.map(t => `<line class="grid" x1="${pl}" x2="${W-pr}" y1="${Y(t)}" y2="${Y(t)}"/><text x="${pl-6}" y="${Y(t)+4}" text-anchor="end">${t}</text>`).join("")}
-    ${dm.map((x,i) => `<rect class="bd" x="${(X(i) + bw*.14).toFixed(1)}" y="${Y(x.unidades).toFixed(1)}" width="${Math.max(1, bw*.72).toFixed(1)}" height="${Math.max(0, H - pb - Y(x.unidades)).toFixed(1)}" rx="${bw > 10 ? 2 : 1}"><title>${mesL(x.mes)}: ${nf(x.unidades)} unidades · ${bs(x.monto_bs)}</title></rect>`).join("")}
+    ${dm.map((x,i) => `<rect class="bd" x="${(X(i) + bw*.14).toFixed(1)}" y="${Y(x.unidades).toFixed(1)}" width="${Math.max(1, bw*.72).toFixed(1)}" height="${Math.max(0, H - pb - Y(x.unidades)).toFixed(1)}" rx="${bw > 10 ? 2 : 1}"><title>${mesL(x.mes)}: ${nf(x.unidades)} ${pal(x.unidades, "unidad", "unidades")} · ${bs(x.monto_bs)}</title></rect>`).join("")}
     <path class="pm" d="${pm.map((v,i) => v === null ? "" : `${pm[i-1] === null || i === 0 ? "M" : "L"}${(X(i) + bw/2).toFixed(1)},${Y(v).toFixed(1)}`).join("")}"/>
     <text x="${X(pico) + bw/2}" y="${Y(dm[pico].unidades) - 6}" text-anchor="middle" style="fill:var(--brand-dark);font-weight:600">${nf(dm[pico].unidades)}</text>
     ${etiq}
@@ -1728,7 +1741,7 @@ function pintarDashboard(){
   $("t-db-mes").innerHTML = "<thead><tr><th>Mes</th><th>Unidades</th><th>Dinero</th><th>Promedio de los últimos 12 meses</th></tr></thead><tbody>" +
     dm.map((x,i) => `<tr><td>${mesL(x.mes)}</td><td>${nf(x.unidades)}</td><td>${bs(x.monto_bs)}</td><td>${pm[i] === null ? "—" : nf(pm[i],1)}</td></tr>`).join("") + "</tbody>";
   const pmUlt = pm[pm.length - 1], pmPrev = pm.length > 12 ? pm[pm.length - 13] : null;
-  $("db-nota").innerHTML = `<strong>Conclusión:</strong> el mes con más ventas fue ${mesL(dm[pico].mes)}, con ${nf(dm[pico].unidades)} unidades. En promedio se venden ${nf(T.total.unidades / dm.length,1)} unidades por mes.` +
+  $("db-nota").innerHTML = `<strong>Conclusión:</strong> el mes con más ventas fue ${mesL(dm[pico].mes)}, con ${nf(dm[pico].unidades)} ${pal(dm[pico].unidades, "unidad", "unidades")}. En promedio se venden ${nf(T.total.unidades / dm.length,1)} ${pal(T.total.unidades / dm.length, "unidad", "unidades", 1)} por mes.` +
     (pmUlt !== null && pmPrev ? ` El promedio de los últimos 12 meses es ${nf(pmUlt,1)} por mes, ${pmUlt >= pmPrev ? "más" : "menos"} que los ${nf(pmPrev,1)} del año anterior: en unidades, la demanda ${Math.abs(pmUlt - pmPrev) / pmPrev < .05 ? "se mantiene" : pmUlt > pmPrev ? "sube" : "baja"}.` +
       (var12 !== null && (var12 >= 0) !== (pmUlt >= pmPrev) ? ` En dinero pasa lo contrario (${var12 >= 0 ? "+" : "−"}${nf(Math.abs(var12))} %), porque cambió la mezcla: se vendieron ${var12 >= 0 ? "menos unidades pero más caras" : "más unidades pero más baratas"}.` : "") : "");
   // Dinero por año
@@ -1770,9 +1783,9 @@ function pintarPredicciones(){
   const mesP = MES_L[+P.mes_predicho.slice(5,7) - 1];
   $("pr-intro").textContent = `Para cada repuesto, la probabilidad de vender al menos una unidad en ${mesP} de ${P.mes_predicho.slice(0,4)}, calculada a partir del historial de ventas.`;
   $("pr-kpis").innerHTML = `
-    <div class="kpi"><div class="t">Probable${info("Probable", "Repuestos con 50 % o más de probabilidad de venderse el mes que viene: de cada 2 meses así, se venden en 1 o más.")}</div><div class="v c-ok">${n("alta")}<small>repuestos</small></div><div class="d">1 de cada 2 o más</div></div>
-    <div class="kpi"><div class="t">Posible${info("Posible", `Repuestos con probabilidad entre ${nf(cY * 100)} % y 50 %, es decir, entre 1 de cada 4 y 1 de cada 2. Están por encima de lo habitual para estos repuestos.`)}</div><div class="v c-warn">${n("media")}<small>repuestos</small></div><div class="d">entre 1 de cada 4 y 1 de cada 2</div></div>
-    <div class="kpi"><div class="t">Poco probable${info("Poco probable", `Repuestos con menos de ${nf(cY * 100)} % de probabilidad, menos de 1 de cada 4. No conviene reponerlos solo por esta predicción.`)}</div><div class="v">${n("baja")}<small>repuestos</small></div><div class="d">menos de 1 de cada 4</div></div>
+    <div class="kpi"><div class="t">Probable${info("Probable", "Repuestos con 50 % o más de probabilidad de venderse el mes que viene: de cada 2 meses así, se venden en 1 o más.")}</div><div class="v c-ok">${n("alta")}<small>${pal(n("alta"), "repuesto", "repuestos")}</small></div><div class="d">1 de cada 2 o más</div></div>
+    <div class="kpi"><div class="t">Posible${info("Posible", `Repuestos con probabilidad entre ${nf(cY * 100)} % y 50 %, es decir, entre 1 de cada 4 y 1 de cada 2. Están por encima de lo habitual para estos repuestos.`)}</div><div class="v c-warn">${n("media")}<small>${pal(n("media"), "repuesto", "repuestos")}</small></div><div class="d">entre 1 de cada 4 y 1 de cada 2</div></div>
+    <div class="kpi"><div class="t">Poco probable${info("Poco probable", `Repuestos con menos de ${nf(cY * 100)} % de probabilidad, menos de 1 de cada 4. No conviene reponerlos solo por esta predicción.`)}</div><div class="v">${n("baja")}<small>${pal(n("baja"), "repuesto", "repuestos")}</small></div><div class="d">menos de 1 de cada 4</div></div>
     <div class="kpi"><div class="t">¿Se puede confiar?${info("¿Se puede confiar?", "Se compara la predicción con una regla simple: mirar si el repuesto se vendió el mes pasado. Se probó en 12 meses que la predicción no usó para aprender. El detalle está en «¿Se puede confiar en la predicción?».")}</div><div class="v txt">${confia}</div><div class="d">acierta ${M.auc > R.auc + 0.02 ? "algo más" : "lo mismo"} que mirar si se vendió el mes pasado</div></div>`;
   $("pr-kpi-lec").innerHTML = `<strong>¿Cuántos repuestos se venderán el mes que viene?</strong> ${n("alta")} ${n("alta") === 1 ? "repuesto casi seguro se vende" : "repuestos casi seguro se venden"} en ${mesP}; ${n("media")} quizás.`;
   $("pr-tit").textContent = `Qué repuestos se venderán en ${mesP}`;
@@ -1793,7 +1806,7 @@ function pintarPredicciones(){
   // Lecturas visibles de la validación (veredictos #8 y #11); el detalle queda plegado.
   $("pr-conf-lec").textContent = M.auc > R.auc + 0.02 ? "Acierta algo más que mirar si se vendió el mes pasado: sirve para ordenar prioridades, no para asegurar ventas."
     : "Acierta más o menos lo mismo que mirar si se vendió el mes pasado: úsela solo para ordenar prioridades.";
-  $("pr-av-lec").textContent = `De ${nf(V.prueba.positivos)} meses en que hubo venta, la predicción avisó ${nf(M.vp)} (contando como aviso una probabilidad de 50 % o más).`;
+  $("pr-av-lec").textContent = `De ${nf(V.prueba.positivos)} ${pal(V.prueba.positivos, "mes", "meses")} en que hubo venta, la predicción avisó ${nf(M.vp)} (contando como aviso una probabilidad de 50 % o más).`;
   // Veredicto #13: tres frases, de la variable que más sube la probabilidad a la que menos.
   { const NV = {}; P.variables.forEach(v => NV[v.clave] = v.nombre);
     const orden = P.coeficientes.estandarizados.slice().sort((a,b) => Math.abs(b.coef) - Math.abs(a.coef)).slice(0, 3);
@@ -1865,16 +1878,17 @@ function pintarRotacion(){
   const pedir = al.filter(a => a.est === 0).length, con = R.repuestos.filter(f => !f.sin_datos);
   const A = con.filter(f => f.clase_abc === "A"), pA = A.reduce((s,f) => s + f.valor12_bs, 0) / (R.valor12_total_bs || 1) * 100;
   $("rt-kpis").innerHTML = `
-    <div class="kpi"><div class="t">Los más importantes${info("Los más importantes", "Repuestos que, ordenados de mayor a menor dinero vendido en los últimos 12 meses, suman el primer 80 % del total.")}</div><div class="v">${A.length}<small>repuestos</small></div><div class="d">hacen el ${nf(pA)} % de lo vendido</div><span class="ayuda">De los últimos 12 meses: ${bs(R.valor12_total_bs)} en total.</span></div>
-    <div class="kpi"><div class="t">Por agotarse${info("Por agotarse", "Repuestos que ya llegaron al mínimo para pedir: si no se piden ahora, pueden faltar. Son los «Pedir ya» de Alertas de reposición.")}</div><div class="v c-bad">${pedir}<small>repuestos</small></div><div class="d"><a href="#alertas">«Pedir ya» en Alertas de reposición</a></div></div>
-    <div class="kpi"><div class="t">Sobra stock${info("Sobra stock", "Repuestos con más stock del necesario: superan la cantidad máxima de reposición, tienen stock para más de 24 meses o no se vendieron en 12 meses. No conviene comprarlos.")}</div><div class="v c-bad">${R.acumulacion}<small>repuestos</small></div><div class="d">${bs(R.valor_acumulado_bs)} parados en stock</div></div>
-    <div class="kpi"><div class="t">Se venden lento${info("Se venden lento", "Repuestos cuyo stock tarda más de un año en venderse al ritmo de venta de los últimos 12 meses.")}</div><div class="v c-warn">${R.baja_rotacion}<small>repuestos</small></div><div class="d">su stock tarda más de un año en venderse</div><span class="ayuda">Más de ${R.umbrales.rot_media_meses} meses de stock al ritmo actual.</span></div>`;
+    <div class="kpi"><div class="t">Los más importantes${info("Los más importantes", "Repuestos que, ordenados de mayor a menor dinero vendido en los últimos 12 meses, suman el primer 80 % del total.")}</div><div class="v">${A.length}<small>${pal(A.length, "repuesto", "repuestos")}</small></div><div class="d">hacen el ${nf(pA)} % de lo vendido</div><span class="ayuda">De los últimos 12 meses: ${bs(R.valor12_total_bs)} en total.</span></div>
+    <div class="kpi"><div class="t">Por agotarse${info("Por agotarse", "Repuestos que ya llegaron al mínimo para pedir: si no se piden ahora, pueden faltar. Son los «Pedir ya» de Alertas de reposición.")}</div><div class="v c-bad">${pedir}<small>${pal(pedir, "repuesto", "repuestos")}</small></div><div class="d"><a href="#alertas">«Pedir ya» en Alertas de reposición</a></div></div>
+    <div class="kpi"><div class="t">Sobra stock${info("Sobra stock", "Repuestos con más stock del necesario: superan la cantidad máxima de reposición, tienen stock para más de 24 meses o no se vendieron en 12 meses. No conviene comprarlos.")}</div><div class="v c-bad">${R.acumulacion}<small>${pal(R.acumulacion, "repuesto", "repuestos")}</small></div><div class="d">${bs(R.valor_acumulado_bs)} parados en stock</div></div>
+    <div class="kpi"><div class="t">Se venden lento${info("Se venden lento", "Repuestos cuyo stock tarda más de un año en venderse al ritmo de venta de los últimos 12 meses.")}</div><div class="v c-warn">${R.baja_rotacion}<small>${pal(R.baja_rotacion, "repuesto", "repuestos")}</small></div><div class="d">su stock tarda más de un año en venderse</div><span class="ayuda">Más de ${R.umbrales.rot_media_meses} meses de stock al ritmo actual.</span></div>`;
   $("rt-kpi-lec").innerHTML = `<strong>${A.length} repuestos hacen el ${nf(pA)} % de lo vendido;</strong> ${R.acumulacion} tienen stock de más (${bs(R.valor_acumulado_bs)} parados).`;
   const U = R.umbrales, col = {alta:`En ${U.rot_alta_meses} meses<span class="ayuda">el stock sale en ${U.rot_alta_meses} meses o menos</span>`, media:`En el año<span class="ayuda">hasta ${U.rot_media_meses} meses</span>`, baja:`Más de un año<span class="ayuda">o sin ventas</span>`};
   const fil = {A:`<b>Mucho</b><span class="ayuda">los que suman el 80 % de lo vendido</span>`, B:`<b>Algo</b><span class="ayuda">del 80 al 95 %</span>`, C:`<b>Poco</b><span class="ayuda">el 5 % restante</span>`};
+  const COLM = {alta:`Sale en ${U.rot_alta_meses} meses o menos`, media:"Sale en el año", baja:"Sale en más de un año o no se vende"};
   $("t-rt-mat").innerHTML = `<thead><tr><th>¿Cuánto vende en dinero? \\ ¿Qué tan rápido sale?</th>${["alta","media","baja"].map(k => `<th>${col[k]}</th>`).join("")}</tr></thead><tbody>` +
     ["A","B","C"].map(a => `<tr><td>${fil[a]}</td>${["alta","media","baja"].map(k => { const [r, q, p] = ACCION[a][k], ids = con.filter(f => f.clase_abc === a && f.clase_rot === k).map(f => f.id);
-      return `<td class="cel ${R.matriz[a][k] ? p : ""}" title="${ids.join(", ")}"><div class="n">${R.matriz[a][k]}</div><div class="r">${r}</div><div class="q">${R.matriz[a][k] ? q : "Hoy no hay ninguno."}</div></td>`; }).join("")}</tr>`).join("") + "</tbody>";
+      return `<td class="cel ${R.matriz[a][k] ? p : ""}" title="${ids.join(", ")}" data-col="${COLM[k]}"><div class="n">${R.matriz[a][k]}</div><div class="r">${r}</div><div class="q">${R.matriz[a][k] ? q : "Hoy no hay ninguno."}</div></td>`; }).join("")}</tr>`).join("") + "</tbody>";
   const aBaja = con.filter(f => f.clase_abc === "A" && f.clase_rot === "baja"), cBaja = R.matriz.C.baja;
   $("rt-lec").textContent = `${R.matriz.A.alta} ${R.matriz.A.alta === 1 ? "repuesto importante sale" : "repuestos importantes salen"} rápido: no pueden faltar. ${cBaja} ${cBaja === 1 ? "repuesto poco importante casi no sale" : "repuestos poco importantes casi no salen"}: no volver a comprarlos.`;
   $("rt-nota").innerHTML = aBaja.length ? `<strong>Para revisar:</strong> ${aBaja.map(f => esc(nombreRep(f.id)) + " (" + f.id + ")").join(", ")} ${aBaja.length === 1 ? "vende mucho en dinero pero sale lento" : "venden mucho en dinero pero salen lento"}: conviene revisar cuánto se le compra.` : "";
@@ -1885,7 +1899,7 @@ function pintarRotacion(){
         (f.acumulacion ? `<span class="al-chip sobra" title="${esc(f.motivos_acumulacion.join("; "))}">Sobra stock</span>` : "") + (f.baja_rotacion ? '<span class="al-chip baja">Se vende lento</span>' : "");
       return `<tr><td><b>${esc(nombreRep(f.id))}</b><span class="ayuda">${f.id}</span></td><td style="text-align:left">${capital(importa(f.clase_abc))}</td><td>${bs(f.valor12_bs)}</td><td>${nf(f.u12)}</td><td>${nf(f.stock)}${f.transito ? ` <span class="ayuda" style="display:inline">+${nf(f.transito)}</span>` : ""}</td><td>${f.cobertura_meses === null ? "—" : nf(f.cobertura_meses,1)}</td><td>${f.rotacion_anual === null ? "—" : nf(f.rotacion_anual,1)}</td><td>${f.meses_sin_venta}</td><td style="text-align:left">${chips ? `<span class="chips">${chips}</span>` : "—"}</td></tr>`; }).join("") + "</tbody>";
   const lento = con.filter(f => f.cobertura_meses !== null && isFinite(f.cobertura_meses)).sort((a,b) => b.cobertura_meses - a.cobertura_meses)[0];
-  $("rt-t-lec").textContent = lento ? `${nombreRep(lento.id)} (${lento.id}): le alcanza el stock para ${nf(lento.cobertura_meses)} meses; no comprar por ahora.` : "";
+  $("rt-t-lec").textContent = lento ? `${nombreRep(lento.id)} (${lento.id}): le alcanza el stock para ${nf(lento.cobertura_meses)} ${pal(lento.cobertura_meses, "mes", "meses")}; no comprar por ahora.` : "";
 /* Lo que sigue se dibuja dentro de un «Detalle técnico» plegado: puede usar los términos técnicos (prueba test_lenguaje_simple). */
 /* técnico: inicio */
   $("rt-pie").textContent = `Clase ABC: se ordenan los repuestos por el dinero que movieron en los últimos 12 meses (unidades por precio de lista de hoy) y se corta en 80 % y 95 % del acumulado, con la misma regla de la historia SCRUM-55 del proyecto. Es distinta de la clase ABC de las otras pantallas, que se calcula por unidades sobre las 2.674 series de la base carparts. Cobertura: stock de hoy dividido por la venta mensual de los últimos 12 meses. Acumulación: stock y tránsito sobre el nivel máximo, más de ${U.acum_meses} meses de stock, o sin ventas en 12 meses con stock. Desabastecimiento: los «Pedir ya» de Alertas de reposición.`;
@@ -1916,7 +1930,7 @@ function filtrarCatalogo(){
     return `<article class="ficha">${c.imagen && D.imagenes[c.imagen] ? `<img class="foto" src="${D.imagenes[c.imagen]}" alt="Foto de referencia: ${esc(c.categoria.toLowerCase())}" loading="lazy" width="480" height="360">` : '<div class="sinfoto">Sin foto todavía</div>'}
       <div class="cu"><span class="cat">${esc(c.categoria)}</span><h3>${esc(c.nombre)}</h3><span class="cod">${r.repuesto_id}${r.codigo_carparts ? " · carparts " + r.codigo_carparts : " · cargado en el portal"}</span>
       <p class="desc">${esc(c.descripcion)}</p><div class="pre">${bs2(precio)}<span class="ayuda" style="display:inline;margin-left:6px">por unidad</span></div>
-      <span class="disp">${st > 0 ? `<span class="insignia si">En almacén: ${nf(st)}</span>` : `<span class="insignia" style="background:var(--warn-soft);color:var(--warn)">Bajo pedido: unos ${nf(pl)} días</span>`}</span>
+      <span class="disp">${st > 0 ? `<span class="insignia si">En almacén: ${nf(st)}</span>` : `<span class="insignia" style="background:var(--warn-soft);color:var(--warn)">Bajo pedido: unos ${nf(pl)} ${pal(pl, "día", "días")}</span>`}</span>
       <button class="btn2" type="button" data-cot="${r.repuesto_id}" aria-label="Cotizar ${esc(c.nombre)}">Cotizar por cantidad</button></div></article>`; }).join("");
 }
 let tCat = null;
@@ -1949,12 +1963,12 @@ function cotizarAhora(){
   tramosTxt(c.pct_tramo);
   const dolar = `dólar oficial de ${nf(OF.valor,2)} Bs actualizado el ${fecha(OF.fecha)} (Banco Central de Bolivia)`;
   const sig = c.siguiente_tramo ? `<p class="d">Si lleva ${nf(c.siguiente_tramo.faltan)} más (${nf(c.siguiente_tramo.desde)} en total), cada unidad sale ${c.siguiente_tramo.pct} % más barata que el precio de lista.</p>` : "";
-  const stock = c.en_stock === null ? "No hay dato de stock: hay que confirmarlo." : c.por_pedir === 0 ? `Hay stock para entregar las ${nf(c.cantidad)} unidades.` : `Hay ${nf(c.en_stock)} en el almacén; las otras ${nf(c.por_pedir)} llegan en unos ${nf(c.plazo_dias)} días, el plazo del proveedor.`;
+  const stock = c.en_stock === null ? "No hay dato de stock: hay que confirmarlo." : c.por_pedir === 0 ? `Hay stock para entregar las ${nf(c.cantidad)} ${pal(c.cantidad, "unidad", "unidades")}.` : `Hay ${nf(c.en_stock)} en el almacén; las otras ${nf(c.por_pedir)} llegan en unos ${nf(c.plazo_dias)} ${pal(c.plazo_dias, "día", "días")}, el plazo del proveedor.`;
   $("cot-res").innerHTML = `<div class="scroll"><table class="cot-desg"><thead><tr><th>Concepto</th><th>Monto</th></tr></thead><tbody>
       <tr><td>Precio de lista por unidad</td><td>${bs2(c.precio_lista_bs)}</td></tr>
       <tr><td>Descuento por cantidad</td><td>${c.pct_aplicado ? nf(c.pct_aplicado, Number.isInteger(c.pct_aplicado) ? 0 : 2) + " %" : "sin descuento"}</td></tr>
       <tr><td>Precio por unidad</td><td>${bs2(c.precio_unitario_bs)}</td></tr>
-      <tr><td>Cantidad</td><td>${nf(c.cantidad)} unidades</td></tr>
+      <tr><td>Cantidad</td><td>${nf(c.cantidad)} ${pal(c.cantidad, "unidad", "unidades")}</td></tr>
       <tr><td>Subtotal a precio de lista</td><td>${bs2(c.subtotal_bs)}</td></tr>
       <tr><td>Descuento</td><td>${c.descuento_bs ? "− " + bs2(c.descuento_bs) : bs2(0)}</td></tr>
       <tr class="t"><td>Total</td><td>${bs2(c.total_bs)}</td></tr></tbody></table></div>
@@ -2057,7 +2071,7 @@ $("cot-emitir").addEventListener("click", async () => {
     if(SES.rol === "importador" && $("cot-cli").value) body.cliente_id = $("cot-cli").value;
     const r = await api("/api/cotizaciones", {method:"POST", body});
     $("cot-msg").className = "msg ok";
-    $("cot-msg").innerHTML = `Cotización N° ${r.numero} guardada: ${nf(r.cantidad)} unidades de ${esc(nombreRep(r.id))}, total ${bs2(r.total_bs)} con el dólar oficial de ${nf(r.tc,2)} Bs del ${fecha(r.tc_fecha)}. <button class="btn2" type="button" id="cot-pdf">Ver PDF</button>`;
+    $("cot-msg").innerHTML = `Cotización N° ${r.numero} guardada: ${nf(r.cantidad)} ${pal(r.cantidad, "unidad", "unidades")} de ${esc(nombreRep(r.id))}, total ${bs2(r.total_bs)} con el dólar oficial de ${nf(r.tc,2)} Bs del ${fecha(r.tc_fecha)}. <button class="btn2" type="button" id="cot-pdf">Ver PDF</button>`;
     const f = Object.assign({}, r, {repuesto_id: r.id});
     $("cot-pdf").addEventListener("click", () => CotizacionDoc.abrir(docDe(f)));
   } catch(err){ $("cot-msg").className = "msg mal"; $("cot-msg").textContent = "No se guardó: " + err.message; }
@@ -2143,31 +2157,31 @@ $("f-cli").addEventListener("submit", async e => { e.preventDefault(); const m =
 /* Índice académico de «Minería de datos» (veredicto #34: se queda): nombra las técnicas por su nombre. */
 /* técnico: inicio */
 const MN_TABS = [
-  {k:"desc", t:"Estadística descriptiva y Pareto", prest:["dashboard","clientes"],
+  {k:"desc", p:"¿Qué se vende y a quién?", tec:"Técnica: estadística descriptiva y principio de Pareto", t:"Estadística descriptiva y Pareto", prest:["dashboard","clientes"],
    que:"Resume las ventas con totales, promedios y listas ordenadas: cuánto se vendió, qué repuestos y a qué clientes. El principio de Pareto mide qué parte de las ventas viene de pocos clientes.",
    neg:"Reúne en un solo lugar las ventas por repuesto y por cliente, y muestra de qué clientes dependen las ventas."},
-  {k:"sba", t:"Pronóstico de venta (SBA)", nuevas:["val"],
+  {k:"sba", p:"¿Cuánto se venderá cada mes?", tec:"Técnica: pronóstico SBA (método de Croston corregido)", t:"Pronóstico de venta (SBA)", nuevas:["val"],
    que:"Estima cuánto se venderá de cada repuesto por mes. Para los que se venden de vez en cuando usa el método SBA, que mira por separado cuánto se vende cuando hay venta y cada cuánto hay venta; para los que se venden casi todos los meses, el promedio de los últimos 12 meses.",
    neg:"Anticipa qué repuestos se venderán y permite contrastar el pronóstico con lo que de verdad se vendió."},
-  {k:"logit", t:"Regresión logística", prest:["predicciones"],
+  {k:"logit", p:"¿Qué se venderá el mes que viene?", tec:"Técnica: regresión logística", t:"Regresión logística", prest:["predicciones"],
    que:"Es una técnica de clasificación: aprende del historial de ventas y da, para cada repuesto, la probabilidad de venderse el mes que viene. Se comprobó con 12 meses que el modelo no usó para aprender.",
    neg:"Anticipa qué repuestos tienen más probabilidad de venderse, para asegurar su stock."},
-  {k:"estac", t:"Índice estacional", prest:["temporadas"],
+  {k:"estac", p:"¿En qué meses se vende más?", tec:"Técnica: índice estacional", t:"Índice estacional", prest:["temporadas"],
    que:"Compara la venta de cada mes con el promedio del año: 1,0 es un mes normal y 2,0, un mes que vende el doble.",
    neg:"Muestra en qué época del año se vende más cada repuesto, para pedir con anticipación."},
-  {k:"abc", t:"ABC y rotación", prest:["rotacion","plan"],
+  {k:"abc", p:"¿Qué repuestos cuidar y cuáles frenar?", tec:"Técnica: clasificación ABC y rotación del stock", t:"ABC y rotación", prest:["rotacion","plan"],
    que:"Ordena los repuestos por lo que venden en dinero (A: los que suman el primer 80 %, B: hasta el 95 %, C: el resto) y mide en cuántos meses se vende el stock.",
    neg:"Ayuda a priorizar compras y a reducir el inventario que se vende lento."},
-  {k:"ss", t:"Punto de pedido (s, S)", prest:["alertas"],
+  {k:"ss", p:"¿Cuándo y cuánto reponer?", tec:"Técnica: punto de pedido (s, S)", t:"Punto de pedido (s, S)", prest:["alertas"],
    que:"Cuando el stock baja del nivel s, se pide hasta llegar al nivel S. Los dos niveles salen del pronóstico, del plazo del proveedor y de un stock de seguridad según la clase ABC.",
    neg:"Dice qué pedir esta semana y cuánto, para no quedarse sin stock."},
-  {k:"mc", t:"Simulación de Monte Carlo", nuevas:["cap"], prest:["simulador"],
+  {k:"mc", p:"¿Cuánto conviene pedir si el dólar cambia?", tec:"Técnica: simulación de Monte Carlo", t:"Simulación de Monte Carlo", nuevas:["cap"], prest:["simulador"],
    que:"Repite el cálculo en 1.500 futuros posibles, en los que la venta, el dólar y el plazo del proveedor cambian al azar, para ver el costo y el riesgo de cada forma de comprar.",
    neg:"Compara escenarios de venta, costo de reposición y dinero parado en stock antes de comprar."},
-  {k:"tc", t:"Tipo de cambio y costos", nuevas:["tc"], neg2:true,
+  {k:"tc", p:"¿Cuánto cuesta cada repuesto con cada dólar?", tec:"Cálculo de costos con el tipo de cambio (no es una técnica de minería de datos)", t:"Tipo de cambio y costos", nuevas:["tc"], neg2:true,
    que:"No es una técnica de minería de datos: es el cálculo del costo final en Santa Cruz con los dos dólares, que se actualizan cada día.",
    neg:"Reúne el tipo de cambio y los costos logísticos que entran en cada decisión de compra."},
-  {k:"ing", t:"Ingresos y gastos del servicio", nuevas:["ing"], neg2:true,
+  {k:"ing", p:"¿Con cuántas empresas se cubren los gastos?", tec:"Cálculo de ingresos y gastos del servicio (no es una técnica de minería de datos)", t:"Ingresos y gastos del servicio", nuevas:["ing"], neg2:true,
    que:"No es una técnica de minería de datos: es una simulación simple de la suscripción mensual frente a los gastos del servicio, con supuestos que usted puede cambiar.",
    neg:"Corresponde a las fuentes de ingreso y a la estructura de gastos del modelo de negocio."}];
 /* técnico: fin */
@@ -2188,10 +2202,12 @@ function mnTab(){ return MN_TABS.find(t => t.k === S.mnTec) || MN_TABS[0]; }
 function pintarMineria(){
   devolverPrestadas();
   const tab = mnTab(); S.mnTec = tab.k;
-  const boton = t => `<button type="button" data-k="${t.k}" aria-pressed="${t.k === tab.k}">${esc(t.t)}</button>`;
+  // El botón y el título llevan la pregunta de negocio; el nombre de la técnica va en chico debajo del título
+  // (decisión de Sam del 24-11-2026: el equipo tiene que poder nombrarla en la defensa).
+  const boton = t => `<button type="button" data-k="${t.k}" aria-pressed="${t.k === tab.k}">${esc(t.p)}</button>`;
   $("mn-sub").innerHTML = `<span class="g">Técnicas de minería de datos</span><div class="fila">${MN_TABS.filter(t => !t.neg2).map(boton).join("")}</div>` +
     `<span class="g">Funciones del modelo de negocio</span><div class="fila">${MN_TABS.filter(t => t.neg2).map(boton).join("")}</div>`;
-  $("mn-intro").innerHTML = `<h2>${esc(tab.t)}</h2><p>${esc(tab.que)}</p><p class="neg"><b>En el modelo de negocio:</b> ${esc(tab.neg)}</p>`;
+  $("mn-intro").innerHTML = `<h2>${esc(tab.p)}</h2><p class="mn-tec">${esc(tab.tec)}</p><p>${esc(tab.que)}</p><p class="neg"><b>En el modelo de negocio:</b> ${esc(tab.neg)}</p>`;
   Object.keys(MN_NUEVAS).forEach(k => $("mn-f-" + k).hidden = !(tab.nuevas || []).includes(k));
   (tab.nuevas || []).forEach(k => seguro(MN_NUEVAS[k], $("mn-f-" + k)));
   (tab.prest || []).filter(puede).forEach(v => {
@@ -2240,7 +2256,7 @@ function pintarVal(){
   const quien = S.valRep ? `${S.valRep} (${nombreRep(S.valRep)})` : "los 30 repuestos juntos";
   // Veredicto #35: dos cifras en vez de cuatro; el desvío total repetía lo mismo y pasó al detalle técnico.
   $("val-kpis").innerHTML = `
-    <div class="kpi"><div class="t">Se equivoca en unas${info("Error promedio por mes", "Promedio, en los 12 meses, de la diferencia entre lo vendido y lo pronosticado, sin importar si fue de más o de menos.")}</div><div class="v">${nf(mae,1)}<small>unidades por mes</small></div><div class="d">${wape === null ? "sin ventas en el período" : nf(wape) + " % de lo vendido"} · vendido en 12 meses: ${nf(tr)}</div></div>
+    <div class="kpi"><div class="t">Se equivoca en unas${info("Error promedio por mes", "Promedio, en los 12 meses, de la diferencia entre lo vendido y lo pronosticado, sin importar si fue de más o de menos.")}</div><div class="v">${nf(mae,1)}<small>${pal(mae, "unidad", "unidades", 1)} por mes</small></div><div class="d">${wape === null ? "sin ventas en el período" : nf(wape) + " % de lo vendido"} · vendido en 12 meses: ${nf(tr)}</div></div>
     <div class="kpi"><div class="t">${deMas > 6 ? "Tiende a pronosticar de más" : deMas < 6 ? "Tiende a pronosticar de menos" : "Se pasa la mitad de las veces"}${info("Meses en que se pasó", "Meses en que el pronóstico fue mayor que lo vendido. Si son muchos, comprar según el pronóstico deja stock de más.")}</div><div class="v">${deMas}<small>de 12 meses</small></div><div class="d">pronóstico mayor que la venta</div></div>`;
   $("val-sesgo").textContent = sesgo === null ? "sin ventas" : `${sesgo > 0 ? "+" : ""}${nf(sesgo)} % (pronosticado ${nf(tp)} contra ${nf(tr)} vendidas)`;
   $("val-lec").textContent = sesgo === null ? "" : sesgo > 5 ? "El pronóstico suele quedarse algo alto: si compra por él, sobra un poco." : sesgo < -5 ? "El pronóstico suele quedarse corto: si compra por él, puede faltar un poco."
@@ -2251,13 +2267,13 @@ function pintarVal(){
   const M = marco(W, H, pl, pr, pb, mx, t => nf(t, mx < 6 ? 1 : 0), "Unidades", "Mes");
   const barras = fil.map((f, i) => `<rect class="br" x="${(X(i) - bw * .32).toFixed(1)}" y="${M.Y(f.real).toFixed(1)}" width="${(bw * .64).toFixed(1)}" height="${(H - pb - M.Y(f.real)).toFixed(1)}" rx="3"><title>${mesCorto(f.mes)}: vendido ${nf(f.real)}, pronosticado ${nf(f.pron,1)}, error ${nf(f.err,1)}</title></rect>`).join("");
   const linea = fil.map((f, i) => `${i ? "L" : "M"}${X(i).toFixed(1)} ${M.Y(f.pron).toFixed(1)}`).join(" ");
-  $("chart-val").innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Vendido y pronosticado por mes, ${esc(quien)}. Error promedio ${nf(mae,1)} unidades por mes">${M.svg}${barras}
+  $("chart-val").innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Vendido y pronosticado por mes, ${esc(quien)}. Error promedio ${nf(mae,1)} ${pal(mae, "unidad", "unidades", 1)} por mes">${M.svg}${barras}
     <path class="ln" d="${linea}" stroke="var(--brand)"/>${fil.map((f, i) => `<circle class="pt" cx="${X(i).toFixed(1)}" cy="${M.Y(f.pron).toFixed(1)}" r="4.5" fill="var(--brand)"><title>${mesCorto(f.mes)}: pronosticado ${nf(f.pron,1)}</title></circle>`).join("")}
     ${fil.map((f, i) => `<text x="${X(i)}" y="${H - 24}" text-anchor="middle">${mesCorto(f.mes)}</text>`).join("")}</svg>`;
   $("t-val").innerHTML = `<thead><tr><th>Mes</th><th>Vendido</th><th>Pronosticado</th><th>Error (vendido − pronosticado)</th><th>Error en %</th></tr></thead><tbody>` +
     fil.map(f => `<tr><td>${mesCorto(f.mes)}</td><td>${nf(f.real)}</td><td>${nf(f.pron,1)}</td><td>${f.err > 0 ? "+" : ""}${nf(f.err,1)}</td><td>${f.real ? nf(Math.abs(f.err) / f.real * 100) + " %" : "—"}</td></tr>`).join("") + "</tbody>";
   const peor = fil.reduce((a, f) => Math.abs(f.err) > Math.abs(a.err) ? f : a, fil[0]);
-  $("val-nota").innerHTML = `<strong>Conclusión:</strong> para ${esc(quien)}, el pronóstico se equivocó en promedio ${nf(mae,1)} unidades por mes` +
+  $("val-nota").innerHTML = `<strong>Conclusión:</strong> para ${esc(quien)}, el pronóstico se equivocó en promedio ${nf(mae,1)} ${pal(mae, "unidad", "unidades", 1)} por mes` +
     (wape === null ? "." : ` (${nf(wape)} % de lo vendido).`) + (sesgo === null ? "" : ` En los 12 meses pronosticó ${nf(Math.abs(sesgo))} % ${sesgo > 0 ? "más" : "menos"} de lo que se vendió.`) +
     ` El mes con mayor error fue ${mesCorto(peor.mes)}: se vendieron ${nf(peor.real)} y se esperaban ${nf(peor.pron,1)}. Con ventas que van y vienen, un error mes a mes es normal; lo importante es que en el total no se pase ni se quede corto por mucho.`;
 }
