@@ -64,7 +64,7 @@ class Tienda(unittest.TestCase):
         self.assertIn("logo_multipartes.jpg", self.t["imagenes"])
 
     def test_no_lleva_datos_de_la_empresa(self):
-        self.assertEqual(set(self.t), {"contenido", "imagenes", "catalogo", "repuestos", "proveedores", "tc", "rubro_de_categoria"})
+        self.assertEqual(set(self.t), {"contenido", "imagenes", "catalogo", "repuestos", "proveedores", "tc", "rubro_de_categoria", "aplicaciones"})
         self.assertTrue(all(set(r) == set(gt.CAMPOS_REP) for r in self.t["repuestos"]))
         self.assertTrue(all(set(p) == set(gt.CAMPOS_PROV) for p in self.t["proveedores"]))
         self.assertNotIn("CLI-01", json.dumps(self.t, ensure_ascii=False))

@@ -4,6 +4,7 @@ Es la mejora del sitio www.multipartes.com.bo aprobada por Sam el 14-11-2026. In
 - el contenido real del sitio (data/raw/tienda/contenido_sitio.json) y sus imágenes (data/raw/tienda/imagenes/);
 - el catálogo de SCRUM-74 (nombres ILUSTRATIVOS, fotos con licencia libre) con lo justo para cotizar: precio de
   venta, costo, stock y proveedor de cada repuesto (SINTÉTICOS, SCRUM-55);
+- las aplicaciones ILUSTRATIVAS repuesto ↔ vehículo (decisión D9) para filtrar por marca, modelo y año;
 - el dólar oficial del BCB (SCRUM-54) y el motor del simulador (motor.js), del que usa solo Motor.cotizar.
 No incluye ventas, clientes ni nada de la parte de la empresa.
 
@@ -27,6 +28,7 @@ IMG_CATALOGO = BASE / "data/raw/scrum-74/imagenes"
 DATOS = BASE / "data/processed/simulador/datos_app.json"
 MOTOR = BASE / "src/simulador/motor.js"
 COTDOC = BASE / "src/portal/cotizacion_doc.js"  # cotización imprimible y correo simulado (SCRUM-83), va después del motor
+FILTRO = BASE / "src/portal/filtro_vehiculo.js"  # filtro marca → modelo → año (D9), va después de COTDOC
 SALIDA = BASE / "reports/tienda/MULTIPARTES_Tienda.html"
 
 # Categoría ILUSTRATIVA del catálogo (SCRUM-74) → rubro del sitio de MULTIPARTES.
@@ -75,6 +77,7 @@ def datos_tienda():
         "proveedores": [{k: p[k] for k in CAMPOS_PROV} for p in d["proveedores"]],
         "tc": {"valor": d["tc"]["oficial"]["valor"], "fecha": d["tc"]["oficial"]["fecha"]},
         "rubro_de_categoria": RUBRO_DE_CATEGORIA,
+        "aplicaciones": d["catalogo"]["aplicaciones"],
     }
 
 
@@ -87,7 +90,7 @@ def generar(salida=SALIDA):
     if "module.exports = Motor" not in motor:
         raise SystemExit("motor.js no tiene la forma esperada")
     t = seguro_en_script(json.dumps(datos_tienda(), ensure_ascii=False, separators=(",", ":")))
-    html = plantilla.replace("__TIENDA__", t).replace("__MOTOR__", seguro_en_script(motor + "\n" + COTDOC.read_text(encoding="utf-8")))
+    html = plantilla.replace("__TIENDA__", t).replace("__MOTOR__", seguro_en_script(motor + "\n" + COTDOC.read_text(encoding="utf-8") + "\n" + FILTRO.read_text(encoding="utf-8")))
     salida.parent.mkdir(parents=True, exist_ok=True)
     salida.write_text(html, encoding="utf-8")
     return html
