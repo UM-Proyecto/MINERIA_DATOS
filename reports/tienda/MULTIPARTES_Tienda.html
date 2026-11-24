@@ -202,7 +202,9 @@ footer{background:#111;color:#c4c4c4;font-size:12.5px;padding:24px 0 90px}
   <div class="nos"><div><p id="nos-1"></p><p id="nos-2"></p></div><div><h3>Misión</h3><p id="mision"></p><h3>Visión</h3><p id="vision"></p></div></div></div></section>
 
 <section class="gris" id="distribuidores"><div class="w"><div class="ti"><span class="n" aria-hidden="true">06</span><div><h2>Distribuidores para Bolivia</h2></div></div>
-  <ul class="dist" id="dist"></ul><p class="nota2" id="dist-nota"></p></div></section>
+  <ul class="dist" id="dist"></ul></div></section>
+  <!-- La nota interna «los logos no cargan» se quitó de la vista (auditoría del 24-11-2026, B1): era para el equipo.
+       Queda en data/raw/tienda/contenido_sitio.json (distribuidores_nota). La insignia «?» de Aisin y Advics se mantiene. -->
 
 <section id="contacto"><div class="w"><div class="ti"><span class="n" aria-hidden="true">07</span><div><h2>Sucursales y horarios <span class="revisar" id="suc-rev" tabindex="0">Por confirmar</span></h2><p id="suc-nota"></p></div></div>
   <div class="sucs" id="sucs"></div><p class="hor" id="hor"></p></div></section>
@@ -1264,7 +1266,6 @@ $("pdfs").innerHTML = C.catalogos_pdf.map(p => `<a href="catalogos/${esc(p[1].sp
 $("nos-1").textContent = C.quienes_somos; $("nos-2").textContent = C.oficina;
 $("mision").textContent = C.mision; $("vision").textContent = C.vision;
 $("dist").innerHTML = C.distribuidores.map(m => `<li>${esc(m)}${C.distribuidores_a_revisar.includes(m) ? '<span class="revisar" tabindex="0" title="Nombre leído de un archivo del sitio: a confirmar">?</span>' : ""}</li>`).join("");
-$("dist-nota").textContent = C.distribuidores_nota;
 $("suc-rev").title = C.sucursales_a_revisar; $("suc-nota").textContent = C.sucursales_a_revisar;
 $("sucs").innerHTML = C.sucursales.map(s => `<div class="su"><h3>${esc(s.nombre)}</h3><span class="dir">${esc(s.direccion)}</span>${s.ventas.map(v => `<a href="tel:+591${v.replace(/\s/g,"")}">Ventas: ${esc(v)}</a>`).join("")}<span class="co">${esc(s.correo)}</span></div>`).join("");
 $("hor").innerHTML = `<b>Horario de atención:</b> ${C.horario.map(esc).join(" · ")}`;
