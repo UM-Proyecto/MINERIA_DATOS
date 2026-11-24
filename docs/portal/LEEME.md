@@ -55,7 +55,7 @@ protege lo que se guarda en la base, no esos datos de ejemplo.
 | `src/portal/worker_api.js` | Rutas de la API y la página. Corre en Cloudflare Pages (modo avanzado, `_worker.js`) con una base D1 |
 | `src/portal/armar_portal.py` | Arma `build/portal/_worker.js`: motor del simulador + `datos_app.json` + la app + la API |
 | `src/portal/servir_local.mjs` | Sirve el portal en `http://localhost:8788` con una base SQLite en memoria, para probar sin Cloudflare |
-| `tests/test_portal.py` y `tests/_portal_runner.mjs` | 11 pruebas de la API contra una D1 simulada |
+| `tests/test_portal.py` y `tests/_portal_runner.mjs` | Pruebas de la API contra una D1 simulada |
 
 El servidor recalcula cada cotización con el mismo motor de la app (`Motor.cotizar`) y con el dólar oficial del día.
 No usa el precio que manda el navegador. El dólar lo lee del CSV de SCRUM-54 publicado en este repositorio, que la
@@ -63,13 +63,81 @@ tarea diaria de SCRUM-71 actualiza; si no lo puede leer, usa el valor que trae i
 
 ### Base de datos
 
-Tres tablas, que se crean solas en el primer pedido:
+Las tablas se crean solas en el primer pedido (`CREATE TABLE IF NOT EXISTS`):
 - `cotizaciones`: número correlativo, fecha (UTC), cliente, repuesto, cantidad, dólar y su fecha, precio de lista,
   descuento, total, si se convirtió en venta, y el correo al que se «envió» con su hora (`correo`, `correo_enviado`,
   SCRUM-83). Estas dos columnas se agregaron después de publicar el portal: la primera vez que el servidor arranca
   con una base vieja, revisa `PRAGMA table_info` y las agrega con `ALTER TABLE … ADD COLUMN`, sin tocar las filas.
 - `clientes`: los dados de alta en el portal (`CLI-N001`, …);
-- `repuestos`: los cargados en el portal (`REP-N001`, …).
+- `repuestos`: los cargados en el portal (`REP-N001`, …);
+- `secuencias`: el último número entregado de cada código correlativo (`clientes`, `repuestos`). Antes el código se
+  calculaba con `COUNT(*) + 1` y un borrado hacía repetir un código existente. Ahora cada alta toma el mayor entre el
+  último entregado y el máximo numérico que ya existe en la tabla, más uno, así que una base anterior a este cambio
+  sigue desde su máximo;
+- `movimientos_stock` (D6, decisión de Sam del 24-11-2026): cada salida o entrada de stock, con el repuesto, la
+  cantidad con signo, el motivo (`venta` o `ajuste`), el número de cotización en las ventas, la fecha (UTC) y el
+  usuario. Un índice único impide que una cotización descuente dos veces;
+- `ajustes_repuestos` (D8): los cambios del importador a los 30 repuestos del dataset (nombre, categoría, descripción,
+  costo, margen y proveedor), con la fecha y el usuario de la última modificación. Cada columna no nula se pone
+  encima del dato del dataset, que no se toca. El stock no está aquí: se ajusta con un movimiento.
+
+Columnas agregadas a tablas existentes, con `ALTER TABLE … ADD COLUMN` la primera vez que el servidor arranca con
+una base vieja (revisa `PRAGMA table_info` y no toca las filas): `cotizaciones.correo` y `correo_enviado`
+(SCRUM-83), y `repuestos.modificado` y `repuestos.usuario` (D8).
+
+### Stock vigente (D6)
+
+El stock vigente de un repuesto es su **stock base** más la suma de sus movimientos. El stock base es el del dataset
+al 10-11-2026 (`stock_al_2026_11_10`) para `REP-0001`…`REP-0030` y la columna `stock` del alta para los cargados.
+
+- **Cotizar no descuenta ni reserva.** Dos cotizaciones seguidas ven las mismas unidades.
+- **Marcar la venta descuenta** la cantidad cotizada. La marca de venta y el movimiento se escriben en una misma
+  `db.batch`, que D1 ejecuta como una transacción; las dos sentencias repiten las condiciones (cotización sin vender
+  y stock suficiente), así que si otra venta se cuela entre la lectura y la escritura no se escribe nada.
+- Si la venta deja el stock en negativo, el servidor responde **409** con el stock que hay y cuánto quedaría. El
+  importador puede confirmarla de todos modos (la pantalla lo pregunta y reenvía con `{"forzar": true}`), por ejemplo
+  si las unidades sí salieron del almacén y el conteo estaba atrasado.
+- Un stock negativo se ve con su signo en `/api/stock` y en el historial. Al motor (cotizador, alertas, vista del
+  proveedor) le llega como 0, porque el motor toma un número negativo por dato inválido.
+- Las ventas marcadas **antes** de este cambio no descuentan: no tienen movimiento y el stock base no se tocó.
+- La tienda, el catálogo y el cotizador del área de la empresa, las alertas y el plan leen el stock vigente de
+  `/api/stock` al cargar la página y después de cada venta o alta. La vista del proveedor lo calcula en el servidor.
+
+### Edición de repuestos y carga masiva por CSV (D8)
+
+Decisión de Sam del 24-11-2026: se pueden editar **todos** los repuestos, los cargados y los 30 del dataset, y se
+suma una carga masiva por CSV. Solo el importador (401 sin sesión, 403 con otro rol).
+
+- **Qué se edita**: nombre, categoría, descripción, costo de fábrica en USD, margen, proveedor y stock. El precio de
+  venta no se escribe: se recalcula. En los 30 del dataset, si cambia el costo, el margen o el proveedor, el servidor
+  recalcula el costo puesto (flete y gastos del proveedor) y el precio, como SCRUM-55; si no cambian, quedan los del
+  dataset centavo por centavo. En los cargados el precio sigue siendo costo × (1 + margen), como en el alta.
+- **Categoría de una lista cerrada**: las ocho del catálogo del dataset. Vale también para el alta (`POST
+  /api/repuestos`), que antes aceptaba texto libre.
+- **Stock**: se escribe el stock vigente que se quiere tener. No se pisa la base: se registra un movimiento
+  «ajuste» por la diferencia, calculada dentro de la misma sentencia para que una venta que llegue en el medio no
+  se pierda.
+- Un nombre o una descripción que empiezan con `=`, `+`, `-` o `@` se rechazan, porque Excel los tomaría como
+  fórmula al abrir un CSV exportado.
+- En la pantalla: botón «Editar» en cada ficha del Catálogo del área de la empresa (solo con el usuario
+  importador). Se envían solo los campos que cambiaron.
+
+**Carga masiva por CSV** (pantalla «Registrar repuestos y clientes»):
+
+- La plantilla (`GET /api/repuestos/plantilla.csv`) trae todos los repuestos actuales con el stock vacío: una celda
+  vacía no cambia nada, y así una plantilla bajada hace días no deshace las ventas registradas después.
+- Encabezado exacto `repuesto_id,nombre,categoria,descripcion,costo_unitario_usd,margen_pct,stock,proveedor_id,fecha_ingreso`.
+  El separador se decide una vez, por el encabezado: coma (con punto decimal) o punto y coma (con coma decimal, como
+  guarda Excel en español).
+- Fila con `repuesto_id` vacío = alta, con todos los datos y la fecha de ingreso. Fila con código = edición de ese
+  repuesto. Se rechazan: un código que no existe, el mismo código dos veces, una fecha en una edición, un alta con
+  el mismo nombre y proveedor que un repuesto existente o que otra fila, y cualquier dato fuera de las reglas del alta.
+- Primero se revisa (`POST /api/repuestos/csv`): el servidor devuelve qué hará cada fila y sus errores, sin escribir.
+  Con `?aplicar=1` vuelve a revisar todo y, solo si no hay ningún error, escribe todas las filas en una `db.batch`
+  (todo o nada); si hay errores responde 422 y no escribe nada.
+- Topes: 500 filas y 256 KB por archivo. Es la única ruta con un cuerpo mayor que `MAX_CUERPO` (8 KB). Cada fila son
+  hasta dos escrituras en D1, así que 500 filas quedan muy por debajo de las 100 000 escrituras diarias del plan
+  gratuito, y la `db.batch` cuenta como una sola consulta para el límite de consultas por invocación.
 
 Un repuesto cargado no tiene historial de venta. Aparece en el catálogo, el cotizador, las alertas (como «Sin datos»,
 con el motivo) y el plan, pero no en las vistas que necesitan historial: simulador, temporadas y predicciones. En rotación aparece como «Sin datos».
@@ -80,13 +148,19 @@ con el motivo) y el plan, pero no en las vistas que necesitan historial: simulad
 |---|---|---|
 | `GET /api/tc` | Todos | Dólar oficial del día, con su fecha y de dónde salió |
 | `POST /api/entrar` | Todos | Devuelve un token de sesión de 8 horas, firmado con HMAC-SHA256 |
-| `GET /api/repuestos` | Todos | Repuestos cargados (para el catálogo) |
+| `GET /api/repuestos` | Todos | Repuestos cargados (para el catálogo), con el stock vigente |
+| `GET /api/ajustes` | Todos | Cambios del importador a los 30 del dataset, ya aplicados (nombre, categoría, descripción, costo, margen, costo puesto, precio y proveedor) |
+| `GET /api/stock` | Todos | Stock vigente de todos los repuestos: `{"base": "2026-11-10", "repuestos": [{"repuesto_id", "stock"}]}`. Sin datos internos |
+| `GET /api/movimientos` | Importador | Historial de movimientos de stock, del más nuevo al más viejo; filtro `repuesto` |
 | `POST /api/cotizaciones` | Todos | Emite y guarda una cotización |
 | `GET /api/cotizaciones` | Importador | Lista con filtros `cliente`, `repuesto` y `mes`; con `formato=csv`, exporta |
-| `POST /api/cotizaciones/{n}/venta` | Importador | Marca la cotización como venta |
+| `POST /api/cotizaciones/{n}/venta` | Importador | Marca la cotización como venta y descuenta el stock en la misma transacción. 409 si deja el stock negativo, salvo `{"forzar": true}` |
 | `GET /api/ventas-clientes` | Importador | Ventas salidas de cotizaciones, para el tablero de clientes |
 | `GET` y `POST /api/clientes` | Importador | Lista y alta de clientes |
-| `POST /api/repuestos` | Importador | Carga de un repuesto |
+| `POST /api/repuestos` | Importador | Carga de un repuesto (categoría de la lista cerrada) |
+| `PATCH /api/repuestos/{id}` | Importador | Edita un repuesto del dataset o cargado; el stock se ajusta con un movimiento |
+| `GET /api/repuestos/plantilla.csv` | Importador | Plantilla CSV con los repuestos actuales |
+| `POST /api/repuestos/csv` | Importador | Revisa un CSV fila por fila; con `?aplicar=1`, lo aplica entero o nada |
 | `GET /api/proveedor` | Proveedor | Sus repuestos con el estado de reposición |
 
 ### Cotización por correo y cotización imprimible (SCRUM-83)

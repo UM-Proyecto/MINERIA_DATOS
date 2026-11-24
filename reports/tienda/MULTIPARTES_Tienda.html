@@ -1547,17 +1547,28 @@ document.addEventListener("keydown", e => { if(e.key === "Escape" && infoAbierto
 window.addEventListener("scroll", infoCerrar, {passive:true, capture:true});
 window.addEventListener("resize", infoCerrar);
 
-/* ---- arranque. En el portal se suman el dólar del día y los repuestos cargados por el importador. ---- */
+/* ---- arranque. En el portal se suman el dólar del día, los repuestos cargados por el importador, sus cambios a los
+   repuestos del dataset (D8: nombre, categoría, descripción, precio y proveedor) y el stock vigente (D6: el stock base
+   menos las ventas confirmadas y más los ajustes). Lo que trae el HTML es el stock al 10-11-2026. ---- */
 function pintarTodo(){ $("qr-rep").innerHTML = $("co-rep").innerHTML = opciones(); pintarTc(); pintarRubros(); pintarVehiculo(); pintarCatalogo(); pintarCot(); }
 pintarTodo();
 if(PORTAL){
-  Promise.all([fetch("/api/tc").then(r => r.ok ? r.json() : null).catch(() => null), fetch("/api/repuestos").then(r => r.ok ? r.json() : []).catch(() => [])]).then(([tc, nuevos]) => {
+  const pedir = (ruta, vacio) => fetch(ruta).then(r => r.ok ? r.json() : vacio).catch(() => vacio);
+  const imgCat = {}; T.catalogo.forEach(c => { if(c.imagen && !imgCat[c.categoria]) imgCat[c.categoria] = c.imagen; });
+  Promise.all([pedir("/api/tc", null), pedir("/api/repuestos", []), pedir("/api/stock", null), pedir("/api/ajustes", [])]).then(([tc, nuevos, stock, ajustes]) => {
     if(tc && tc.fecha >= TC.fecha){ TC.valor = tc.valor; TC.fecha = tc.fecha; }
-    (nuevos || []).forEach(n => { if(REP[n.repuesto_id]) return;
-      const r = {repuesto_id:n.repuesto_id, proveedor_id:n.proveedor_id, precio_venta_usd:n.precio_venta_usd, costo_unitario_usd:n.costo_unitario_usd, stock_al_2026_11_10:n.stock};
-      D.repuestos.push(r); REP[r.repuesto_id] = r;
+    (nuevos || []).forEach(n => {
+      const r = REP[n.repuesto_id] || {repuesto_id:n.repuesto_id};
+      Object.assign(r, {proveedor_id:n.proveedor_id, precio_venta_usd:n.precio_venta_usd, costo_unitario_usd:n.costo_unitario_usd, stock_al_2026_11_10:n.stock});
+      if(!REP[r.repuesto_id]){ D.repuestos.push(r); REP[r.repuesto_id] = r; }
       const img = (T.catalogo.find(c => c.categoria.toLowerCase() === String(n.categoria).toLowerCase() && c.imagen) || {}).imagen || null;
-      const c = {repuesto_id:n.repuesto_id, nombre:n.nombre, categoria:n.categoria, descripcion:n.descripcion, imagen:img}; T.catalogo.push(c); CAT[c.repuesto_id] = c; });
+      const c = CAT[n.repuesto_id] || {repuesto_id:n.repuesto_id};
+      Object.assign(c, {nombre:n.nombre, categoria:n.categoria, descripcion:n.descripcion, imagen:img});
+      if(!CAT[c.repuesto_id]){ T.catalogo.push(c); CAT[c.repuesto_id] = c; } });
+    (ajustes || []).forEach(a => { const r = REP[a.repuesto_id], c = CAT[a.repuesto_id]; if(!r || !c) return;
+      Object.assign(r, {proveedor_id:a.proveedor_id, precio_venta_usd:a.precio_venta_usd, costo_unitario_usd:a.costo_unitario_usd});
+      Object.assign(c, {nombre:a.nombre, categoria:a.categoria, descripcion:a.descripcion, imagen: imgCat[a.categoria] || c.imagen}); });
+    if(stock && stock.repuestos) stock.repuestos.forEach(x => { if(REP[x.repuesto_id]) REP[x.repuesto_id].stock_al_2026_11_10 = Math.max(0, x.stock); });
     pintarTodo();
   });
 }

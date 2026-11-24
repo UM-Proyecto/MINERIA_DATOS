@@ -22,6 +22,10 @@ const USUARIOS = {
 };
 const HORAS_SESION = 8;
 const MAX_CUERPO = 8192;
+// D8: la carga masiva por CSV es la única ruta con un cuerpo mayor. 256 KB alcanzan para unas 1500 filas típicas; el
+// tope que manda es MAX_FILAS_CSV, porque cada fila puede ser hasta dos escrituras en D1 (100 000 por día gratis).
+const MAX_CSV = 256 * 1024;
+const MAX_FILAS_CSV = 500;
 const REPO = "https://raw.githubusercontent.com/UM-Proyecto/MINERIA_DATOS/";
 const TC_URL = REPO + "main/data/processed/scrum-54/tco_bcb_diario.csv";
 const TIPOS_CLIENTE = ["Taller mecánico", "Flota de empresa", "Repuestera", "Particular"];
@@ -39,6 +43,23 @@ const ESQUEMA = [
      repuesto_id TEXT PRIMARY KEY, nombre TEXT NOT NULL, categoria TEXT NOT NULL, descripcion TEXT NOT NULL,
      costo_unitario_usd REAL NOT NULL, margen_pct REAL NOT NULL, stock INTEGER NOT NULL, proveedor_id TEXT NOT NULL,
      fecha_ingreso TEXT NOT NULL, alta TEXT NOT NULL)`,
+  // Último número entregado de cada código correlativo (CLI-N…, REP-N…). Ver siguientes().
+  `CREATE TABLE IF NOT EXISTS secuencias (nombre TEXT PRIMARY KEY, ultimo INTEGER NOT NULL)`,
+  // D6 (decisión de Sam del 24-11-2026): el stock se descuenta al confirmar la venta. El stock vigente de un repuesto
+  // es su stock base (el del dataset al 10-11-2026 para REP-0001…0030; la columna stock para los cargados) más la
+  // suma de estos movimientos. Cantidad con signo: una venta resta, un ajuste suma o resta.
+  `CREATE TABLE IF NOT EXISTS movimientos_stock (
+     id INTEGER PRIMARY KEY AUTOINCREMENT, repuesto_id TEXT NOT NULL, cantidad INTEGER NOT NULL CHECK (cantidad <> 0),
+     motivo TEXT NOT NULL CHECK (motivo IN ('venta', 'ajuste')), cotizacion INTEGER, fecha TEXT NOT NULL, usuario TEXT NOT NULL)`,
+  `CREATE INDEX IF NOT EXISTS movimientos_por_repuesto ON movimientos_stock (repuesto_id)`,
+  // Una cotización descuenta stock una sola vez, aunque dos pedidos de venta lleguen juntos.
+  `CREATE UNIQUE INDEX IF NOT EXISTS una_venta_por_cotizacion ON movimientos_stock (cotizacion) WHERE motivo = 'venta'`,
+  // D8 (decisión de Sam del 24-11-2026): ajustes del importador a los 30 repuestos del dataset. El dataset no se toca;
+  // cada columna no nula de esta tabla se pone encima del valor del dataset. El stock no está aquí: un ajuste de stock
+  // es un movimiento «ajuste» en movimientos_stock.
+  `CREATE TABLE IF NOT EXISTS ajustes_repuestos (
+     repuesto_id TEXT PRIMARY KEY, nombre TEXT, categoria TEXT, descripcion TEXT, costo_unitario_usd REAL, margen_pct REAL,
+     proveedor_id TEXT, modificado TEXT NOT NULL, usuario TEXT NOT NULL)`,
 ];
 
 // ------------------------------------------------------------------ utilidades
@@ -142,9 +163,12 @@ async function base(env) {
   if (!env.DB) throw new ErrorPedido(500, "El servidor no tiene la base de datos conectada.");
   if (!esquemaListo) {
     await env.DB.batch(ESQUEMA.map(sql => env.DB.prepare(sql)));
-    // SCRUM-83: la tabla publicada se creó antes de que existieran estas columnas; se agregan si faltan.
-    const cols = (await env.DB.prepare("PRAGMA table_info(cotizaciones)").all()).results.map(c => c.name);
-    for (const c of ["correo", "correo_enviado"]) if (!cols.includes(c)) await env.DB.prepare(`ALTER TABLE cotizaciones ADD COLUMN ${c} TEXT`).run();
+    // Las tablas publicadas se crearon antes de que existieran estas columnas; se agregan si faltan, sin tocar las filas.
+    // SCRUM-83: correo de la cotización. D8: quién y cuándo modificó por última vez un repuesto cargado.
+    for (const [tabla, nuevas] of [["cotizaciones", ["correo", "correo_enviado"]], ["repuestos", ["modificado", "usuario"]]]) {
+      const cols = (await env.DB.prepare(`PRAGMA table_info(${tabla})`).all()).results.map(c => c.name);
+      for (const c of nuevas) if (!cols.includes(c)) await env.DB.prepare(`ALTER TABLE ${tabla} ADD COLUMN ${c} TEXT`).run();
+    }
     esquemaListo = true;
   }
   return env.DB;
@@ -174,13 +198,32 @@ async function dolar() {
 
 // ------------------------------------------------------------------ datos combinados
 
-async function repuestosCargados(db) {
-  return (await db.prepare("SELECT * FROM repuestos ORDER BY repuesto_id").all()).results;
+// Lo guardado que cambia los datos del dataset: repuestos cargados y suma de movimientos de stock por repuesto. Las dos
+// lecturas van en una db.batch, que D1 cuenta como una sola consulta.
+async function leerEstado(db) {
+  const [c, m, a] = await db.batch([
+    db.prepare("SELECT * FROM repuestos ORDER BY repuesto_id"),
+    db.prepare("SELECT repuesto_id, SUM(cantidad) AS s FROM movimientos_stock GROUP BY repuesto_id"),
+    db.prepare("SELECT * FROM ajustes_repuestos"),
+  ]);
+  const mov = {}, ajustes = {};
+  m.results.forEach(x => { mov[x.repuesto_id] = Number(x.s) || 0; });
+  a.results.forEach(x => { ajustes[x.repuesto_id] = x; });
+  return { cargados: c.results, mov: mov, ajustes: ajustes };
 }
+
+// Stock base de un repuesto: el del dataset o el que se cargó en el alta. Los movimientos se suman aparte.
+function stockBase(est, id) {
+  const r = DATOS.repuestos.find(x => x.repuesto_id === id);
+  if (r) return Number(r.stock_al_2026_11_10) || 0;
+  const c = est.cargados.find(x => x.repuesto_id === id);
+  return c ? c.stock : 0;
+}
+const stockVigente = (est, id) => stockBase(est, id) + (est.mov[id] || 0);
 
 // Convierte un repuesto cargado al formato del motor. Sin historial de venta, sin punto de pedido ni en camino:
 // el motor lo marca «Sin datos» en las alertas en vez de inventar esas cifras.
-function comoRepuesto(r) {
+function comoRepuesto(r, est) {
   const prov = DATOS.proveedores.find(p => p.proveedor_id === r.proveedor_id) || {};
   return {
     repuesto_id: r.repuesto_id, codigo_carparts: "", tipo_demanda: "sin historial", clase_abc: "C",
@@ -188,15 +231,239 @@ function comoRepuesto(r) {
     incoterm: prov.incoterm || "", plazo_normal_dias: prov.plazo_normal_dias,
     costo_unitario_usd: r.costo_unitario_usd, margen_pct: r.margen_pct,
     precio_venta_usd: Math.round(r.costo_unitario_usd * (1 + r.margen_pct / 100) * 100) / 100,
-    stock_al_2026_11_10: r.stock, en_transito_al_2026_11_10: 0, punto_pedido_s: "", nivel_maximo_S: "",
+    stock_al_2026_11_10: paraMotor(r.stock + ((est && est.mov[r.repuesto_id]) || 0)), en_transito_al_2026_11_10: 0, punto_pedido_s: "", nivel_maximo_S: "",
     cargado: true, fecha_ingreso: r.fecha_ingreso,
   };
 }
 
-function datosCon(cargados) {
+// Los datos del dataset con lo guardado encima: el stock vigente (base + movimientos) y los repuestos cargados. El
+// motor (cotizar, alertas) lee el stock de stock_al_2026_11_10, así que ahí va el vigente. Una venta forzada puede dejar
+// el stock en negativo; el motor trata un stock negativo como dato inválido («Sin datos»), así que recibe 0: no hay
+// unidades en el almacén. El valor con signo lo dan /api/stock y el historial de movimientos.
+const paraMotor = n => Math.max(0, n);
+const r2 = n => Math.round(n * 100) / 100;
+const dado = v => v !== null && v !== undefined;
+
+// D8: un repuesto del dataset con el ajuste del importador encima. Si cambia el costo, el margen o el proveedor, se
+// recalculan el costo puesto (flete y gastos del proveedor, como SCRUM-55) y el precio de venta; si no, quedan los del
+// dataset tal cual, centavo por centavo.
+function conAjuste(r, a) {
+  if (!a) return r;
+  const x = Object.assign({}, r);
+  if (dado(a.costo_unitario_usd)) x.costo_unitario_usd = a.costo_unitario_usd;
+  if (dado(a.margen_pct)) x.margen_pct = a.margen_pct;
+  const p = DATOS.proveedores.find(q => q.proveedor_id === (dado(a.proveedor_id) ? a.proveedor_id : r.proveedor_id));
+  if (dado(a.proveedor_id) && p) {
+    Object.assign(x, { proveedor_id: p.proveedor_id, proveedor: p.nombre, origen: p.origen, incoterm: p.incoterm,
+      plazo_normal_dias: p.plazo_normal_dias, desvio_plazo_dias: p.desvio_plazo_dias, pct_entregas_a_tiempo: p.pct_entregas_a_tiempo,
+      flete_pct: p.incoterm === "CIF" ? 0 : p.flete_pct_aplicado, gastos_pct: p.gastos_pct_cif });
+  }
+  if ((dado(a.costo_unitario_usd) || dado(a.margen_pct) || dado(a.proveedor_id)) && p) {
+    const fp = p.incoterm === "CIF" ? 0 : Number(p.flete_pct_aplicado), g = Number(p.gastos_pct_cif);
+    x.costo_puesto_usd = r2(x.costo_unitario_usd * (1 + fp / 100) * (1 + g / 100));
+    x.precio_venta_usd = r2(x.costo_puesto_usd * (1 + x.margen_pct / 100));
+    const tc = Number(r.tc_referencia_bs_por_usd);
+    if (tc > 0) Object.assign(x, { costo_unitario_bs: r2(x.costo_unitario_usd * tc), costo_puesto_bs: r2(x.costo_puesto_usd * tc), precio_venta_bs: r2(x.precio_venta_usd * tc) });
+  }
+  return x;
+}
+function catalogoCon(c, a) {
+  if (!a) return c;
+  const x = Object.assign({}, c);
+  for (const k of ["nombre", "categoria", "descripcion"]) if (dado(a[k])) x[k] = a[k];
+  return x;
+}
+
+function datosCon(est) {
   const d = Object.assign({}, DATOS);
-  d.repuestos = DATOS.repuestos.concat(cargados.map(comoRepuesto));
+  d.repuestos = DATOS.repuestos.map(r => {
+    const x = conAjuste(r, est.ajustes[r.repuesto_id]);
+    return est.mov[r.repuesto_id] ? Object.assign({}, x, { stock_al_2026_11_10: paraMotor(stockVigente(est, r.repuesto_id)) }) : x;
+  }).concat(est.cargados.map(r => comoRepuesto(r, est)));
+  d.catalogo = Object.assign({}, DATOS.catalogo, { repuestos: DATOS.catalogo.repuestos.map(c => catalogoCon(c, est.ajustes[c.repuesto_id])) });
   return d;
+}
+
+// ------------------------------------------------------------------ edición de repuestos (D8)
+
+// Categorías admitidas: las del catálogo del dataset. Lista cerrada, para que no vuelva a entrar un filtro de aire en
+// «Kit de embrague» por un error de tipeo.
+const categorias = () => [...new Set(DATOS.catalogo.repuestos.map(c => c.categoria))];
+const EDITABLES = ["nombre", "categoria", "descripcion", "costo_unitario_usd", "margen_pct", "proveedor_id", "stock"];
+
+// Un texto que empieza con =, +, - o @ se toma como fórmula al abrir un CSV exportado en Excel.
+function sinFormula(s, campo) {
+  if (s && /^[=+\-@]/.test(s)) throw new ErrorPedido(400, `${campo} no puede empezar con =, +, - ni @ (Excel lo tomaría como una fórmula).`);
+  return s;
+}
+
+function fechaValida(f) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(f)) return false;
+  const d = new Date(f + "T00:00:00Z");
+  return !isNaN(d) && d.toISOString().slice(0, 10) === f;
+}
+
+// Valida los campos de un repuesto con las reglas del alta. En un alta todos son obligatorios salvo la descripción;
+// en una edición solo se validan los que «esta» dice que vinieron.
+function validarRepuesto(b, alta, esta) {
+  const v = {};
+  if (alta || esta("nombre")) v.nombre = sinFormula(texto(b.nombre, "El nombre", 80, true), "El nombre");
+  if (alta || esta("categoria")) {
+    v.categoria = texto(b.categoria, "La categoría", 60, true);
+    if (!categorias().includes(v.categoria)) throw new ErrorPedido(400, "La categoría debe ser una de: " + categorias().join(", ") + ".");
+  }
+  if (alta || esta("descripcion")) v.descripcion = sinFormula(texto(b.descripcion, "La descripción", 200, false) || "", "La descripción");
+  if (alta || esta("costo_unitario_usd")) v.costo_unitario_usd = numero(b.costo_unitario_usd, "El costo en USD", 0.01, 100000, false);
+  if (alta || esta("margen_pct")) v.margen_pct = numero(b.margen_pct, "El margen", 0, 300, false);
+  if (alta || esta("stock")) v.stock = numero(b.stock, "El stock", 0, 1000000, true);
+  if (alta || esta("proveedor_id")) {
+    v.proveedor_id = texto(b.proveedor_id, "el proveedor", 20, true);
+    if (!DATOS.proveedores.some(p => p.proveedor_id === v.proveedor_id)) throw new ErrorPedido(400, "Ese proveedor no existe.");
+  }
+  if (alta) {
+    v.fecha_ingreso = texto(b.fecha_ingreso, "La fecha de ingreso", 10, true);
+    if (!fechaValida(v.fecha_ingreso)) throw new ErrorPedido(400, "La fecha va como AAAA-MM-DD.");
+  }
+  return v;
+}
+
+// Valores vigentes de un repuesto, sea del dataset (con su ajuste) o cargado. null si no existe.
+function actual(est, id) {
+  const c = est.cargados.find(x => x.repuesto_id === id);
+  if (c) return { origen: "cargado", nombre: c.nombre, categoria: c.categoria, descripcion: c.descripcion, costo_unitario_usd: c.costo_unitario_usd,
+    margen_pct: c.margen_pct, proveedor_id: c.proveedor_id, stock: stockVigente(est, id) };
+  const r = DATOS.repuestos.find(x => x.repuesto_id === id);
+  if (!r) return null;
+  const cat = DATOS.catalogo.repuestos.find(x => x.repuesto_id === id) || {}, a = est.ajustes[id] || {};
+  const v = (k, base) => (dado(a[k]) ? a[k] : base);
+  return { origen: "dataset", nombre: v("nombre", cat.nombre), categoria: v("categoria", cat.categoria), descripcion: v("descripcion", cat.descripcion || ""),
+    costo_unitario_usd: v("costo_unitario_usd", r.costo_unitario_usd), margen_pct: v("margen_pct", r.margen_pct),
+    proveedor_id: v("proveedor_id", r.proveedor_id), stock: stockVigente(est, id) };
+}
+
+// Sentencias de una edición. Solo cambia lo que es distinto de lo vigente. Un repuesto cargado se actualiza en su
+// tabla; uno del dataset, en ajustes_repuestos. El stock nunca se pisa: se registra un movimiento «ajuste» por la
+// diferencia, calculada dentro de la sentencia para que una venta que llegue en el medio no se pierda.
+function planEdicion(db, est, id, v, usuario, f) {
+  const act = actual(est, id), cambios = [], stmts = [];
+  const campos = EDITABLES.filter(k => k !== "stock" && k in v && v[k] !== act[k]);
+  campos.forEach(k => cambios.push({ campo: k, antes: act[k], despues: v[k] }));
+  if (campos.length && act.origen === "cargado") {
+    stmts.push(db.prepare(`UPDATE repuestos SET ${campos.map(k => k + " = ?").join(", ")}, modificado = ?, usuario = ? WHERE repuesto_id = ?`)
+      .bind(...campos.map(k => v[k]), f, usuario, id));
+  } else if (campos.length) {
+    stmts.push(db.prepare(`INSERT INTO ajustes_repuestos (repuesto_id, ${campos.join(", ")}, modificado, usuario) VALUES (?, ${campos.map(() => "?").join(", ")}, ?, ?)
+        ON CONFLICT (repuesto_id) DO UPDATE SET ${campos.map(k => k + " = excluded." + k).join(", ")}, modificado = excluded.modificado, usuario = excluded.usuario`)
+      .bind(id, ...campos.map(k => v[k]), f, usuario));
+  }
+  if ("stock" in v && v.stock !== act.stock) {
+    cambios.push({ campo: "stock", antes: act.stock, despues: v.stock });
+    stmts.push(db.prepare(`INSERT INTO movimientos_stock (repuesto_id, cantidad, motivo, fecha, usuario)
+        SELECT ?, d, 'ajuste', ?, ? FROM (SELECT ? - ? - COALESCE((SELECT SUM(cantidad) FROM movimientos_stock WHERE repuesto_id = ?), 0) AS d) WHERE d <> 0`)
+      .bind(id, f, usuario, v.stock, stockBase(est, id), id));
+  }
+  return { cambios: cambios, stmts: stmts };
+}
+
+// ------------------------------------------------------------------ carga masiva por CSV (D8)
+
+const COLS_CSV = ["repuesto_id", "nombre", "categoria", "descripcion", "costo_unitario_usd", "margen_pct", "stock", "proveedor_id", "fecha_ingreso"];
+const NUMERICAS = ["costo_unitario_usd", "margen_pct", "stock"];
+
+// CSV con comillas al estilo de Excel. El separador se decide una sola vez, por el encabezado: punto y coma (Excel en
+// español, con coma decimal) o coma (con punto decimal). Devuelve las filas con su número de fila en el archivo.
+function parsearCsv(t) {
+  t = t.replace(/^\uFEFF/, "");
+  const cab = t.split(/\r?\n/, 1)[0];
+  const sep = cab.includes(";") ? ";" : ",";
+  const filas = [];
+  let fila = [], celda = "", q = false, n = 1, inicio = 1;
+  const cerrar = () => { fila.push(celda); filas.push({ n: inicio, celdas: fila }); fila = []; celda = ""; inicio = n; };
+  for (let i = 0; i < t.length; i++) {
+    const ch = t[i];
+    if (q) {
+      if (ch === '"' && t[i + 1] === '"') { celda += '"'; i++; } else if (ch === '"') q = false; else { if (ch === "\n") n++; celda += ch; }
+    } else if (ch === '"') q = true;
+    else if (ch === sep) { fila.push(celda); celda = ""; }
+    else if (ch === "\n" || ch === "\r") { if (ch === "\r" && t[i + 1] === "\n") i++; n++; cerrar(); }
+    else celda += ch;
+  }
+  if (q) throw new ErrorPedido(400, "El archivo tiene comillas sin cerrar.");
+  if (celda !== "" || fila.length) cerrar();
+  return { sep: sep, filas: filas.filter(f => f.celdas.some(c => c.trim() !== "")) };
+}
+
+// Revisa todas las filas sin escribir nada. Cada fila es un alta (repuesto_id vacío) o una edición de un repuesto que
+// existe (celda vacía = no cambia). Devuelve el informe por fila y, si no hay errores, las sentencias a ejecutar.
+async function revisarCsv(db, est, texto0, usuario) {
+  const { sep, filas } = parsearCsv(texto0);
+  if (!filas.length) throw new ErrorPedido(400, "El archivo está vacío.");
+  const cab = filas[0].celdas.map(c => c.trim().toLowerCase());
+  if (cab.join(",") !== COLS_CSV.join(",")) throw new ErrorPedido(400, "El encabezado debe ser exactamente: " + COLS_CSV.join(sep) + ". Descargue la plantilla.");
+  const datos = filas.slice(1);
+  if (!datos.length) throw new ErrorPedido(400, "El archivo no tiene filas debajo del encabezado.");
+  if (datos.length > MAX_FILAS_CSV) throw new ErrorPedido(413, `El archivo tiene ${datos.length} filas; el máximo es ${MAX_FILAS_CSV}. Divídalo en partes.`);
+  const f = ahora(), informe = [], stmts = [], altas = [], vistos = {};
+  const existentes = {};
+  DATOS.repuestos.concat(est.cargados).forEach(r => { const a = actual(est, r.repuesto_id); existentes[(a.nombre + "|" + a.proveedor_id).toLowerCase()] = r.repuesto_id; });
+  for (const fila of datos) {
+    const res = { fila: fila.n, repuesto_id: "", accion: "", cambios: [], error: null };
+    informe.push(res);
+    try {
+      if (fila.celdas.length !== COLS_CSV.length) throw new ErrorPedido(400, `Tiene ${fila.celdas.length} columnas y deben ser ${COLS_CSV.length}.`);
+      const b = {};
+      COLS_CSV.forEach((k, i) => { let c = fila.celdas[i].trim(); if (sep === ";" && NUMERICAS.includes(k)) c = c.replace(",", "."); b[k] = c; });
+      const id = b.repuesto_id;
+      if (!id) {
+        res.accion = "alta";
+        const v = validarRepuesto(b, true);
+        const clave = (v.nombre + "|" + v.proveedor_id).toLowerCase();
+        if (existentes[clave]) throw new ErrorPedido(400, `Ya existe «${v.nombre}» con ese proveedor (${existentes[clave]}). Para cambiarlo, escriba su código en repuesto_id.`);
+        if (vistos[clave]) throw new ErrorPedido(400, `Repite el alta de la fila ${vistos[clave]}.`);
+        vistos[clave] = fila.n;
+        altas.push({ res: res, v: v });
+        res.cambios = EDITABLES.map(k => ({ campo: k, antes: null, despues: v[k] }));
+      } else {
+        res.accion = "edición"; res.repuesto_id = id;
+        if (!actual(est, id)) throw new ErrorPedido(400, `No existe el repuesto ${id}. Para un alta, deje repuesto_id vacío.`);
+        if (vistos[id]) throw new ErrorPedido(400, `El repuesto ${id} ya aparece en la fila ${vistos[id]}.`);
+        vistos[id] = fila.n;
+        if (b.fecha_ingreso) throw new ErrorPedido(400, "La fecha de ingreso solo se usa en las altas; déjela vacía.");
+        const v = validarRepuesto(b, false, k => b[k] !== "");
+        const plan = planEdicion(db, est, id, v, usuario, f);
+        res.cambios = plan.cambios;
+        if (!plan.cambios.length) res.accion = "sin cambios";
+        stmts.push(...plan.stmts);
+      }
+    } catch (e) {
+      if (!(e instanceof ErrorPedido)) throw e;
+      res.error = e.message;
+    }
+  }
+  const errores = informe.filter(r => r.error).length;
+  return { informe: informe, errores: errores, altas: altas, stmts: stmts, fecha: f };
+}
+
+function celdaCsv(v) {
+  let s = v === null || v === undefined ? "" : String(v);
+  if (/^[=+\-@]/.test(s)) s = "'" + s;
+  return /[",;\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+
+// Reserva los próximos «cuantos» códigos de una serie (CLI-N001, REP-N001, …). Antes se usaba COUNT(*) + 1: si se
+// borraba una fila, el alta siguiente repetía un código existente y la clave primaria fallaba. Ahora el último número
+// entregado queda en la tabla secuencias, y se compara con el máximo que ya existe en la tabla, para que una base
+// anterior a este cambio (o una fila cargada a mano) no choque. El UPDATE es una sola sentencia: dos altas al mismo
+// tiempo reciben números distintos. Si después falla el INSERT, ese número queda sin usar, y no importa.
+async function siguientes(db, serie, tabla, col, prefijo, cuantos) {
+  const n = cuantos || 1, desde = prefijo.length + 1;
+  const [, r] = await db.batch([
+    db.prepare("INSERT OR IGNORE INTO secuencias (nombre, ultimo) VALUES (?, 0)").bind(serie),
+    db.prepare(`UPDATE secuencias SET ultimo = MAX(ultimo, (SELECT COALESCE(MAX(CAST(substr(${col}, ${desde}) AS INTEGER)), 0)
+        FROM ${tabla} WHERE ${col} LIKE '${prefijo}%')) + ? WHERE nombre = ? RETURNING ultimo`).bind(n, serie),
+  ]);
+  const ultimo = r.results[0].ultimo;
+  return Array.from({ length: n }, (_, i) => prefijo + String(ultimo - n + 1 + i).padStart(3, "0"));
 }
 
 async function existeCliente(db, id) {
@@ -226,12 +493,27 @@ async function api(req, env, url) {
 
   // Catálogo público: repuestos cargados por el importador (sin datos internos).
   if (ruta === "/api/repuestos" && m === "GET") {
-    const db = await base(env);
-    return json((await repuestosCargados(db)).map(r => ({
+    const est = await leerEstado(await base(env));
+    return json(est.cargados.map(r => ({
       repuesto_id: r.repuesto_id, nombre: r.nombre, categoria: r.categoria, descripcion: r.descripcion,
       precio_venta_usd: comoRepuesto(r).precio_venta_usd, costo_unitario_usd: r.costo_unitario_usd, margen_pct: r.margen_pct,
-      stock: r.stock, proveedor_id: r.proveedor_id, fecha_ingreso: r.fecha_ingreso,
+      stock: paraMotor(stockVigente(est, r.repuesto_id)), proveedor_id: r.proveedor_id, fecha_ingreso: r.fecha_ingreso,
     })));
+  }
+
+  // D6: stock vigente de todos los repuestos (dataset y cargados), para la tienda y el área de la empresa. Público y
+  // sin datos internos: solo el código y las unidades.
+  if (ruta === "/api/stock" && m === "GET") {
+    const est = await leerEstado(await base(env));
+    const ids = DATOS.repuestos.map(r => r.repuesto_id).concat(est.cargados.map(r => r.repuesto_id));
+    return json({ base: "2026-11-10", repuestos: ids.map(id => ({ repuesto_id: id, stock: stockVigente(est, id) })) });
+  }
+  // Historial de movimientos de stock (ventas y ajustes), del más nuevo al más viejo.
+  if (ruta === "/api/movimientos" && m === "GET") {
+    await exigir(env, req, "importador");
+    const db = await base(env), rep = url.searchParams.get("repuesto");
+    const q = "SELECT * FROM movimientos_stock" + (rep ? " WHERE repuesto_id = ?" : "") + " ORDER BY id DESC LIMIT 1000";
+    return json((await (rep ? db.prepare(q).bind(rep) : db.prepare(q)).all()).results);
   }
 
   // SCRUM-73: cada cotización se guarda sola al emitirse. El cliente no necesita cuenta.
@@ -247,7 +529,7 @@ async function api(req, env, url) {
     const correo = texto(b.correo, "El correo", 120, false);
     if (correo && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(correo)) return error(400, "El correo no tiene una forma válida, por ejemplo nombre@empresa.com.");
     if (clienteId && !(await existeCliente(db, clienteId))) return error(400, "Ese cliente no existe.");
-    const d = datosCon(await repuestosCargados(db));
+    const d = datosCon(await leerEstado(db));
     if (!d.repuestos.some(r => r.repuesto_id === repId)) return error(400, "Ese repuesto no existe.");
     const tc = await dolar();
     const c = Motor.cotizar(d, repId, cantidad, tc.valor);
@@ -280,12 +562,35 @@ async function api(req, env, url) {
   }
   const venta = ruta.match(/^\/api\/cotizaciones\/(\d+)\/venta$/);
   if (venta && m === "POST") {
-    await exigir(env, req, "importador");
+    // D6: marcar la venta descuenta del stock la cantidad cotizada. La cotización sola no descuenta ni reserva.
+    const s = await exigir(env, req, "importador");
+    const b = await leerJson(req);
+    const forzar = b.forzar === true;
     const db = await base(env);
-    const r = await db.prepare("UPDATE cotizaciones SET convertida = 1, fecha_venta = ? WHERE numero = ? AND convertida = 0 RETURNING numero")
-      .bind(ahora(), Number(venta[1])).first();
-    if (!r) return error(404, "No existe esa cotización o ya estaba marcada como venta.");
-    return json({ numero: r.numero, convertida: 1 });
+    const num = Number(venta[1]);
+    const cot = await db.prepare("SELECT numero, repuesto_id, cantidad, convertida FROM cotizaciones WHERE numero = ?").bind(num).first();
+    if (!cot || cot.convertida) return error(404, "No existe esa cotización o ya estaba marcada como venta.");
+    const est = await leerEstado(db);
+    const base0 = stockBase(est, cot.repuesto_id), antes = base0 + (est.mov[cot.repuesto_id] || 0), despues = antes - cot.cantidad;
+    if (despues < 0 && !forzar) {
+      return json({ error: `No hay stock suficiente: ${cot.repuesto_id} tiene ${antes} unidades y la cotización es de ${cot.cantidad}. ` +
+        `Si las unidades sí salieron del almacén, confirme la venta de todos modos; el stock quedará en ${despues}.`,
+        stock: antes, cantidad: cot.cantidad, stock_despues: despues }, 409);
+    }
+    // El movimiento y la marca de venta van en una misma db.batch, que D1 ejecuta como una transacción. Las dos
+    // sentencias repiten las condiciones (cotización sin vender y stock suficiente, salvo que se fuerce): si otra
+    // venta se coló entre la lectura de arriba y esta escritura, no se escribe nada y se avisa.
+    const f = ahora();
+    const [, u] = await db.batch([
+      db.prepare(`INSERT INTO movimientos_stock (repuesto_id, cantidad, motivo, cotizacion, fecha, usuario)
+          SELECT repuesto_id, -cantidad, 'venta', numero, ?, ? FROM cotizaciones c WHERE numero = ? AND convertida = 0
+          AND (? = 1 OR ? + COALESCE((SELECT SUM(cantidad) FROM movimientos_stock WHERE repuesto_id = c.repuesto_id), 0) - cantidad >= 0)`)
+        .bind(f, s.u, num, forzar ? 1 : 0, base0),
+      db.prepare(`UPDATE cotizaciones SET convertida = 1, fecha_venta = ? WHERE numero = ? AND convertida = 0
+          AND EXISTS (SELECT 1 FROM movimientos_stock WHERE cotizacion = ? AND motivo = 'venta') RETURNING numero`).bind(f, num, num),
+    ]);
+    if (!u.results.length) return error(409, "El stock o la cotización cambiaron mientras se marcaba la venta. Vuelva a cargar la lista e intente de nuevo.");
+    return json({ numero: num, convertida: 1, repuesto_id: cot.repuesto_id, cantidad: cot.cantidad, stock_antes: antes, stock_despues: despues, forzada: despues < 0 });
   }
 
   // Ventas que salieron de cotizaciones, para el tablero de clientes (SCRUM-76).
@@ -312,8 +617,7 @@ async function api(req, env, url) {
     const tipo = texto(b.tipo, "El tipo", 40, true);
     const zona = texto(b.zona, "La zona", 40, true);
     if (!TIPOS_CLIENTE.includes(tipo)) return error(400, "El tipo debe ser uno de: " + TIPOS_CLIENTE.join(", ") + ".");
-    const n = await db.prepare("SELECT COUNT(*) AS n FROM clientes").first();
-    const id = "CLI-N" + String((n.n || 0) + 1).padStart(3, "0");
+    const [id] = await siguientes(db, "clientes", "clientes", "cliente_id", "CLI-N");
     await db.prepare("INSERT INTO clientes (cliente_id, nombre, tipo, zona, alta) VALUES (?, ?, ?, ?, ?)").bind(id, nombre, tipo, zona, ahora()).run();
     return json({ cliente_id: id, nombre: nombre, tipo: tipo, zona: zona }, 201);
   }
@@ -321,29 +625,87 @@ async function api(req, env, url) {
     await exigir(env, req, "importador");
     const b = await leerJson(req);
     const db = await base(env);
-    const nombre = texto(b.nombre, "El nombre", 80, true);
-    const categoria = texto(b.categoria, "La categoría", 60, true);
-    const descripcion = texto(b.descripcion, "La descripción", 200, false) || "";
-    const costo = numero(b.costo_unitario_usd, "El costo en USD", 0.01, 100000, false);
-    const margen = numero(b.margen_pct, "El margen", 0, 300, false);
-    const stock = numero(b.stock, "El stock", 0, 1000000, true);
-    const prov = texto(b.proveedor_id, "el proveedor", 20, true);
-    const fecha = texto(b.fecha_ingreso, "La fecha de ingreso", 10, true);
-    if (!DATOS.proveedores.some(p => p.proveedor_id === prov)) return error(400, "Ese proveedor no existe.");
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha) || isNaN(Date.parse(fecha + "T00:00:00Z"))) return error(400, "La fecha va como AAAA-MM-DD.");
-    const n = await db.prepare("SELECT COUNT(*) AS n FROM repuestos").first();
-    const id = "REP-N" + String((n.n || 0) + 1).padStart(3, "0");
+    const v = validarRepuesto(b, true);
+    const [id] = await siguientes(db, "repuestos", "repuestos", "repuesto_id", "REP-N");
     await db.prepare(`INSERT INTO repuestos (repuesto_id, nombre, categoria, descripcion, costo_unitario_usd, margen_pct, stock,
         proveedor_id, fecha_ingreso, alta) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-      .bind(id, nombre, categoria, descripcion, costo, margen, stock, prov, fecha, ahora()).run();
-    return json({ repuesto_id: id, nombre: nombre }, 201);
+      .bind(id, v.nombre, v.categoria, v.descripcion, v.costo_unitario_usd, v.margen_pct, v.stock, v.proveedor_id, v.fecha_ingreso, ahora()).run();
+    return json({ repuesto_id: id, nombre: v.nombre }, 201);
+  }
+
+  // D8: ajustes del importador a los repuestos del dataset, ya aplicados (nombre, categoría, descripción, costo,
+  // margen, precio y proveedor). Público, como el resto del catálogo: la tienda los necesita para mostrar el precio.
+  if (ruta === "/api/ajustes" && m === "GET") {
+    const est = await leerEstado(await base(env)), d = datosCon(est);
+    return json(Object.keys(est.ajustes).sort().filter(id => DATOS.repuestos.some(r => r.repuesto_id === id)).map(id => {
+      const r = d.repuestos.find(x => x.repuesto_id === id), c = d.catalogo.repuestos.find(x => x.repuesto_id === id) || {};
+      return { repuesto_id: id, nombre: c.nombre, categoria: c.categoria, descripcion: c.descripcion, costo_unitario_usd: r.costo_unitario_usd,
+        margen_pct: r.margen_pct, costo_puesto_usd: r.costo_puesto_usd, precio_venta_usd: r.precio_venta_usd, proveedor_id: r.proveedor_id,
+        modificado: est.ajustes[id].modificado };
+    }));
+  }
+
+  // D8: plantilla para la carga masiva, con los repuestos actuales. El stock va vacío: una celda vacía no cambia nada,
+  // y así una plantilla vieja no deshace las ventas registradas después de bajarla.
+  if (ruta === "/api/repuestos/plantilla.csv" && m === "GET") {
+    await exigir(env, req, "importador");
+    const est = await leerEstado(await base(env));
+    const ids = DATOS.repuestos.map(r => r.repuesto_id).concat(est.cargados.map(r => r.repuesto_id));
+    const filas = ids.map(id => { const a = actual(est, id);
+      return [id, a.nombre, a.categoria, a.descripcion, a.costo_unitario_usd, a.margen_pct, "", a.proveedor_id, ""].map(celdaCsv).join(","); });
+    return new Response("\uFEFF" + [COLS_CSV.join(",")].concat(filas).join("\r\n") + "\r\n", { headers: { "content-type": "text/csv; charset=utf-8",
+      "content-disposition": 'attachment; filename="plantilla_repuestos.csv"', "cache-control": "no-store", "x-content-type-options": "nosniff" } });
+  }
+
+  // D8: carga masiva por CSV. Sin ?aplicar=1 solo revisa y devuelve el informe por fila. Con ?aplicar=1 vuelve a
+  // revisar todo y, solo si no hay ningún error, escribe todas las filas en una db.batch (todo o nada).
+  if (ruta === "/api/repuestos/csv" && m === "POST") {
+    const s = await exigir(env, req, "importador");
+    if (Number(req.headers.get("content-length") || 0) > MAX_CSV) throw new ErrorPedido(413, `El archivo pesa más de ${MAX_CSV / 1024} KB. Divídalo en partes.`);
+    const t = await req.text();
+    if (t.length > MAX_CSV) throw new ErrorPedido(413, `El archivo pesa más de ${MAX_CSV / 1024} KB. Divídalo en partes.`);
+    const db = await base(env);
+    const est = await leerEstado(db);
+    const r = await revisarCsv(db, est, t, s.u);
+    const resumen = { filas: r.informe, errores: r.errores, altas: r.altas.length,
+      ediciones: r.informe.filter(x => x.accion === "edición" && !x.error).length, sin_cambios: r.informe.filter(x => x.accion === "sin cambios").length };
+    if (url.searchParams.get("aplicar") !== "1") return json(Object.assign({ aplicado: false }, resumen));
+    if (r.errores) return json(Object.assign({ aplicado: false, error: `No se aplicó nada: ${r.errores} ${r.errores === 1 ? "fila tiene" : "filas tienen"} errores.` }, resumen), 422);
+    const stmts = r.stmts.slice();
+    if (r.altas.length) {
+      const ids = await siguientes(db, "repuestos", "repuestos", "repuesto_id", "REP-N", r.altas.length);
+      r.altas.forEach((x, i) => { x.res.repuesto_id = ids[i]; const v = x.v;
+        stmts.push(db.prepare(`INSERT INTO repuestos (repuesto_id, nombre, categoria, descripcion, costo_unitario_usd, margen_pct, stock,
+            proveedor_id, fecha_ingreso, alta) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+          .bind(ids[i], v.nombre, v.categoria, v.descripcion, v.costo_unitario_usd, v.margen_pct, v.stock, v.proveedor_id, v.fecha_ingreso, r.fecha)); });
+    }
+    if (stmts.length) await db.batch(stmts);
+    return json(Object.assign({ aplicado: true }, resumen));
+  }
+
+  // D8: edición de un repuesto, del dataset o cargado. Solo los campos de EDITABLES; el stock es el vigente deseado y
+  // se registra como un movimiento «ajuste» por la diferencia.
+  const edicion = ruta.match(/^\/api\/repuestos\/(REP-[A-Z0-9]{1,12})$/);
+  if (edicion && m === "PATCH") {
+    const s = await exigir(env, req, "importador");
+    const b = await leerJson(req);
+    const otros = Object.keys(b).filter(k => !EDITABLES.includes(k));
+    if (otros.length) return error(400, "No se puede editar: " + otros.join(", ") + ". Campos editables: " + EDITABLES.join(", ") + ".");
+    const db = await base(env);
+    const est = await leerEstado(db), id = edicion[1];
+    if (!actual(est, id)) return error(404, "No existe ese repuesto.");
+    const v = validarRepuesto(b, false, k => k in b && b[k] !== null);
+    if (!Object.keys(v).length) return error(400, "No hay ningún campo para cambiar.");
+    const plan = planEdicion(db, est, id, v, s.u, ahora());
+    if (plan.stmts.length) await db.batch(plan.stmts);
+    return json({ repuesto_id: id, cambios: plan.cambios });
   }
 
   // SCRUM-78: el proveedor ve solo sus repuestos, su estado y lo que se le pediría.
   if (ruta === "/api/proveedor" && m === "GET") {
     const s = await exigir(env, req, "proveedor");
     const db = await base(env);
-    const d = datosCon(await repuestosCargados(db));
+    const d = datosCon(await leerEstado(db));
     const tc = await dolar();
     const al = Motor.alertas(d, tc.valor).filter(a => {
       const r = d.repuestos.find(x => x.repuesto_id === a.id);

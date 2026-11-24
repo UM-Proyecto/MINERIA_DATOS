@@ -15,7 +15,11 @@ function d1() {
     async first() { const r = this.p().get(...this.args.map(n)); return r === undefined ? null : { ...r }; }
     async run() { this.p().run(...this.args.map(n)); return { success: true }; }
   }
-  return { prepare: sql => new Stmt(sql), batch: async ss => { for (const s of ss) db.prepare(s.sql).run(...s.args.map(n)); return []; } };
+  return { prepare: sql => new Stmt(sql), batch: async ss => {
+    // Como D1: todas las sentencias en una transacción (si una falla, no queda ninguna) y un resultado por sentencia.
+    db.exec("BEGIN");
+    try { const r = ss.map(s => ({ results: db.prepare(s.sql).all(...s.args.map(n)).map(x => ({ ...x })), success: true })); db.exec("COMMIT"); return r; }
+    catch (e) { db.exec("ROLLBACK"); throw e; } } };
 }
 
 import { readFileSync } from "node:fs";
@@ -112,7 +116,7 @@ await pedir(w, env, "rep_neg", "POST", "/api/repuestos", { nombre: "X", categori
 await pedir(w, env, "rep_fecha_mal", "POST", "/api/repuestos", { nombre: "X", categoria: "Y", costo_unitario_usd: 10, margen_pct: 35, stock: 1, proveedor_id: "PROV-CN-03", fecha_ingreso: "13/11/2026" }, imp);
 await pedir(w, env, "rep_prov_mal", "POST", "/api/repuestos", { nombre: "X", categoria: "Y", costo_unitario_usd: 10, margen_pct: 35, stock: 1, proveedor_id: "PROV-XX", fecha_ingreso: "2026-11-13" }, imp);
 await pedir(w, env, "rep_vacio", "POST", "/api/repuestos", { nombre: " ", categoria: "Y", costo_unitario_usd: 10, margen_pct: 35, stock: 1, proveedor_id: "PROV-CN-03", fecha_ingreso: "2026-11-13" }, imp);
-await pedir(w, env, "rep_ok", "POST", "/api/repuestos", { nombre: "Filtro de aire para motor 1.6", categoria: "Filtro de aire", descripcion: "Filtra el aire.", costo_unitario_usd: 8.5, margen_pct: 40, stock: 0, proveedor_id: "PROV-CN-03", fecha_ingreso: "2026-11-13" }, imp);
+await pedir(w, env, "rep_ok", "POST", "/api/repuestos", { nombre: "Filtro de aceite para motor 1.6", categoria: "Filtro de aceite", descripcion: "Filtra el aire.", costo_unitario_usd: 8.5, margen_pct: 40, stock: 0, proveedor_id: "PROV-CN-03", fecha_ingreso: "2026-11-13" }, imp);
 await pedir(w, env, "repuestos_pub", "GET", "/api/repuestos");
 await pedir(w, env, "cot_nuevo", "POST", "/api/cotizaciones", { repuesto_id: "REP-N001", cantidad: 12 });
 await pedir(w, env, "miprov", "GET", "/api/proveedor", undefined, prov);
@@ -124,7 +128,7 @@ await pedir(w, env, "venta_otra_vez", "POST", "/api/cotizaciones/2/venta", {}, i
 await pedir(w, env, "ventas_cli", "GET", "/api/ventas-clientes", undefined, imp);
 // Error E2 (auditoría del 24-11-2026): la cotización 1 salió de la tienda, sin cliente. Su venta tiene que llegar al
 // tablero de clientes con el cliente aparte CLI-WEB, en vez de perderse.
-await pedir(w, env, "venta_web", "POST", "/api/cotizaciones/1/venta", {}, imp);
+await pedir(w, env, "venta_web", "POST", "/api/cotizaciones/1/venta", { forzar: true }, imp);  // REP-0022 tiene stock 1: con D6 la venta de 10 se fuerza
 await pedir(w, env, "ventas_cli_web", "GET", "/api/ventas-clientes", undefined, imp);
 await pedir(w, env, "csv", "GET", "/api/cotizaciones?formato=csv", undefined, imp, true);
 // Error E3: los catálogos PDF se sirven desde el portal (archivos estáticos de Pages, env.ASSETS).
@@ -136,6 +140,125 @@ await pedir(w, env, "csv", "GET", "/api/cotizaciones?formato=csv", undefined, im
   await pedir(w, { DB: d1(), SECRETO: SEC }, "pdf_sin_assets", "GET", "/catalogos/catalogo_baja.pdf");
   salida.pdf_pedidos = pedidos;
 }
+
+// Códigos correlativos seguros ante borrados: con COUNT(*) + 1, borrar CLI-N001 hacía que el alta siguiente repitiera
+// CLI-N002 y la clave primaria fallara con un 500.
+await pedir(w, env, "cli_2", "POST", "/api/clientes", { nombre: "Taller Dos", tipo: "Particular", zona: "Sur" }, imp);
+await env.DB.prepare("DELETE FROM clientes WHERE cliente_id = 'CLI-N001'").run();
+await pedir(w, env, "cli_tras_borrar", "POST", "/api/clientes", { nombre: "Taller Tres", tipo: "Particular", zona: "Sur" }, imp);
+const repBase = { categoria: "Filtro de aceite", costo_unitario_usd: 5, margen_pct: 35, stock: 2, proveedor_id: "PROV-CN-03", fecha_ingreso: "2026-11-20" };
+await pedir(w, env, "rep_2", "POST", "/api/repuestos", Object.assign({ nombre: "Repuesto dos" }, repBase), imp);
+await env.DB.prepare("DELETE FROM repuestos WHERE repuesto_id = 'REP-N001'").run();
+await pedir(w, env, "rep_tras_borrar", "POST", "/api/repuestos", Object.assign({ nombre: "Repuesto tres" }, repBase), imp);
+// Una base anterior a la tabla secuencias, con altas hechas, sigue desde el máximo existente.
+{
+  const vieja = d1();
+  await vieja.prepare("CREATE TABLE clientes (cliente_id TEXT PRIMARY KEY, nombre TEXT NOT NULL, tipo TEXT NOT NULL, zona TEXT NOT NULL, alta TEXT NOT NULL)").run();
+  await vieja.prepare("INSERT INTO clientes VALUES ('CLI-N001','a','Particular','x','2026-11-01'), ('CLI-N007','b','Particular','x','2026-11-01')").run();
+  const w4 = await cargar();
+  await pedir(w4, { DB: vieja, SECRETO: SEC }, "cli_base_vieja", "POST", "/api/clientes", { nombre: "C", tipo: "Particular", zona: "Sur" }, imp);
+}
+
+// D6: marcar la venta descuenta el stock; la cotización sola no. El stock vigente lo ven /api/stock, /api/repuestos,
+// el cotizador del servidor y la vista del proveedor.
+const stockDe = async (nombre, id) => (await pedir(w, env, nombre, "GET", "/api/stock")).cuerpo.repuestos.find(r => r.repuesto_id === id).stock;
+salida.d6 = {};
+salida.d6.rep1_tras_venta = await stockDe("stock_1", "REP-0001");          // la venta de la cotización 2 (3 u.) ya descontó
+salida.d6.rep5_antes = await stockDe("stock_2", "REP-0005");
+const c5 = (await pedir(w, env, "d6_cot5", "POST", "/api/cotizaciones", { repuesto_id: "REP-0005", cantidad: 4 })).cuerpo.numero;
+salida.d6.rep5_tras_cotizar = await stockDe("stock_3", "REP-0005");
+await pedir(w, env, "d6_venta_justa", "POST", `/api/cotizaciones/${c5}/venta`, {}, imp);
+salida.d6.rep5_tras_venta = await stockDe("stock_4", "REP-0005");
+const c6 = (await pedir(w, env, "d6_cot6", "POST", "/api/cotizaciones", { repuesto_id: "REP-0005", cantidad: 2 })).cuerpo;
+salida.d6.cot_sin_stock = { en_stock: c6.en_stock, por_pedir: c6.por_pedir };
+await pedir(w, env, "d6_venta_negativa", "POST", `/api/cotizaciones/${c6.numero}/venta`, {}, imp);
+salida.d6.rep5_tras_409 = await stockDe("stock_5", "REP-0005");
+salida.d6.cot6_tras_409 = (await pedir(w, env, "d6_lista", "GET", "/api/cotizaciones?repuesto=REP-0005", undefined, imp)).cuerpo.filas.find(f => f.numero === c6.numero).convertida;
+await pedir(w, env, "d6_forzar_texto", "POST", `/api/cotizaciones/${c6.numero}/venta`, { forzar: "si" }, imp);
+await pedir(w, env, "d6_venta_forzada", "POST", `/api/cotizaciones/${c6.numero}/venta`, { forzar: true }, imp);
+salida.d6.rep5_forzado = await stockDe("stock_6", "REP-0005");
+await pedir(w, env, "d6_forzada_otra_vez", "POST", `/api/cotizaciones/${c6.numero}/venta`, { forzar: true }, imp);
+salida.d6.rep5_final = await stockDe("stock_7", "REP-0005");
+const c8 = (await pedir(w, env, "d6_cot_negativo", "POST", "/api/cotizaciones", { repuesto_id: "REP-0005", cantidad: 3 })).cuerpo;
+salida.d6.cot_con_negativo = { stock: c8.stock, en_stock: c8.en_stock, por_pedir: c8.por_pedir };
+// Repuesto cargado (REP-N002, stock base 2): /api/repuestos muestra el vigente.
+const c7 = (await pedir(w, env, "d6_cot7", "POST", "/api/cotizaciones", { repuesto_id: "REP-N002", cantidad: 2 })).cuerpo.numero;
+await pedir(w, env, "d6_venta_cargado", "POST", `/api/cotizaciones/${c7}/venta`, {}, imp);
+salida.d6.n002_pub = (await pedir(w, env, "d6_rep_pub", "GET", "/api/repuestos")).cuerpo.find(r => r.repuesto_id === "REP-N002").stock;
+await pedir(w, env, "d6_miprov", "GET", "/api/proveedor", undefined, prov);
+await pedir(w, env, "d6_mov_anon", "GET", "/api/movimientos");
+await pedir(w, env, "d6_mov_prov", "GET", "/api/movimientos", undefined, prov);
+await pedir(w, env, "d6_mov", "GET", "/api/movimientos?repuesto=REP-0005", undefined, imp);
+
+// D8: edición de repuestos (dataset y cargados) y carga masiva por CSV. Solo el importador.
+salida.d8 = {};
+await pedir(w, env, "d8_patch_anon", "PATCH", "/api/repuestos/REP-0003", { nombre: "X" });
+await pedir(w, env, "d8_patch_prov", "PATCH", "/api/repuestos/REP-0003", { nombre: "X" }, prov);
+await pedir(w, env, "d8_patch_cat_mal", "PATCH", "/api/repuestos/REP-0003", { categoria: "Filtro de aire" }, imp);
+await pedir(w, env, "d8_patch_campo_mal", "PATCH", "/api/repuestos/REP-0003", { precio_venta_usd: 1 }, imp);
+await pedir(w, env, "d8_patch_formula", "PATCH", "/api/repuestos/REP-0003", { nombre: "=HIPERVINCULO(\"x\")" }, imp);
+await pedir(w, env, "d8_patch_no_existe", "PATCH", "/api/repuestos/REP-9999", { nombre: "X" }, imp);
+await pedir(w, env, "d8_patch_vacio", "PATCH", "/api/repuestos/REP-0003", {}, imp);
+await pedir(w, env, "d8_alta_cat_mal", "POST", "/api/repuestos", Object.assign({}, repBase, { nombre: "Otro", categoria: "Filtro de aire" }), imp);
+await pedir(w, env, "d8_patch_dataset", "PATCH", "/api/repuestos/REP-0003", { nombre: "Disco de freno ventilado", categoria: "Disco de freno", margen_pct: 50, stock: 2 }, imp);
+await pedir(w, env, "d8_patch_igual", "PATCH", "/api/repuestos/REP-0003", { margen_pct: 50, stock: 2 }, imp);
+await pedir(w, env, "d8_ajustes", "GET", "/api/ajustes");
+salida.d8.rep3_stock = await stockDe("d8_stock_1", "REP-0003");
+await pedir(w, env, "d8_mov3", "GET", "/api/movimientos?repuesto=REP-0003", undefined, imp);
+await pedir(w, env, "d8_cot3", "POST", "/api/cotizaciones", { repuesto_id: "REP-0003", cantidad: 1 });
+await pedir(w, env, "d8_patch_cargado", "PATCH", "/api/repuestos/REP-N002", { nombre: "Repuesto dos corregido", proveedor_id: "PROV-BR-01", stock: 5, descripcion: "" }, imp);
+salida.d8.n002 = (await pedir(w, env, "d8_rep_pub", "GET", "/api/repuestos")).cuerpo.find(r => r.repuesto_id === "REP-N002");
+await pedir(w, env, "d8_miprov", "GET", "/api/proveedor", undefined, prov);
+salida.d8.n002_mod = await env.DB.prepare("SELECT modificado, usuario FROM repuestos WHERE repuesto_id = 'REP-N002'").first();
+
+await pedir(w, env, "d8_plantilla_anon", "GET", "/api/repuestos/plantilla.csv");
+await pedir(w, env, "d8_plantilla", "GET", "/api/repuestos/plantilla.csv", undefined, imp, true);
+const CAB = "repuesto_id,nombre,categoria,descripcion,costo_unitario_usd,margen_pct,stock,proveedor_id,fecha_ingreso";
+const csv = (cuerpo, nombre, aplicar, token) => pedirCsv(nombre, cuerpo, aplicar, token === undefined ? imp : token);
+async function pedirCsv(nombre, cuerpo, aplicar, token) {
+  const h = { "content-type": "text/csv" }; if (token) h.authorization = "Bearer " + token;
+  const r = await w.fetch(new Request("https://portal.prueba/api/repuestos/csv" + (aplicar ? "?aplicar=1" : ""), { method: "POST", headers: h, body: cuerpo }), env);
+  salida[nombre] = { status: r.status, cuerpo: await r.json() };
+  return salida[nombre];
+}
+const nRep = async () => (await pedir(w, env, "d8_n", "GET", "/api/repuestos")).cuerpo.length;
+salida.d8.n_antes = await nRep();
+const malo = [CAB,
+  "REP-0004,Nombre nuevo para el cuatro,,,,,,,",
+  ",Bujía nueva de prueba,Bujía de encendido,Sirve para probar,3.5,40,12,PROV-CN-03,2026-11-24",
+  ",Algo,Filtro de aire,,3,40,1,PROV-CN-03,2026-11-24",
+  "REP-0006,,,,,,-1,,",
+  "REP-9999,Nada,,,,,,,",
+  "REP-0004,Repetido,,,,,,,",
+  "REP-0007,,,,,,,,2026-11-01",
+  ",=1+1,Disco de freno,,3,40,1,PROV-CN-03,2026-11-24",
+  ",Corta,Disco de freno,,3,40,1,PROV-CN-03"].join("\n");
+await csv(malo, "d8_csv_malo", true);
+salida.d8.n_tras_malo = await nRep();
+salida.d8.aj_tras_malo = (await pedir(w, env, "d8_aj2", "GET", "/api/ajustes")).cuerpo.map(a => a.repuesto_id);
+salida.d8.rep6_tras_malo = await stockDe("d8_stock_2", "REP-0006");
+const bueno = [CAB,
+  "REP-0004,Nombre nuevo para el cuatro,,,,,,,",
+  "REP-0006,,,,,,9,,",
+  "REP-0001,,,,,,,,",
+  "REP-N003,,Kit de embrague,\"Texto con coma, y \"\"comillas\"\"\",,,,,",
+  ",Bujía nueva de prueba,Bujía de encendido,Sirve para probar,3.5,40,12,PROV-CN-03,2026-11-24",
+  ",Otra bujía,Bujía de encendido,,4,35,0,PROV-BR-01,2026-11-24", ""].join("\r\n");
+await csv(bueno, "d8_csv_revisar", false);
+salida.d8.n_tras_revisar = await nRep();
+await csv(bueno, "d8_csv_bueno", true);
+salida.d8.n_tras_bueno = await nRep();
+salida.d8.pub_tras_bueno = (await pedir(w, env, "d8_rep_pub2", "GET", "/api/repuestos")).cuerpo;
+salida.d8.aj_tras_bueno = (await pedir(w, env, "d8_aj3", "GET", "/api/ajustes")).cuerpo;
+salida.d8.rep6_tras_bueno = await stockDe("d8_stock_3", "REP-0006");
+await csv(bueno, "d8_csv_otra_vez", true);   // las altas ya existen: se rechaza todo
+await csv("﻿repuesto_id;nombre;categoria;descripcion;costo_unitario_usd;margen_pct;stock;proveedor_id;fecha_ingreso\nREP-0002;;;;12,5;;;;\n", "d8_csv_punto_coma", false);
+await csv("a,b,c\n1,2,3\n", "d8_csv_cab_mal", false);
+await csv(CAB + "\n", "d8_csv_sin_filas", false);
+await csv(CAB + "\n" + "REP-0002,,,,,,,,\n".repeat(501), "d8_csv_muchas", false);
+await csv(CAB + "\n" + ",x,Disco de freno," + "a".repeat(300 * 1024) + ",3,40,1,PROV-CN-03,2026-11-24\n", "d8_csv_grande", false);
+await csv(bueno, "d8_csv_prov", true, prov);
+await csv(bueno, "d8_csv_anon", true, null);
 
 // Otra clave de sesión: el token del servidor anterior no sirve.
 const w2 = await cargar();
