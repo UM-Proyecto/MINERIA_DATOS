@@ -25,6 +25,7 @@ const MAX_CUERPO = 8192;
 const REPO = "https://raw.githubusercontent.com/UM-Proyecto/MINERIA_DATOS/";
 const TC_URL = REPO + "main/data/processed/scrum-54/tco_bcb_diario.csv";
 const TIPOS_CLIENTE = ["Taller mecánico", "Flota de empresa", "Repuestera", "Particular"];
+const CLIENTE_WEB = "CLI-WEB";   // ventas de cotizaciones de la tienda, que no tienen cliente registrado
 
 const ESQUEMA = [
   `CREATE TABLE IF NOT EXISTS cotizaciones (
@@ -291,7 +292,9 @@ async function api(req, env, url) {
   if (ruta === "/api/ventas-clientes" && m === "GET") {
     await exigir(env, req, "importador");
     const db = await base(env);
-    const f = (await db.prepare("SELECT fecha_venta, repuesto_id, cliente_id, cantidad FROM cotizaciones WHERE convertida = 1 AND cliente_id IS NOT NULL ORDER BY numero").all()).results;
+    // Las cotizaciones de la tienda llegan sin cliente registrado: sus ventas se suman a un cliente aparte, «Tienda
+    // web (sin cuenta)», en vez de perderse (auditoría del 24-11-2026, error E2).
+    const f = (await db.prepare("SELECT fecha_venta, repuesto_id, COALESCE(cliente_id, ?) AS cliente_id, cantidad FROM cotizaciones WHERE convertida = 1 ORDER BY numero").bind(CLIENTE_WEB).all()).results;
     return json(f.map(x => [x.fecha_venta.slice(0, 7), x.repuesto_id, x.cliente_id, x.cantidad]));
   }
 
@@ -361,6 +364,11 @@ export default {
       await cargarRecursos(env);
       if (url.pathname.startsWith("/api/")) return await api(req, env, url);
       if (req.method !== "GET" && req.method !== "HEAD") return error(405, "Método no permitido.");
+      // Catálogos PDF, publicados junto al servidor como archivos estáticos de Pages (auditoría, error E3).
+      if (/^\/catalogos\/[a-z0-9_]+\.pdf$/.test(url.pathname)) {
+        if (!env.ASSETS) return error(404, "No existe ese catálogo.");
+        return env.ASSETS.fetch(req);
+      }
       // «/» es la tienda pública (mejora del sitio de MULTIPARTES); «/empresa» es la app del importador y el
       // proveedor. Qué pantallas ve cada rol lo decide la sesión, y cada dato guardado lo protege la API. El
       // marcador PORTAL hace que las dos páginas hablen con este servidor. Es un prototipo: no se indexa.

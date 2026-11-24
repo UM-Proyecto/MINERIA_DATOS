@@ -122,7 +122,20 @@ await pedir(w, env, "venta_prov", "POST", "/api/cotizaciones/2/venta", {}, prov)
 await pedir(w, env, "venta", "POST", "/api/cotizaciones/2/venta", {}, imp);
 await pedir(w, env, "venta_otra_vez", "POST", "/api/cotizaciones/2/venta", {}, imp);
 await pedir(w, env, "ventas_cli", "GET", "/api/ventas-clientes", undefined, imp);
+// Error E2 (auditoría del 24-11-2026): la cotización 1 salió de la tienda, sin cliente. Su venta tiene que llegar al
+// tablero de clientes con el cliente aparte CLI-WEB, en vez de perderse.
+await pedir(w, env, "venta_web", "POST", "/api/cotizaciones/1/venta", {}, imp);
+await pedir(w, env, "ventas_cli_web", "GET", "/api/ventas-clientes", undefined, imp);
 await pedir(w, env, "csv", "GET", "/api/cotizaciones?formato=csv", undefined, imp, true);
+// Error E3: los catálogos PDF se sirven desde el portal (archivos estáticos de Pages, env.ASSETS).
+{
+  const pedidos = [];
+  const envA = { DB: d1(), SECRETO: SEC, ASSETS: { fetch: async req => { pedidos.push(new URL(req.url).pathname); return new Response("%PDF-1.7", { headers: { "content-type": "application/pdf" } }); } } };
+  await pedir(w, envA, "pdf_ok", "GET", "/catalogos/catalogo_baja.pdf", undefined, undefined, true);
+  await pedir(w, envA, "pdf_raro", "GET", "/catalogos/../_worker.js", undefined, undefined, true);
+  await pedir(w, { DB: d1(), SECRETO: SEC }, "pdf_sin_assets", "GET", "/catalogos/catalogo_baja.pdf");
+  salida.pdf_pedidos = pedidos;
+}
 
 // Otra clave de sesión: el token del servidor anterior no sirve.
 const w2 = await cargar();

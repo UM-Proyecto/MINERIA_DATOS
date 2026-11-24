@@ -158,6 +158,27 @@ class Portal(unittest.TestCase):
         self.assertEqual(len(v), 1)
         self.assertEqual(v[0][1:], ["REP-0001", "CLI-01", 3])
 
+    def test_venta_de_la_tienda_llega_a_clientes_error_e2(self):
+        # Antes del arreglo, /api/ventas-clientes filtraba cliente_id IS NOT NULL y la venta de la tienda se perdía.
+        self.assertEqual(self.st("venta_web"), 200)
+        v = self.r["ventas_cli_web"]["cuerpo"]
+        self.assertEqual(len(v), 2)
+        self.assertIn(["REP-0022", "CLI-WEB", 10], [x[1:] for x in v])
+        self.assertIn(["REP-0001", "CLI-01", 3], [x[1:] for x in v])
+
+    def test_catalogos_pdf_desde_el_portal_error_e3(self):
+        self.assertEqual(self.st("pdf_ok"), 200)
+        self.assertEqual(self.r["pdf_ok"]["tipo"], "application/pdf")
+        self.assertEqual(self.r["pdf_pedidos"], ["/catalogos/catalogo_baja.pdf"])  # la ruta rara no llega a ASSETS
+        self.assertEqual(self.st("pdf_raro"), 404)
+        self.assertEqual(self.st("pdf_sin_assets"), 404)
+
+    def test_armar_copia_los_catalogos(self):
+        for pdf in ("catalogo_baja.pdf", "catalogo_30.pdf"):
+            f = Path(self.tmp.name) / "catalogos" / pdf
+            self.assertTrue(f.is_file(), pdf)
+            self.assertEqual(f.read_bytes()[:5], b"%PDF-")
+
     def test_exportar_csv(self):
         c = self.r["csv"]
         self.assertTrue(c["tipo"].startswith("text/csv"))
