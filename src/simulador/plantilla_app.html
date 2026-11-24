@@ -947,6 +947,14 @@ details.tecnico[open]>summary::before{transform:rotate(90deg)}
       </div>
       <div class="scroll" style="margin-top:14px"><table id="t-cz"></table></div>
       <p class="msg" id="cz-msg" aria-live="polite"></p>
+      <!-- Revisión visual del 24-11-2026: marcar la venta descuenta stock, así que se confirma antes con el repuesto,
+           la cantidad y el stock antes y después. -->
+      <dialog id="vt-dlg" aria-labelledby="vt-tit" style="border:0;border-radius:12px;padding:22px;width:min(520px,calc(100vw - 32px));box-shadow:0 20px 60px rgba(0,0,0,.25)">
+        <h2 id="vt-tit" style="margin:0 0 6px">¿Confirmar la venta?</h2>
+        <div id="vt-cuerpo"></div>
+        <p class="msg" id="vt-msg" aria-live="polite"></p>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:14px"><button class="btn1" type="button" id="vt-ok">Confirmar venta</button><button class="btn2" type="button" id="vt-cancelar">Cancelar</button></div>
+      </dialog>
       <p class="pie">Los precios se recalculan en el servidor con el dólar oficial del día en que se emitió cada cotización. El botón «Marcar venta» la suma a las ventas del Tablero y de Clientes.</p>
     </section>
   </section>
@@ -2255,16 +2263,32 @@ function filtrosCz(){ const q = new URLSearchParams(); if($("cz-cli").value) q.s
 // D6: marcar la venta descuenta la cantidad del stock. Si no alcanza, el servidor responde 409 y se pregunta si las
 // unidades salieron igual del almacén; solo entonces se reintenta con forzar.
 async function marcarVenta(n, forzar){ return api(`/api/cotizaciones/${n}/venta`, {method:"POST", body: forzar ? {forzar:true} : {}}); }
-$("t-cz").addEventListener("click", async e => { const b = e.target.closest("button[data-venta]"); if(!b) return;
-  b.disabled = true;
+// Antes de descontar se muestra qué se vende y cómo queda el stock. Si no alcanza, el botón lo dice y la venta va
+// con «forzar» (el servidor la rechaza con 409 sin él).
+let VT = null;
+$("t-cz").addEventListener("click", e => { const b = e.target.closest("button[data-venta]"); if(!b) return;
+  const f = CZ_FILAS[b.dataset.venta]; if(!f) return;
+  const antes = f.repuesto_id in STOCK_REAL ? STOCK_REAL[f.repuesto_id] : (REP[f.repuesto_id] ? REP[f.repuesto_id].stock_al_2026_11_10 : null);
+  const despues = antes === null ? null : antes - f.cantidad, falta = despues !== null && despues < 0;
+  VT = {n: f.numero, boton: b, forzar: falta};
+  $("vt-cuerpo").innerHTML = `<p>Cotización N° ${f.numero}: <b>${nf(f.cantidad)} ${(f.cantidad === 1 ? "unidad" : "unidades")}</b> de <b>${esc(nombreRep(f.repuesto_id))}</b> (${f.repuesto_id}).</p>
+    <p>Stock en el almacén: <b>${antes === null ? "sin dato" : nf(antes)}</b> → <b class="${falta ? "c-bad" : ""}">${despues === null ? "sin dato" : nf(despues)}</b> después de la venta.</p>` +
+    (falta ? `<p class="nota-sit"><strong>No alcanza el stock.</strong> Confirme solo si las unidades salieron igual del almacén; el stock quedará en negativo hasta que se registre un ingreso.</p>` : "");
+  $("vt-ok").textContent = falta ? "Confirmar aunque falte stock" : "Confirmar venta";
+  $("vt-msg").textContent = ""; $("vt-msg").className = "msg";
+  $("vt-dlg").showModal(); $("vt-cancelar").focus();
+});
+$("vt-cancelar").addEventListener("click", () => { $("vt-dlg").close(); VT = null; });
+$("vt-ok").addEventListener("click", async () => { if(!VT) return;
+  $("vt-ok").disabled = true;
   try {
-    let r;
-    try { r = await marcarVenta(b.dataset.venta, false); }
-    catch(err){ if(err.status !== 409 || !confirm(err.message + "\n\n¿Confirmar la venta de todos modos?")) throw err; r = await marcarVenta(b.dataset.venta, true); }
+    const r = await marcarVenta(VT.n, VT.forzar);
+    $("vt-dlg").close(); VT = null;
     await cargarServidor(); await pintarCotizaciones();
     $("cz-msg").className = "msg ok";
-    $("cz-msg").textContent = `Venta registrada: la cotización N° ${r.numero} descontó ${nf(r.cantidad)} unidades de ${nombreRep(r.repuesto_id)}. Stock: ${nf(r.stock_antes)} → ${nf(r.stock_despues)}.`;
-  } catch(err){ $("cz-msg").className = "msg mal"; $("cz-msg").textContent = err.message; b.disabled = false; } });
+    $("cz-msg").textContent = `Venta registrada: la cotización N° ${r.numero} descontó ${nf(r.cantidad)} ${(r.cantidad === 1 ? "unidad" : "unidades")} de ${nombreRep(r.repuesto_id)}. Stock: ${nf(r.stock_antes)} → ${nf(r.stock_despues)}.`;
+  } catch(err){ $("vt-msg").className = "msg mal"; $("vt-msg").textContent = err.message; }
+  finally { $("vt-ok").disabled = false; } });
 $("cz-csv").addEventListener("click", async () => {
   try { const q = filtrosCz(); q.set("formato", "csv"); const r = await api("/api/cotizaciones?" + q.toString(), {crudo:true});
     const url = URL.createObjectURL(await r.blob()), a = document.createElement("a"); a.href = url; a.download = "cotizaciones_multipartes.csv"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000);
