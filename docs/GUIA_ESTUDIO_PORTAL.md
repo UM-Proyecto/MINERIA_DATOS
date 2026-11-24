@@ -106,7 +106,7 @@ historia».
 - **Flete desde China (INE, dato real, HU-31).** El Instituto Nacional de Estadística publica el valor CIF y FOB de
   las importaciones. La diferencia entre los dos es el flete y el seguro: desde China da **7,8 %** del
   valor FOB. Está en `data/processed/hu-30-31/hu31_costos_importacion.csv`.
-- **Dólar paralelo (fuente privada, solo referencia).** 11,94 Bs al 24-nov-2026: promedio de
+- **Dólar paralelo (fuente privada, solo referencia).** 11,98 Bs al 24-nov-2026: promedio de
   venta en plataformas de compraventa entre personas (P2P). Se lee una vez al día de dolarbolivia.net y, si no
   responde, de Binance P2P (dólar digital USDT contra bolivianos), con `src/scrum-54/obtener_paralelo.py`. La serie
   está en `data/processed/scrum-54/dolar_paralelo_diario.csv`, con la fuente de cada día. Si ninguna fuente
@@ -580,7 +580,7 @@ lo que se pronostica y se mide, y una capa de demostración, con reglas escritas
 4. **¿Cómo se actualiza el dólar?** Un script lee la página del BCB dos veces al día con GitHub Actions, valida la
    serie y regenera el portal.
 5. **¿Por qué el dólar oficial y no el paralelo?** El oficial tiene fuente pública y fecha. El paralelo
-   (11,94 Bs) es de fuente privada y solo se muestra como referencia.
+   (11,98 Bs) es de fuente privada y solo se muestra como referencia.
 6. **¿Qué técnica de minería de datos usan?**
    - Clasificación supervisada (regresión logística) en Predicción.
    - Segmentación ABC (Pareto) en Rotación.
