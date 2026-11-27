@@ -11,6 +11,7 @@ Detalles que importan para la equivalencia bit a bit:
 Solo biblioteca estándar.
 """
 import math
+import re
 
 Z_CLASE = {"A": 1.65, "B": 1.28, "C": 0.84}
 ALFA_SBA = 0.1
@@ -760,10 +761,9 @@ def trimestre(mes):
     return f"{str(mes)[:4]}-T{(int(str(mes)[5:7]) - 1) // 3 + 1}"
 
 
-def dashboard(datos, tc):
-    """Dashboard de ventas (ver motor.js: dashboard). Todo sale de las compras por cliente."""
+def filas_de_ventas(datos, tc):
+    """Ventas válidas con su monto en Bs (ver motor.js: filasDeVentas)."""
     import re
-    tc = num(tc)
     precio = {r["repuesto_id"]: redondear(num(r["precio_venta_usd"]) * tc, 2) for r in datos["repuestos"]}
     nombre = {c["cliente_id"]: c["nombre"] for c in datos["clientes"]["lista"]}
     filas = []
@@ -772,6 +772,13 @@ def dashboard(datos, tc):
         if u is None or v[1] not in precio or v[2] not in nombre or not re.fullmatch(r"\d{4}-\d{2}", mes):
             continue
         filas.append({"mes": mes, "rep": v[1], "cli": v[2], "u": u, "bs": u * precio[v[1]]})
+    return filas, nombre
+
+
+def dashboard(datos, tc):
+    """Dashboard de ventas (ver motor.js: dashboard). Todo sale de las compras por cliente."""
+    tc = num(tc)
+    filas, nombre = filas_de_ventas(datos, tc)
     total = {"unidades": 0, "monto_bs": 0}
     if not filas:
         return {"meses": [], "demanda_mes": [], "por_anio": [], "total": total, "repuestos": [], "clientes": [],
@@ -842,6 +849,230 @@ def dashboard(datos, tc):
     return {"meses": lista, "demanda_mes": [dm[m] for m in lista], "por_anio": por_anio, "total": total,
             "repuestos": repuestos, "clientes": clientes, "trimestres": trims, "ultimo_mes": ultimo,
             "ult12_bs": ult12, "prev12_bs": prev12, "top5_pct": top5 / total["monto_bs"] * 100 if total["monto_bs"] > 0 else None}
+
+
+# ------------------------------------------------------------------ tablero para la gerencia (SCRUM-79, versión empresarial)
+
+TIPO_PLURAL = {"Taller mecánico": "los talleres mecánicos", "Repuestera": "las repuesteras",
+               "Flota de empresa": "las flotas de empresa", "Particular": "los particulares",
+               "Tienda web": "las ventas de la tienda web"}
+MES_LARGO = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre",
+             "noviembre", "diciembre"]
+DONA_MAX = 5
+NOMBRE_CORTO_MAX = 44
+CONECTORES = ["con", "de", "del", "para", "y", "a", "en"]
+
+
+def miles(x):
+    """Entero con punto de miles (ver motor.js: miles)."""
+    n = int(redondear(abs(x), 0))
+    s = f"{n:,}".replace(",", ".")
+    return ("−" if x < 0 and n != 0 else "") + s
+
+
+def bs_txt(x):
+    return "Bs " + miles(x)
+
+
+def _pl(n, uno, varios):
+    return uno if n == 1 else varios
+
+
+def _mayuscula(s):
+    return s[:1].upper() + s[1:]
+
+
+def _minuscula(s):
+    return s[:1].lower() + s[1:]
+
+
+def mes_largo(m):
+    return f"{MES_LARGO[int(m[5:7]) - 1]} de {m[:4]}"
+
+
+def enteros100(valores):
+    """Porcentajes enteros que suman 100, por el resto mayor (ver motor.js: enteros100)."""
+    tot = sum(valores)
+    if not tot > 0:
+        return [0 for _ in valores]
+    crudo = [v / tot * 100 for v in valores]
+    base = [math.floor(c) for c in crudo]
+    resto = 100 - sum(base)
+    orden = sorted(range(len(crudo)), key=lambda i: (-(crudo[i] - base[i]), i))
+    for k in range(resto):
+        base[orden[k]] += 1
+    return base
+
+
+def nombre_corto(s):
+    s = str(s)
+    if len(s) <= NOMBRE_CORTO_MAX:
+        return s
+    p = s[:s.rfind(" ", 0, NOMBRE_CORTO_MAX)].split(" ")
+    while len(p) > 1 and p[-1].lower() in CONECTORES:
+        p.pop()
+    return re.sub(r",$", "", " ".join(p)) + "…"
+
+
+def _sumar_por(filas, clave):
+    acc = {}
+    for f in filas:
+        k = clave(f)
+        x = acc.setdefault(k, {"clave": k, "monto_bs": 0, "unidades": 0})
+        x["monto_bs"] += f["bs"]
+        x["unidades"] += f["u"]
+    return sorted(acc.values(), key=lambda x: (-x["monto_bs"], x["clave"]))
+
+
+def _variacion(ahora, antes):
+    return (ahora - antes) / antes * 100 if antes > 0 else None
+
+
+def tablero_empresa(datos, tc, periodo="12m"):
+    """Tablero de ventas en lenguaje simple (ver motor.js: tableroEmpresa)."""
+    periodo = "todo" if periodo == "todo" else "12m"
+    tc = num(tc)
+    sem, costo_pedir = [0, 0, 0, 0], 0
+    for a in alertas(datos, tc):
+        sem[a["est"]] += 1
+        if a["est"] == 0:
+            costo_pedir += num(a["costo_bs"])
+    r = rotacion(datos, tc)
+    estados = [e for e in [("pedir", "Pedir ya", sem[0]), ("vigilar", "Vigilar", sem[1]),
+                           ("suficiente", "Con stock suficiente", sem[2]), ("sin_datos", "Sin datos para decidir", sem[3])]
+               if e[0] != "sin_datos" or e[2] > 0]
+    pct_alm = enteros100([e[2] for e in estados])
+    almacen = [{"clave": e[0], "etiqueta": e[1], "repuestos": e[2], "pct": pct_alm[i]} for i, e in enumerate(estados)]
+    concl_alm = ((f"{sem[0]} " + _pl(sem[0], "repuesto está por agotarse y hay que pedirlo ya.",
+                                     "repuestos están por agotarse y hay que pedirlos ya.")) if sem[0] > 0
+                 else "Ningún repuesto está por agotarse.")
+    if sem[1] > 0:
+        concl_alm += f" {sem[1]} más " + _pl(sem[1], "hay que vigilarlo", "hay que vigilarlos") + "."
+    concl_alm += " " + _mayuscula(f"{sem[2]} " + _pl(sem[2], "tiene", "tienen") + " stock suficiente.")
+    if sem[3] > 0:
+        concl_alm += f" De {sem[3]} no hay datos para decidir."
+    hoy = {"pedir_ya": {"repuestos": sem[0], "costo_bs": costo_pedir},
+           "dinero_parado": {"valor_bs": r["valor_acumulado_bs"], "repuestos": r["acumulacion"]},
+           "almacen": almacen, "almacen_total": sum(sem)}
+
+    t = dashboard(datos, tc)
+    filas_todas, nombre = filas_de_ventas(datos, tc)
+    if not t["meses"]:
+        return {"periodo": periodo, "vacio": True, "hoy": hoy, "conclusiones": {"almacen": concl_alm}}
+    ultimo = t["ultimo_mes"]
+    desde = t["meses"][0] if periodo == "todo" else mes_menos(ultimo, 11)
+    desde = max(desde, t["meses"][0])
+    filas = [f for f in filas_todas if f["mes"] >= desde]
+
+    r12, p12 = mes_menos(ultimo, 11), mes_menos(ultimo, 23)
+    c = {"ult12_bs": 0, "prev12_bs": 0, "ult12_u": 0, "prev12_u": 0}
+    for f in filas_todas:
+        if f["mes"] >= r12:
+            c["ult12_bs"] += f["bs"]
+            c["ult12_u"] += f["u"]
+        elif f["mes"] >= p12:
+            c["prev12_bs"] += f["bs"]
+            c["prev12_u"] += f["u"]
+    c["var_bs_pct"] = _variacion(c["ult12_bs"], c["prev12_bs"])
+    c["var_u_pct"] = _variacion(c["ult12_u"], c["prev12_u"])
+    tot_bs, tot_u = 0, 0
+    for f in filas:
+        tot_bs += f["bs"]
+        tot_u += f["u"]
+
+    meses = [{"mes": x["mes"], "monto_bs": x["monto_bs"], "unidades": x["unidades"]} for x in t["demanda_mes"] if x["mes"] >= desde]
+    mejor = meses[0]
+    for x in meses:
+        if x["monto_bs"] > mejor["monto_bs"]:
+            mejor = x
+    prom_mes = tot_bs / len(meses)
+
+    tipo_de = {x["cliente_id"]: x.get("tipo") or "Sin tipo" for x in datos["clientes"]["lista"]}
+    tipos = _sumar_por(filas, lambda f: tipo_de[f["cli"]])
+    if len(tipos) > DONA_MAX:
+        otros = {"clave": "Otros", "monto_bs": 0, "unidades": 0}
+        for x in tipos[DONA_MAX - 1:]:
+            otros["monto_bs"] += x["monto_bs"]
+            otros["unidades"] += x["unidades"]
+        tipos = tipos[:DONA_MAX - 1] + [otros]
+    pct_tipos = enteros100([x["monto_bs"] for x in tipos])
+    tipos = [{"tipo": x["clave"], "monto_bs": x["monto_bs"], "unidades": x["unidades"], "pct": pct_tipos[i]}
+             for i, x in enumerate(tipos)]
+
+    cat, nom_rep = {}, {}
+    for x in (datos.get("catalogo") or {}).get("repuestos") or []:
+        cat[x["repuesto_id"]] = x["categoria"]
+        nom_rep[x["repuesto_id"]] = x["nombre"]
+
+    def con_pct(lista):
+        for x in lista:
+            x["pct"] = x["monto_bs"] / tot_bs * 100 if tot_bs > 0 else 0
+        return lista
+
+    categorias = con_pct([{"categoria": x["clave"], "monto_bs": x["monto_bs"], "unidades": x["unidades"]}
+                          for x in _sumar_por(filas, lambda f: cat.get(f["rep"]) or "Sin categoría")])
+    clientes = con_pct([{"id": x["clave"], "nombre": str(nombre[x["clave"]]).replace(" (ficticio)", ""),
+                         "monto_bs": x["monto_bs"], "unidades": x["unidades"]} for x in _sumar_por(filas, lambda f: f["cli"])])
+    repuestos = con_pct([{"id": x["clave"], "nombre": nom_rep.get(x["clave"]) or x["clave"],
+                          "nombre_corto": nombre_corto(nom_rep.get(x["clave"]) or x["clave"]),
+                          "monto_bs": x["monto_bs"], "unidades": x["unidades"]} for x in _sumar_por(filas, lambda f: f["rep"])])
+
+    def suma(lista):
+        s = 0
+        for x in lista:
+            s += x["monto_bs"]
+        return s
+
+    top5, top10 = clientes[:5], repuestos[:10]
+    top5_pct = suma(top5) / tot_bs * 100 if tot_bs > 0 else 0
+    top10_pct = suma(top10) / tot_bs * 100 if tot_bs > 0 else 0
+    por_anio = [{"anio": a["anio"], "monto_bs": a["monto_bs"], "unidades": a["unidades"], "meses": a["meses"],
+                 "completo": a["meses"] >= 12} for a in t["por_anio"]]
+
+    tipo0 = tipos[0]
+    quien = TIPO_PLURAL.get(tipo0["tipo"]) or f"los clientes de tipo «{tipo0['tipo']}»"
+    concl_tipos = (f"Más de la mitad de lo que vendemos se lo llevan {quien} ({tipo0['pct']} %)." if tipo0["pct"] > 50
+                   else f"{_mayuscula(quien)} son los que más compran: se llevan el {tipo0['pct']} % de lo que vendemos.")
+    cat0, cat_n = categorias[0], categorias[-1]
+    concl_cat = f"Lo que más vendemos es {_minuscula(cat0['categoria'])}: el {miles(cat0['pct'])} % de las ventas."
+    if len(categorias) > 1:
+        concl_cat += f" Lo que menos, {_minuscula(cat_n['categoria'])} ({miles(cat_n['pct'])} %)."
+    concl_cli = (f"Estos {len(top5)} clientes (de {len(clientes)}) dejan el {miles(top5_pct)} % de las ventas." +
+                 (" Si uno deja de comprar, se nota." if top5_pct >= 50 else " Las ventas están repartidas entre muchos clientes."))
+    concl_rep = (f"Estos {len(top10)} repuestos (de {len(repuestos)}) dejan el {miles(top10_pct)} % de las ventas." +
+                 (" Conviene no quedarse nunca sin ellos." if top10_pct >= 50 else ""))
+    comp = [a for a in por_anio if a["completo"]]
+    if len(comp) >= 2:
+        x, y = comp[-2], comp[-1]
+        d_bs, d_u = _variacion(y["monto_bs"], x["monto_bs"]), _variacion(y["unidades"], x["unidades"])
+        if abs(d_bs) < 5:
+            if abs(d_u) < 5:
+                concl_anio = f"{x['anio']} y {y['anio']} vendieron casi lo mismo, en dinero y en piezas."
+            else:
+                concl_anio = (f"{x['anio']} y {y['anio']} vendieron lo mismo en dinero, aunque en {y['anio']} salieron "
+                              f"{'más' if d_u > 0 else 'menos'} piezas: se vendieron repuestos más {'baratos' if d_u > 0 else 'caros'}.")
+        else:
+            concl_anio = f"{y['anio']} vendió {miles(abs(d_bs))} % {'más' if d_bs > 0 else 'menos'} que {x['anio']} en dinero."
+    elif len(comp) == 1:
+        concl_anio = f"{comp[0]['anio']} es el único año completo: {bs_txt(comp[0]['monto_bs'])}."
+    else:
+        concl_anio = "Todavía no hay un año completo para comparar."
+
+    return {
+        "periodo": periodo, "vacio": False, "desde": desde, "hasta": ultimo, "meses_periodo": len(meses),
+        "tarjetas": {"ventas_bs": tot_bs, "unidades": tot_u, "comparacion": c},
+        "hoy": hoy,
+        "meses": meses, "promedio_mes_bs": prom_mes, "mejor_mes": {"mes": mejor["mes"], "monto_bs": mejor["monto_bs"]},
+        "tipos_cliente": tipos, "categorias": categorias, "clientes": clientes, "clientes_total": len(clientes),
+        "top_clientes": top5, "top_clientes_pct": top5_pct, "repuestos": repuestos, "repuestos_total": len(repuestos),
+        "top_repuestos": top10, "top_repuestos_pct": top10_pct, "por_anio": por_anio,
+        "conclusiones": {
+            "meses": f"{_mayuscula(mes_largo(mejor['mes']))} fue el mejor mes ({bs_txt(mejor['monto_bs'])}). "
+                     f"En promedio, cada mes se venden {bs_txt(prom_mes)}.",
+            "tipos_cliente": concl_tipos, "almacen": concl_alm, "categorias": concl_cat, "top_clientes": concl_cli,
+            "top_repuestos": concl_rep, "anios": concl_anio,
+        },
+    }
 
 
 # ------------------------------------------------------------------ rotación e importancia (SCRUM-81)

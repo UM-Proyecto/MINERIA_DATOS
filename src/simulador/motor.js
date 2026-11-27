@@ -741,8 +741,8 @@ var Motor = (function () {
   // Todo sale de las compras por cliente (datos.clientes.ventas): suman lo mismo que las ventas reales por repuesto y,
   // en el portal, incluyen las cotizaciones marcadas como venta. Dinero = unidades × precio de lista con el dólar
   // oficial del día, igual que el cotizador y el tablero de clientes (carparts no trae precios históricos).
-  function dashboard(datos, tc) {
-    tc = num(tc);
+  // Ventas válidas, una fila por mes, repuesto y cliente, con su monto en Bs. La usan dashboard y tableroEmpresa.
+  function filasDeVentas(datos, tc) {
     var precio = {};
     datos.repuestos.forEach(function (r) { precio[r.repuesto_id] = redondear(num(r.precio_venta_usd) * tc, 2); });
     var nombre = {};
@@ -753,6 +753,12 @@ var Motor = (function () {
       if (u === null || !(v[1] in precio) || !(v[2] in nombre) || !/^\d{4}-\d{2}$/.test(mes)) return;
       filas.push({ mes: mes, rep: v[1], cli: v[2], u: u, bs: u * precio[v[1]] });
     });
+    return { filas: filas, nombre: nombre };
+  }
+
+  function dashboard(datos, tc) {
+    tc = num(tc);
+    var V = filasDeVentas(datos, tc), filas = V.filas, nombre = V.nombre;
     var total = { unidades: 0, monto_bs: 0 };
     if (!filas.length) return { meses: [], demanda_mes: [], por_anio: [], total: total, repuestos: [], clientes: [], trimestres: [],
       ultimo_mes: null, ult12_bs: 0, prev12_bs: 0, top5_pct: null };
@@ -799,6 +805,182 @@ var Motor = (function () {
       meses: lista, demanda_mes: lista.map(function (m) { return dm[m]; }), por_anio: porAnio, total: total,
       repuestos: repuestos, clientes: clientes, trimestres: trims, ultimo_mes: ultimo,
       ult12_bs: ult12, prev12_bs: prev12, top5_pct: total.monto_bs > 0 ? top5 / total.monto_bs * 100 : null
+    };
+  }
+
+  // ---------------------------------------------------------------- tablero para la gerencia (SCRUM-79, versión empresarial)
+
+  // El tablero de ventas en lenguaje simple. Junta dashboard (ventas), alertas (qué pedir) y rotacion (dinero parado)
+  // y lo resume para un período: "12m" (los 12 meses que terminan en el último mes con ventas) o "todo".
+  // Devuelve también una frase de conclusión por gráfico, armada con estas mismas cifras: la página solo la muestra.
+  // Lo que es de hoy (almacén, qué pedir, dinero parado) y las ventas por año no dependen del período.
+  var TIPO_PLURAL = { "Taller mecánico": "los talleres mecánicos", "Repuestera": "las repuesteras",
+    "Flota de empresa": "las flotas de empresa", "Particular": "los particulares", "Tienda web": "las ventas de la tienda web" };
+  var MES_LARGO = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+  var DONA_MAX = 5, NOMBRE_CORTO_MAX = 44, CONECTORES = ["con", "de", "del", "para", "y", "a", "en"];
+
+  // Entero con punto de miles: 13445.4 -> "13.445". Formato boliviano, igual en motor_ref.py.
+  function miles(x) {
+    var n = redondear(Math.abs(x), 0), s = String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return (x < 0 && n !== 0 ? "−" : "") + s;
+  }
+  function bsTxt(x) { return "Bs " + miles(x); }
+  function pl(n, uno, varios) { return n === 1 ? uno : varios; }
+  function mayuscula(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+  function minuscula(s) { return s.charAt(0).toLowerCase() + s.slice(1); }
+  function mesLargo(m) { return MES_LARGO[Number(m.slice(5, 7)) - 1] + " de " + m.slice(0, 4); }
+
+  // Porcentajes enteros que suman exactamente 100 (método del resto mayor). Sin total, todos 0.
+  function enteros100(valores) {
+    var tot = valores.reduce(function (s, v) { return s + v; }, 0);
+    if (!(tot > 0)) return valores.map(function () { return 0; });
+    var crudo = valores.map(function (v) { return v / tot * 100; });
+    var base = crudo.map(function (c) { return Math.floor(c); });
+    var resto = 100 - base.reduce(function (s, v) { return s + v; }, 0);
+    var orden = crudo.map(function (c, i) { return i; }).sort(function (a, b) {
+      return (crudo[b] - base[b]) - (crudo[a] - base[a]) || a - b;
+    });
+    for (var k = 0; k < resto; k++) base[orden[k]] += 1;
+    return base;
+  }
+
+  // Nombre para las barras: entero si entra; si no, se corta en una palabra (sin dejar un conector al final) y lleva «…».
+  function nombreCorto(s) {
+    s = String(s);
+    if (s.length <= NOMBRE_CORTO_MAX) return s;
+    var p = s.slice(0, s.lastIndexOf(" ", NOMBRE_CORTO_MAX - 1)).split(" ");
+    while (p.length > 1 && CONECTORES.indexOf(p[p.length - 1].toLowerCase()) >= 0) p.pop();
+    return p.join(" ").replace(/,$/, "") + "…";
+  }
+
+  // Suma por clave en el orden de las filas y ordena de mayor a menor monto (empate: por clave).
+  function sumarPor(filas, clave) {
+    var acc = {}, orden = [];
+    filas.forEach(function (f) {
+      var k = clave(f);
+      if (!acc[k]) { acc[k] = { clave: k, monto_bs: 0, unidades: 0 }; orden.push(k); }
+      acc[k].monto_bs += f.bs; acc[k].unidades += f.u;
+    });
+    return orden.map(function (k) { return acc[k]; })
+      .sort(function (a, b) { return b.monto_bs - a.monto_bs || porClave(a.clave, b.clave); });
+  }
+
+  function variacion(ahora, antes) { return antes > 0 ? (ahora - antes) / antes * 100 : null; }
+
+  function tableroEmpresa(datos, tc, periodo) {
+    periodo = periodo === "todo" ? "todo" : "12m";
+    tc = num(tc);
+    // Hoy: semáforo del almacén, qué pedir ya y dinero parado. No dependen del período.
+    var sem = [0, 0, 0, 0], costoPedir = 0;
+    alertas(datos, tc).forEach(function (a) { sem[a.est] += 1; if (a.est === 0) costoPedir += num(a.costo_bs); });
+    var R = rotacion(datos, tc);
+    var estados = [["pedir", "Pedir ya", sem[0]], ["vigilar", "Vigilar", sem[1]], ["suficiente", "Con stock suficiente", sem[2]],
+      ["sin_datos", "Sin datos para decidir", sem[3]]].filter(function (e) { return e[0] !== "sin_datos" || e[2] > 0; });
+    var pctAlm = enteros100(estados.map(function (e) { return e[2]; }));
+    var almacen = estados.map(function (e, i) { return { clave: e[0], etiqueta: e[1], repuestos: e[2], pct: pctAlm[i] }; });
+    var nRep = sem[0] + sem[1] + sem[2] + sem[3];
+    var conclAlm = (sem[0] > 0 ? sem[0] + " " + pl(sem[0], "repuesto está por agotarse y hay que pedirlo ya.", "repuestos están por agotarse y hay que pedirlos ya.")
+      : "Ningún repuesto está por agotarse.") +
+      (sem[1] > 0 ? " " + sem[1] + " más " + pl(sem[1], "hay que vigilarlo", "hay que vigilarlos") + "." : "") +
+      " " + mayuscula(sem[2] + " " + pl(sem[2], "tiene", "tienen") + " stock suficiente.") +
+      (sem[3] > 0 ? " De " + sem[3] + " no hay datos para decidir." : "");
+    var hoy = {
+      pedir_ya: { repuestos: sem[0], costo_bs: costoPedir },
+      dinero_parado: { valor_bs: R.valor_acumulado_bs, repuestos: R.acumulacion },
+      almacen: almacen, almacen_total: nRep
+    };
+
+    var T = dashboard(datos, tc), V = filasDeVentas(datos, tc);
+    if (!T.meses.length) {
+      return { periodo: periodo, vacio: true, hoy: hoy, conclusiones: { almacen: conclAlm } };
+    }
+    var ultimo = T.ultimo_mes, desde = periodo === "todo" ? T.meses[0] : mesMenos(ultimo, 11);
+    if (desde < T.meses[0]) desde = T.meses[0];
+    var filas = V.filas.filter(function (f) { return f.mes >= desde; });
+
+    // Tarjetas: período y comparación de los últimos 12 meses contra los 12 anteriores (siempre la misma).
+    var r12 = mesMenos(ultimo, 11), p12 = mesMenos(ultimo, 23), c = { ult12_bs: 0, prev12_bs: 0, ult12_u: 0, prev12_u: 0 };
+    V.filas.forEach(function (f) {
+      if (f.mes >= r12) { c.ult12_bs += f.bs; c.ult12_u += f.u; } else if (f.mes >= p12) { c.prev12_bs += f.bs; c.prev12_u += f.u; }
+    });
+    c.var_bs_pct = variacion(c.ult12_bs, c.prev12_bs); c.var_u_pct = variacion(c.ult12_u, c.prev12_u);
+    var totBs = filas.reduce(function (s, f) { return s + f.bs; }, 0), totU = filas.reduce(function (s, f) { return s + f.u; }, 0);
+
+    // Ventas de cada mes del período, promedio y mejor mes (empate: el primero).
+    var meses = T.demanda_mes.filter(function (x) { return x.mes >= desde; })
+      .map(function (x) { return { mes: x.mes, monto_bs: x.monto_bs, unidades: x.unidades }; });
+    var mejor = meses[0];
+    meses.forEach(function (x) { if (x.monto_bs > mejor.monto_bs) mejor = x; });
+    var promMes = totBs / meses.length;
+
+    // Tipos de cliente (dona): si hubiera más de DONA_MAX, los menores se juntan en «Otros».
+    var tipoDe = {};
+    datos.clientes.lista.forEach(function (x) { tipoDe[x.cliente_id] = x.tipo || "Sin tipo"; });
+    var tipos = sumarPor(filas, function (f) { return tipoDe[f.cli]; });
+    if (tipos.length > DONA_MAX) {
+      var otros = { clave: "Otros", monto_bs: 0, unidades: 0 };
+      tipos.slice(DONA_MAX - 1).forEach(function (t) { otros.monto_bs += t.monto_bs; otros.unidades += t.unidades; });
+      tipos = tipos.slice(0, DONA_MAX - 1).concat([otros]);
+    }
+    var pctTipos = enteros100(tipos.map(function (t) { return t.monto_bs; }));
+    tipos = tipos.map(function (t, i) { return { tipo: t.clave, monto_bs: t.monto_bs, unidades: t.unidades, pct: pctTipos[i] }; });
+
+    // Categorías del catálogo, clientes y repuestos del período, ordenados por monto.
+    var cat = {}, nomRep = {};
+    ((datos.catalogo && datos.catalogo.repuestos) || []).forEach(function (x) { cat[x.repuesto_id] = x.categoria; nomRep[x.repuesto_id] = x.nombre; });
+    var conPct = function (lista) { return lista.map(function (x) { x.pct = totBs > 0 ? x.monto_bs / totBs * 100 : 0; return x; }); };
+    var categorias = conPct(sumarPor(filas, function (f) { return cat[f.rep] || "Sin categoría"; })
+      .map(function (x) { return { categoria: x.clave, monto_bs: x.monto_bs, unidades: x.unidades }; }));
+    var clientes = conPct(sumarPor(filas, function (f) { return f.cli; }).map(function (x) {
+      return { id: x.clave, nombre: String(V.nombre[x.clave]).replace(" (ficticio)", ""), monto_bs: x.monto_bs, unidades: x.unidades }; }));
+    var repuestos = conPct(sumarPor(filas, function (f) { return f.rep; }).map(function (x) {
+      var n = nomRep[x.clave] || x.clave;
+      return { id: x.clave, nombre: n, nombre_corto: nombreCorto(n), monto_bs: x.monto_bs, unidades: x.unidades }; }));
+    var suma = function (lista) { return lista.reduce(function (s, x) { return s + x.monto_bs; }, 0); };
+    var top5 = clientes.slice(0, 5), top10 = repuestos.slice(0, 10);
+    var top5Pct = totBs > 0 ? suma(top5) / totBs * 100 : 0, top10Pct = totBs > 0 ? suma(top10) / totBs * 100 : 0;
+
+    var porAnio = T.por_anio.map(function (a) { return { anio: a.anio, monto_bs: a.monto_bs, unidades: a.unidades, meses: a.meses, completo: a.meses >= 12 }; });
+
+    // Conclusiones, una por gráfico.
+    var tipo0 = tipos[0], quien = TIPO_PLURAL[tipo0.tipo] || "los clientes de tipo «" + tipo0.tipo + "»";
+    var conclTipos = tipo0.pct > 50 ? "Más de la mitad de lo que vendemos se lo llevan " + quien + " (" + tipo0.pct + " %)."
+      : mayuscula(quien) + " son los que más compran: se llevan el " + tipo0.pct + " % de lo que vendemos.";
+    var cat0 = categorias[0], catN = categorias[categorias.length - 1];
+    var conclCat = "Lo que más vendemos es " + minuscula(cat0.categoria) + ": el " + miles(cat0.pct) + " % de las ventas." +
+      (categorias.length > 1 ? " Lo que menos, " + minuscula(catN.categoria) + " (" + miles(catN.pct) + " %)." : "");
+    var conclCli = "Estos " + top5.length + " clientes (de " + clientes.length + ") dejan el " + miles(top5Pct) + " % de las ventas." +
+      (top5Pct >= 50 ? " Si uno deja de comprar, se nota." : " Las ventas están repartidas entre muchos clientes.");
+    var conclRep = "Estos " + top10.length + " repuestos (de " + repuestos.length + ") dejan el " + miles(top10Pct) + " % de las ventas." +
+      (top10Pct >= 50 ? " Conviene no quedarse nunca sin ellos." : "");
+    var comp = porAnio.filter(function (a) { return a.completo; }), conclAnio;
+    if (comp.length >= 2) {
+      var x = comp[comp.length - 2], y = comp[comp.length - 1], dBs = variacion(y.monto_bs, x.monto_bs), dU = variacion(y.unidades, x.unidades);
+      if (Math.abs(dBs) < 5) {
+        conclAnio = Math.abs(dU) < 5 ? x.anio + " y " + y.anio + " vendieron casi lo mismo, en dinero y en piezas."
+          : x.anio + " y " + y.anio + " vendieron lo mismo en dinero, aunque en " + y.anio + " salieron " + (dU > 0 ? "más" : "menos") +
+            " piezas: se vendieron repuestos más " + (dU > 0 ? "baratos" : "caros") + ".";
+      } else {
+        conclAnio = y.anio + " vendió " + miles(Math.abs(dBs)) + " % " + (dBs > 0 ? "más" : "menos") + " que " + x.anio + " en dinero.";
+      }
+    } else if (comp.length === 1) {
+      conclAnio = comp[0].anio + " es el único año completo: " + bsTxt(comp[0].monto_bs) + ".";
+    } else {
+      conclAnio = "Todavía no hay un año completo para comparar.";
+    }
+
+    return {
+      periodo: periodo, vacio: false, desde: desde, hasta: ultimo, meses_periodo: meses.length,
+      tarjetas: { ventas_bs: totBs, unidades: totU, comparacion: c },
+      hoy: hoy,
+      meses: meses, promedio_mes_bs: promMes, mejor_mes: { mes: mejor.mes, monto_bs: mejor.monto_bs },
+      tipos_cliente: tipos, categorias: categorias, clientes: clientes, clientes_total: clientes.length,
+      top_clientes: top5, top_clientes_pct: top5Pct, repuestos: repuestos, repuestos_total: repuestos.length,
+      top_repuestos: top10, top_repuestos_pct: top10Pct, por_anio: porAnio,
+      conclusiones: {
+        meses: mayuscula(mesLargo(mejor.mes)) + " fue el mejor mes (" + bsTxt(mejor.monto_bs) + "). En promedio, cada mes se venden " + bsTxt(promMes) + ".",
+        tipos_cliente: conclTipos, almacen: conclAlm, categorias: conclCat, top_clientes: conclCli, top_repuestos: conclRep, anios: conclAnio
+      }
     };
   }
 
@@ -866,7 +1048,7 @@ var Motor = (function () {
     costoPuesto: costoPuesto, pronostico: pronostico, simular: simular, quiebreDolar: quiebreDolar,
     sensibilidad: sensibilidad, alertas: alertas, planPresupuesto: planPresupuesto,
     compararProveedores: compararProveedores, pasado: pasado, temporadas: temporadas, cotizar: cotizar, tableroClientes: tableroClientes,
-    dashboard: dashboard, rotacion: rotacion,
+    dashboard: dashboard, tableroEmpresa: tableroEmpresa, rotacion: rotacion,
     TRAMOS_EJEMPLO: TRAMOS_EJEMPLO,
     _interno: { mulberry32: mulberry32, normalIH: normalIH, expSerie: expSerie, redondear: redondear, volatilidadDiaria: volatilidadDiaria }
   };
