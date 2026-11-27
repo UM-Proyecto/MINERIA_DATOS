@@ -266,13 +266,13 @@ summary{cursor:pointer;color:var(--ink-2);font-weight:600;min-height:32px;displa
 .dos-desc .card+.card{margin-top:0}
 .calc{transition:opacity .15s}
 .calc[aria-busy=true]{opacity:.45}
-.quiebre .linea{position:relative;height:44px;margin:44px 8px 34px}
+.quiebre .linea{position:relative;height:44px;margin:44px 8px 54px}
 .quiebre .zona{position:absolute;top:12px;height:20px;border-radius:5px}
 .quiebre .za{background:#e3e6e2}.quiebre .zc{background:var(--brand-soft)}
 .quiebre .marca{position:absolute;top:0;bottom:0;width:2px;background:var(--graphite)}
 .quiebre .marca span{position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-size:12px;font-weight:600;white-space:nowrap}
 .quiebre .marca.alto span{top:-40px}
-.quiebre .marca.q{background:var(--bad)} .quiebre .marca.q span{color:var(--bad);top:auto;bottom:-22px}
+.quiebre .marca.q{background:var(--bad)} .quiebre .marca.q span{color:var(--bad);top:auto;bottom:-42px}
 .quiebre .marca.su{background:var(--brand)} .quiebre .marca.su span{color:var(--brand-dark)}
 .quiebre .eje-t{text-align:center;font-size:11.5px;font-weight:600;color:var(--ink-2);margin:-8px 0 10px}
 .quiebre .eje{position:absolute;bottom:-22px;white-space:nowrap;font-size:11px;color:var(--ink-3);transform:translateX(-50%)}
@@ -2594,7 +2594,7 @@ function pintarFijos(){
     <div class="kpi"><div class="t">Entrega del proveedor${info("Entrega del proveedor", "Días que tarda en llegar un pedido: el plazo normal del proveedor más el atraso que usted supuso.")}</div><div class="v">${nf(plazo)}<small>${pal(plazo, "día", "días")}</small></div><div class="d">${p.plazo_normal_dias} días de plazo normal + ${S.atraso} de atraso supuesto</div></div>`;
   $("situ").innerHTML = `El stock le alcanza ${alcanza > 999 ? "más de 999" : nf(alcanza)} ${pal(alcanza, "día", "días")} y el proveedor tarda ${nf(plazo)}: ${est[1].toLowerCase()}. ` + (stock === 0 ? "<strong>El stock está en cero.</strong> Las ventas recientes pueden estar subestimadas por falta de mercadería. " : "")
     + (alcanza < plazo ? "<strong>El stock se agota antes de que llegue un pedido hecho hoy.</strong> Conviene decidir hoy mismo." : alcanza < plazo + 30 ? "<strong>El margen después de la entrega es corto.</strong> Conviene decidir pronto." : "<strong>Hay margen para esperar.</strong> Ninguna alternativa es urgente.");
-  $("h-rep2").textContent = S.rep;
+  $("h-rep2").textContent = nombreRep(S.rep);
   $("h-sub").textContent = `${S.rep} · ${nombreProv(p)} (precio: ${incoTxt(p.incoterm)}) · dólar esperado ${nf(S.tc90,2)} Bs · venta ${S.venta > 0 ? "+" : ""}${S.venta} % · atraso de ${S.atraso} días · precio de venta ${S.sigue ? "ajustado al dólar" : "fijo"}`;
   $("como-txt").innerHTML = `<b>Cómo leer el puntaje.</b> Se probaron ${nf(PAR.simulaciones)} futuros posibles de 90 días, cada uno con un precio del dólar, una venta y una demora distintos, alrededor de los supuestos que usted eligió. El puntaje indica en cuántos de cada 100 casos esa alternativa dejó más ganancia que las otras.`;
   pintarVentas(f);
@@ -2726,7 +2726,7 @@ function pintarQuiebre(Q, s){
   if(Q === null){
     const m = ultimo ? ultimo.mejor : "";
     $("q-txt").textContent = "Entre 9 y 15 Bs por dólar la mejor alternativa no cambia.";
-    $("q-cuerpo").innerHTML = `<p class="nota-sit" style="margin-top:6px"><strong>Para ${S.rep}:</strong> ${m ? `conviene la alternativa ${m} (${ALT[m].t.toLowerCase()}) con cualquier dólar entre 9 y 15 Bs, así que la decisión no depende de anticipar el precio del dólar.` : "la decisión no depende del dólar."}</p>`;
+    $("q-cuerpo").innerHTML = `<p class="nota-sit" style="margin-top:6px"><strong>Para ${esc(nombreRep(S.rep))}:</strong> ${m ? `conviene la alternativa ${m} (${ALT[m].t.toLowerCase()}) con cualquier dólar entre 9 y 15 Bs, así que la decisión no depende de anticipar el precio del dólar.` : "la decisión no depende del dólar."}</p>`;
     return;
   }
   const pos = v => (Math.min(15, Math.max(9, v)) - 9) / 6 * 100, q = Q.valor, A = ALT[Q.antes].t.toLowerCase(), B = ALT[Q.despues].t.toLowerCase();
@@ -2738,12 +2738,12 @@ function pintarQuiebre(Q, s){
       <div class="zona za" style="left:0;width:${pos(q)}%"></div><div class="zona zc" style="left:${pos(q)}%;right:0"></div>
       <span class="zl" style="left:0">Conviene ${Q.antes}: ${A}</span><span class="zl" style="right:0;text-align:right">Conviene ${Q.despues}: ${B}</span>
       <div class="marca" style="left:${pos(s.tc_base)}%"><span>hoy: ${nf(s.tc_base,2)}</span></div>
-      <div class="marca q" style="left:${pos(q)}%"><span>cambia en: ${nf(q,2)}</span></div>
+      <div class="marca q" style="left:${pos(q)}%"><span>desde ${nf(q,2)} Bs</span></div>
       <div class="marca su${cerca ? " alto" : ""}" style="left:${pos(s.tc_90)}%"><span>su supuesto: ${nf(s.tc_90,2)}</span></div>
       ${[9,10,11,12,13,14,15].filter(v => Math.abs(v - q) > .45).map(v => `<span class="eje" style="left:${pos(v)}%">${v}</span>`).join("")}
     </div>
     <p class="eje-t">Dólar en 90 días (Bs por dólar)</p>
-    <p class="nota-sit" style="margin-top:6px"><strong>Para ${S.rep}:</strong> si cree que el dólar pasará de <strong>${nf(q,2)} Bs</strong> en 90 días, conviene ${B}. ${Math.abs(dist) < 0.005 ? "Hoy está justo en ese punto." : `Hoy está a ${nf(Math.abs(dist),2)} Bs ${dist > 0 ? "por debajo" : "por encima"} de ese punto.`}</p>`;
+    <p class="nota-sit" style="margin-top:6px"><strong>Para ${esc(nombreRep(S.rep))}:</strong> si cree que el dólar pasará de <strong>${nf(q,2)} Bs</strong> en 90 días, conviene ${B}. ${Math.abs(dist) < 0.005 ? "Hoy está justo en ese punto." : `Hoy está a ${nf(Math.abs(dist),2)} Bs ${dist > 0 ? "por debajo" : "por encima"} de ese punto.`}</p>`;
 }
 
 // En la respuesta del motor, «de» y «a» son la ganancia en cada extremo; el rango de cada supuesto es fijo.
