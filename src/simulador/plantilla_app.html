@@ -537,6 +537,14 @@ svg.chart .pm{fill:none;stroke:var(--graphite);stroke-width:2}
 .tb-mod{margin-top:34px;font-size:20px}
 .tb-ind{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px}.tb-ind a{color:var(--brand-dark);font-weight:600}
 .tb-foco{outline:3px solid var(--mina);outline-offset:4px;border-radius:4px}
+/* Revisión del 27-11-2026: en los módulos, la frase de lectura (la conclusión) pasa a ser el título de la tarjeta y la
+   pregunta queda arriba en chico, como en el tablero del módulo 1. En Tablas se ve como antes. */
+.modulo .card-h:has(.lectura:not(:empty)) h2{font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.modulo .card-h:has(.lectura:not(:empty)) .lectura{font-size:18px;font-weight:600;line-height:1.3;color:var(--ink);margin-top:2px}
+/* Módulo 3: de cada alternativa queda a la vista el puntaje; las cifras se abren con «Ver el detalle» (y están en Tablas). */
+.ver-det{display:none;margin-top:12px}
+.modulo .ver-det{display:inline-block}
+.modulo #alts:not(.ver) .alt :is(.dato,.porque){display:none}
 .deriv svg text{font-size:12px;fill:var(--ink-2)}
 /* Módulo 1: tablero de ventas sobre el boceto de Sabrina (27-11-2026): tarjetas con la pregunta arriba, la conclusión
    como título, un gráfico por tarjeta y una frase que dice qué hacer. */
@@ -705,6 +713,7 @@ details.tecnico[open]>summary::before{transform:rotate(90deg)}
         <p id="como-txt"></p>
       </div>
       <div class="alts" id="alts"></div>
+      <button class="btn2 ver-det" id="alts-det" type="button" aria-expanded="false" aria-controls="alts">Ver el detalle de cada alternativa</button>
       <p class="alts-ocultas" id="alts-ocultas" hidden></p>
       <p class="pie" id="alts-nota"></p>
       <p class="nota-sit" id="alts-q" hidden></p>
@@ -712,11 +721,11 @@ details.tecnico[open]>summary::before{transform:rotate(90deg)}
 
     <div class="dos-desc">
       <section class="card quiebre calc" aria-labelledby="h-q" id="c-quiebre">
-        <div class="card-h"><div><h2 id="h-q"><span class="num">4</span>¿Desde qué dólar conviene comprar más?<button type="button" class="info" aria-label="Qué es: Dólar desde el que conviene comprar más" aria-expanded="false" data-tema="Dólar desde el que conviene comprar más" data-info="Precio del dólar en 90 días a partir del cual conviene comprar más ahora. Se calcula probando dólares de 9 a 15 Bs y viendo dónde cambia la alternativa que más gana.">i</button></h2><p id="q-txt"></p></div></div>
+        <div class="card-h"><div><h2 id="h-q"><span class="num">4</span>¿Desde qué dólar conviene comprar más?<button type="button" class="info" aria-label="Qué es: Dólar desde el que conviene comprar más" aria-expanded="false" data-tema="Dólar desde el que conviene comprar más" data-info="Precio del dólar en 90 días a partir del cual conviene comprar más ahora. Se calcula probando dólares de 9 a 15 Bs y viendo dónde cambia la alternativa que más gana.">i</button></h2><p class="lectura" id="q-lec"></p><p id="q-txt"></p></div></div>
         <div id="q-cuerpo"></div>
       </section>
       <section class="card tornado calc" aria-labelledby="h-t" id="c-sens">
-        <div class="card-h"><div><h2 id="h-t"><span class="num">5</span>Lo que más mueve el resultado<button type="button" class="info" aria-label="Qué es: Lo que más mueve el resultado" aria-expanded="false" data-tema="Lo que más mueve el resultado" data-info="Qué supuesto mueve más el resultado: se lleva cada supuesto de su valor más bajo al más alto, sin tocar los otros, y se mide cuánto cambia la ganancia esperada. La barra más larga es la que más conviene seguir.">i</button></h2>
+        <div class="card-h"><div><h2 id="h-t"><span class="num">5</span>Lo que más mueve el resultado<button type="button" class="info" aria-label="Qué es: Lo que más mueve el resultado" aria-expanded="false" data-tema="Lo que más mueve el resultado" data-info="Qué supuesto mueve más el resultado: se lleva cada supuesto de su valor más bajo al más alto, sin tocar los otros, y se mide cuánto cambia la ganancia esperada. La barra más larga es la que más conviene seguir.">i</button></h2><p class="lectura" id="t-lec"></p>
           <p>Cuánto cambia la ganancia esperada al llevar cada supuesto de un extremo al otro. El de arriba es el que más conviene seguir.</p></div></div>
         <div id="t-cuerpo"></div>
       </section>
@@ -1618,6 +1627,10 @@ function pintarGuia(){
   $("guia-2").innerHTML = "<b>El dólar desde el que conviene comprar más</b> (tarjeta 4): " + (Q === undefined ? falta : Q === null
     ? "con cualquier dólar entre 9 y 15 Bs conviene la misma opción, así que la decisión no depende del dólar."
     : `<b>${nf(Q.valor,2)} Bs</b>, ${Math.abs(d) < 0.005 ? "justo el dólar de hoy" : `${nf(Math.abs(d),2)} Bs ${d > 0 ? "por encima" : "por debajo"} del dólar de hoy`}. Si cree que en 90 días el dólar estará por encima de ese valor, conviene ${ALT[Q.despues].t.toLowerCase()}; si no, ${ALT[Q.antes].t.toLowerCase()}.`);
+  // Lecturas de las tarjetas 4 y 5: en los módulos son su título (revisión del 27-11-2026).
+  $("q-lec").textContent = !Q ? (Q === null ? "La decisión no depende del dólar: entre 9 y 15 Bs conviene la misma opción." : "")
+    : `Si el dólar pasa de ${nf(Q.valor,2)} Bs, conviene ${ALT[Q.despues].t.toLowerCase()}; hoy está en ${nf(tcHoy(),2)} Bs.`;
+  $("t-lec").textContent = g.T ? `${capital(fr[g.T[0].supuesto])} es lo que más mueve la ganancia: es el supuesto que conviene vigilar.` : "";
   $("guia-3").innerHTML = "<b>Lo que más pesa</b> (tarjeta 5): " + (!g.T ? falta : `${fr[g.T[0].supuesto]}. Es el supuesto que conviene vigilar${g.T[0].supuesto === "dolar" ? "" : ", más que el dólar"}.`);
 }
 
@@ -2587,21 +2600,25 @@ const MOD_TEC = {tab:"desc", dashboard:"desc", clientes:"desc", val:"sba", predi
 const TB_VISUALES = ["t-rt-mat", "t-tm-mapa", "t-pr"];
 // Pantallas que sólo tenían tabla: el módulo dibuja barras con las mismas filas de la tabla, así no pueden diferir.
 // et: columna del nombre; col: columna del valor; min: se destaca el menor (si no, el mayor).
+const urgencia = r => /Pedir ya/.test(r.innerText) ? "var(--bad)" : /Vigilar/.test(r.innerText) ? "var(--warn)" : "#c9cec8";
+const cuantos = (f, c) => { const n = f.filter(x => x.c === c).length; return `${n} ${n === 1 ? "repuesto" : "repuestos"}`; };
 const TB_BARRAS = {
-  "t-alertas": {et:0, col:8, tit:d => `El pedido sugerido más caro es ${d.e}: ${d.txt}`},
+  // Ordenadas por urgencia, como la tabla: el color dice la urgencia y la etiqueta, el costo del pedido.
+  "t-alertas": {et:0, col:8, color:urgencia, tit:(d, f) => `${cuantos(f, "var(--bad)")} hay que pedir ya y ${cuantos(f, "var(--warn)")} vigilar; pedir todo cuesta ${bs(f.reduce((s, x) => s + x.v, 0))}`},
   "t-pv": {et:0, col:2, min:true, tit:d => `${d.e} es el que deja el repuesto más barato en Santa Cruz: ${d.txt}`},
-  "t-plan": {et:1, col:4, tit:d => `Con el presupuesto entran estos repuestos; el que más pesa es ${d.e}: ${d.txt}`},
+  "t-plan": {et:1, col:4, color:urgencia, tit:d => `Con el presupuesto entran estos repuestos; el que más pesa es ${d.e}: ${d.txt}`},
   "t-cli": {et:1, col:2, max:10, tit:d => `${d.e} es el cliente que más compra: ${d.txt}`},
   "t-cli-tipo": {et:1, col:2, tit:d => `Los clientes de tipo «${d.e}» son los que más compran: ${d.txt}`},
   "t-tc2": {et:0, col:3, tit:d => `Con el dólar paralelo, ${d.e} es el que más sube: ${d.txt} por unidad`}};
 const numTexto = x => Number(x.replace(/−/g, "-").replace(/[^\d,\-]/g, "").replace(",", "."));
 function barrasDeTabla(t, g, cfg){
   const filas = [...(t.tBodies[0] || {rows:[]}).rows].filter(r => r.cells.length > cfg.col)
-    .map(r => ({e:((c => c.querySelector("b") || c.firstChild || c)(r.cells[cfg.et]).textContent || "").trim().replace(/^Proveedor /, ""), txt:r.cells[cfg.col].innerText.split("\n")[0].trim(), v:numTexto(r.cells[cfg.col].innerText.split("\n")[0])}))
+    .map(r => ({c:cfg.color ? cfg.color(r) : null, e:(e => /^REP-\d+$/.test(e) && REP[e] ? nombreRep(e) : e)(((c => c.querySelector("b") || c.firstChild || c)(r.cells[cfg.et]).textContent || "").trim().replace(/^Proveedor /, "")), txt:r.cells[cfg.col].innerText.split("\n")[0].trim(), v:numTexto(r.cells[cfg.col].innerText.split("\n")[0])}))
     .filter(d => d.txt !== "—" && isFinite(d.v)).slice(0, cfg.max || 15);   // «—»: sin pedido, no es una barra en cero
   if(!filas.length) return;
   const top = filas.reduce((a, d) => (cfg.min ? d.v < a.v : d.v > a.v) ? d : a, filas[0]);
-  g.innerHTML = `<h3 class="chart-t">${esc(cfg.tit(top))}</h3>` + svgBarras(filas, Math.max(300, g.clientWidth || 900), top, cfg.tit(top));
+  const tit = cfg.tit(top, filas);
+  g.innerHTML = `<h3 class="chart-t">${esc(tit)}</h3>` + (cfg.color ? `<div class="legend"><span><i class="sw" style="background:var(--bad)"></i>Pedir ya</span><span><i class="sw" style="background:var(--warn)"></i>Vigilar</span></div>` : "") + svgBarras(filas, Math.max(300, g.clientWidth || 900), top, tit);
 }
 // Barras horizontales: {e: nombre, txt: valor escrito, v: valor}; la fila «top» va en verde.
 function svgBarras(filas, W, top, titulo){
@@ -2610,7 +2627,7 @@ function svgBarras(filas, W, top, titulo){
   const mx = Math.max(...filas.map(d => Math.abs(d.v))) || 1, L = v => Math.abs(v) / mx * (W - et - vr);
   return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(titulo)}">` +
     filas.map((d, i) => `<text x="${et - 8}" y="${i * h + 18}" text-anchor="end">${esc(d.e.length > cab ? d.e.slice(0, cab - 1) + "…" : d.e)}</text>` +
-      `<rect x="${et}" y="${i * h + 5}" width="${L(d.v).toFixed(1)}" height="${h - 10}" rx="3" fill="${d === top ? "var(--brand)" : "#c9cec8"}"><title>${esc(d.e)}: ${esc(d.txt)}</title></rect>` +
+      `<rect x="${et}" y="${i * h + 5}" width="${L(d.v).toFixed(1)}" height="${h - 10}" rx="3" fill="${d.c || (d === top ? "var(--brand)" : "#c9cec8")}"><title>${esc(d.e)}: ${esc(d.txt)}</title></rect>` +
       `<text x="${(et + L(d.v) + 6).toFixed(1)}" y="${i * h + 18}">${esc(d.txt)}</text>`).join("") + "</svg>";
 }
 function prepararTablas(cont, graficos){
@@ -2655,6 +2672,8 @@ function pintarTablas(){
     c.querySelectorAll(".tb-foco").forEach(x => x.classList.remove("tb-foco")); t.classList.add("tb-foco");
     requestAnimationFrame(() => t.scrollIntoView({block:"center"})); }
 }
+$("alts-det").addEventListener("click", e => { const v = $("alts").classList.toggle("ver");
+  e.currentTarget.setAttribute("aria-expanded", v); e.currentTarget.textContent = v ? "Ocultar el detalle" : "Ver el detalle de cada alternativa"; });
 // «Ver la tabla»: recuerda qué tabla mostrar y deja que el cambio de dirección (#tablas) abra la vista.
 document.addEventListener("click", e => { const a = e.target.closest("a.ver-tabla"); if(a) S.tbFoco = a.dataset.t; });
 // El índice de Tablas salta dentro de la vista sin cambiar la dirección (que es la de la vista).
