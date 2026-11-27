@@ -530,6 +530,14 @@ svg.chart .pm{fill:none;stroke:var(--graphite);stroke-width:2}
 .mn-prest .hero{padding-top:10px}
 .mn-prest .hero h1{font-size:24px}
 .mn-fn{margin-top:18px}
+/* Tres módulos y Tablas (pedido del docente, 27-11-2026): en los módulos sólo gráficos, en Tablas sólo tablas.
+   Las pantallas son las mismas (se prestan como en «Minería de datos»); lo que cambia es qué parte se ve. */
+.modulo .solo-tabla,#v-tablas .solo-graf,#v-tablas .ver-tabla{display:none!important}
+.ver-tabla{display:inline-block;margin:6px 0 2px;font-size:13px;font-weight:600;color:var(--brand-dark);text-decoration:underline}
+.tb-mod{margin-top:34px;font-size:20px}
+.tb-ind{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px}.tb-ind a{color:var(--brand-dark);font-weight:600}
+.tb-foco{outline:3px solid var(--mina);outline-offset:4px;border-radius:4px}
+.deriv svg text{font-size:12px;fill:var(--ink-2)}
 .mn-fn .card-h h2 .nueva{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.6px;border-radius:99px;padding:2px 8px;background:var(--mina);color:var(--mina-ink);margin-left:8px;vertical-align:3px}
 .badge-sup{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.6px;border-radius:99px;padding:1px 7px;background:var(--warn-soft);color:var(--warn);margin-left:6px;vertical-align:1px}
 .mn-sup{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px 16px}
@@ -1048,6 +1056,29 @@ details.tecnico[open]>summary::before{transform:rotate(90deg)}
     </section>
   </section>
 
+  <!-- ============ TRES MÓDULOS Y TABLAS (pedido del docente, 27-11-2026) ============ -->
+  <section class="vista modulo" id="v-m1" hidden aria-labelledby="h1-m1">
+    <div class="hero"><div><div class="eyebrow">Módulo 1 de 3 · Demanda</div><h1 id="h1-m1">¿Cómo se vende?</h1>
+      <p>Qué se vende, a quién, en qué meses y qué se venderá el mes que viene. Debajo de cada gráfico, «Ver la tabla» lleva a los números de donde sale.</p></div></div>
+    <div id="m1-cont"></div>
+  </section>
+  <section class="vista modulo" id="v-m2" hidden aria-labelledby="h1-m2">
+    <div class="hero"><div><div class="eyebrow">Módulo 2 de 3 · Reposición</div><h1 id="h1-m2">¿Qué y cuánto pedir?</h1>
+      <p>Qué repuestos pedir esta semana, cuáles cuidar y cuáles frenar, qué comprar primero con el presupuesto y cuánto dinero queda parado.</p></div></div>
+    <div id="m2-cont"></div>
+  </section>
+  <section class="vista modulo" id="v-m3" hidden aria-labelledby="h1-m3">
+    <div class="hero"><div><div class="eyebrow">Módulo 3 de 3 · Costo y riesgo</div><h1 id="h1-m3">¿A quién comprar y con qué dólar?</h1>
+      <p>Cuánto conviene pedir si el dólar cambia, qué proveedor sale más barato, cuánto pesa el dólar paralelo y con cuántas empresas se cubren los gastos del servicio.</p></div></div>
+    <div id="m3-cont"></div>
+  </section>
+  <section class="vista" id="v-tablas" hidden aria-labelledby="h1-tb">
+    <div class="hero"><div><div class="eyebrow">Respaldo de los tres módulos</div><h1 id="h1-tb">Tablas: de dónde sale cada gráfico y cada número</h1>
+      <p>Las tablas van en el mismo orden y con el mismo título que el gráfico al que respaldan.</p></div></div>
+    <nav class="tb-ind" id="tb-ind" aria-label="Módulos"></nav>
+    <div id="tb-cont"></div>
+  </section>
+
   <!-- ============ MINERÍA DE DATOS (proyecto integrador) ============ -->
   <section class="vista" id="v-mineria" hidden aria-labelledby="h1-mn">
     <div class="hero"><div><div class="eyebrow">Proyecto integrador · Minería de datos</div><h1 id="h1-mn">Las técnicas de minería de datos y lo que permiten decidir</h1>
@@ -1200,7 +1231,7 @@ const IC = {al:'<path d="M8 2l6 11H2z"/><path d="M8 6.5v3M8 11.5h.01"/>', sim:'<
    cliente cotiza en la tienda pública (/). */
 const PORTAL = !!window.PORTAL;
 const SES = {rol:null, nombre:"", token:null, prov:null};
-const QUIEN = {dashboard:"imp", predicciones:"imp", rotacion:"imp", alertas:"imp", simulador:"imp", proveedores:"imp", plan:"imp", temporadas:"imp", clientes:"imp", mineria:"imp",
+const QUIEN = {dashboard:"imp", predicciones:"imp", rotacion:"imp", alertas:"imp", simulador:"imp", proveedores:"imp", plan:"imp", temporadas:"imp", clientes:"imp", mineria:"imp", m1:"imp", m2:"imp", m3:"imp", tablas:"imp",
   catalogo:"todos", cotizar:"todos", cotizaciones:"imp-portal", cargar:"imp-portal", miprov:"prov", entrar:"anon"};
 function rol(){ return PORTAL ? (SES.rol || "cliente") : "importador"; }
 function puede(v){ const q = QUIEN[v], r = rol();
@@ -1209,13 +1240,15 @@ function puede(v){ const q = QUIEN[v], r = rol();
   if(q === "imp-portal") return PORTAL && r === "importador";
   if(q === "prov") return PORTAL && r === "proveedor";
   return r === "importador"; }
-const VISTAS = [["dashboard","Tablero de ventas","db","SCRUM-79"],["predicciones","Predicción de ventas","pr","SCRUM-80"],["rotacion","Importancia y ritmo de venta","rt","SCRUM-81"],
+const VISTAS = [["m1","¿Cómo se vende?","db","módulo 1"],["m2","¿Qué y cuánto pedir?","al","módulo 2"],["m3","¿A quién y con qué dólar?","sim","módulo 3"],["tablas","Tablas","rt","respaldo"],
+  ["dashboard","Tablero de ventas","db","SCRUM-79"],["predicciones","Predicción de ventas","pr","SCRUM-80"],["rotacion","Importancia y ritmo de venta","rt","SCRUM-81"],
   ["alertas","Alertas de reposición","al","nuevo"],["simulador","Simulador de compra","sim","SCRUM-61"],["proveedores","Comparar proveedores","prov","nuevo"],
   ["plan","Plan de compra con presupuesto","plan","nuevo"],
   ["temporadas","Temporadas de venta","tm","nuevo"],["clientes","Clientes que más compran","cli","nuevo"],["catalogo","Catálogo","cat","nuevo"],["cotizar","Cotizar por cantidad","cot","nuevo"],
   ["cotizaciones","Cotizaciones guardadas","cz","nuevo"],["cargar","Registrar repuestos y clientes","cg","nuevo"],["mineria","Minería de datos","mn","nuevo"],["miprov","Mis repuestos","prov","nuevo"],["entrar","Entrar","ent","portal"]];
-const GRUPOS = [["Resumen",["dashboard","predicciones"]],["Decidir",["alertas","simulador","proveedores","plan"]],["Entender la demanda",["rotacion","temporadas","clientes"]],
-  ["Gestionar",["cotizaciones","cargar","catalogo","cotizar"]],["",["mineria"]],["Proveedor",["miprov"]],["",["entrar"]]];
+// Pedido del docente (27-11-2026): los tres módulos y Tablas reemplazan Resumen, Decidir, Entender la demanda y Minería en el menú.
+const GRUPOS = [["Módulos",["m1","m2","m3"]],["Respaldo",["tablas"]],
+  ["Gestionar",["cotizaciones","cargar","catalogo","cotizar"]],["Proveedor",["miprov"]],["",["entrar"]]];
 // «Minería de datos» (proyecto integrador) va en ámbar, separado del verde: así lo pidió Sam en su boceto del 20-11.
 const enlaceMenu = ([k,t,i,h]) => `<a href="#${k}" data-v="${k}"${k === "mineria" ? ' class="mn"' : ""} aria-label="${t}" title="${t}"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">${IC[i]}</svg><span>${t}</span></a>`;
 function pintarMenu(){
@@ -1227,8 +1260,8 @@ pintarMenu();
 
 const pintado = {};
 function ir(v){
-  if(v !== "mineria") devolverPrestadas();   // las pantallas mostradas en «Minería de datos» vuelven a su lugar
-  const inicio = () => puede("dashboard") ? "dashboard" : SES.rol === "proveedor" ? "miprov" : PORTAL && !SES.rol ? "entrar" : "catalogo";
+  devolverPrestadas();   // las pantallas prestadas a «Minería de datos», a un módulo o a Tablas vuelven a su lugar
+  const inicio = () => puede("m1") ? "m1" : SES.rol === "proveedor" ? "miprov" : PORTAL && !SES.rol ? "entrar" : "catalogo";
   if(!VISTAS.some(x => x[0] === v)){ v = inicio(); if(location.hash && location.hash.slice(1) !== v) history.replaceState(null, "", "#" + v); }
   if(!puede(v)){ // la dirección escrita no corresponde a este rol: no se muestra
     const pedida = v; v = inicio();
@@ -1248,7 +1281,7 @@ function ir(v){
     else if(Date.now() - VIVO.t > VIEJO_MS) refrescar();
   }
 }
-const PINTAR = {dashboard:pintarDashboard, predicciones:pintarPredicciones, rotacion:pintarRotacion, alertas:pintarAlertas, simulador:pintarSimulador, proveedores:pintarProveedoresVista, plan:pintarPlan, temporadas:pintarTemporadas, clientes:pintarClientes, catalogo:pintarCatalogo, cotizar:pintarCotizar, cotizaciones:pintarCotizaciones, cargar:pintarCargar, mineria:pintarMineria, miprov:pintarMiProv, entrar:pintarEntrar};
+const PINTAR = {dashboard:pintarDashboard, predicciones:pintarPredicciones, rotacion:pintarRotacion, alertas:pintarAlertas, simulador:pintarSimulador, proveedores:pintarProveedoresVista, plan:pintarPlan, temporadas:pintarTemporadas, clientes:pintarClientes, catalogo:pintarCatalogo, cotizar:pintarCotizar, cotizaciones:pintarCotizaciones, cargar:pintarCargar, mineria:pintarMineria, m1:() => pintarModulo("m1"), m2:() => pintarModulo("m2"), m3:() => pintarModulo("m3"), tablas:pintarTablas, miprov:pintarMiProv, entrar:pintarEntrar};
 window.addEventListener("hashchange", () => { ir(location.hash.slice(1)); window.scrollTo(0,0); });
 
 // Explicaciones del ícono «i». Un solo globo para toda la página: clic, toque o Enter lo fija; con mouse también se
@@ -2208,7 +2241,7 @@ async function cargarServidor(){
 /* ---- D7: datos en vivo (decisión de Sam del 24-11-2026). Lo guardado en el servidor se vuelve a pedir con el botón
    «Actualizar», al volver a la pestaña y al entrar a una vista que lo muestra. La vista actual se vuelve a pintar con
    los mismos filtros y en la misma posición de la página. ---- */
-const VIVAS = ["dashboard", "clientes", "catalogo", "cotizar", "cotizaciones", "alertas", "plan", "rotacion", "proveedores", "cargar", "miprov"];
+const VIVAS = ["m1", "m2", "m3", "tablas", "dashboard", "clientes", "catalogo", "cotizar", "cotizaciones", "alertas", "plan", "rotacion", "proveedores", "cargar", "miprov"];
 const VIVO = {t: 0, cargando: null, error: false, version: null, revisado: 0, timer: null};
 const CADA_MS = 30000;    // consulta automática de /api/version, solo con la pestaña visible
 const VIEJO_MS = 15000;   // al entrar a una vista, si los datos tienen más de 15 s se vuelven a pedir
@@ -2464,16 +2497,16 @@ const MN_TABS = [
    neg:"Corresponde a las fuentes de ingreso y a la estructura de gastos del modelo de negocio."}];
 /* técnico: fin */
 const MN_PINTAR = {dashboard:() => pintarDashboard(), clientes:() => pintarClientes(), predicciones:() => pintarPredicciones(), temporadas:() => pintarTemporadas(),
-  rotacion:() => pintarRotacion(), plan:() => pintarPlan(), alertas:() => pintarAlertas(), simulador:() => pintarSimulador()};
+  rotacion:() => pintarRotacion(), plan:() => pintarPlan(), alertas:() => pintarAlertas(), simulador:() => pintarSimulador(), proveedores:() => pintarProveedoresVista()};
 const MN_NUEVAS = {val:() => pintarVal(), cap:() => pintarCap(), tc:() => pintarTc2(), ing:() => pintarIng()};
 // Al cambiar el ancho, solo se redibujan las gráficas (no se vuelve a correr el simulador).
 function mnRedibujar(){ const t = mnTab(); (t.nuevas || []).forEach(k => seguro(MN_NUEVAS[k]));
   (t.prest || []).forEach(v => { if(["dashboard","predicciones","temporadas"].includes(v)) seguro(MN_PINTAR[v]); if(v === "simulador" && S.rep) pintarVentas(pronostico(S.rep)); }); }
-const PREST = {};   // vista prestada -> marcador de su lugar original
+const PREST = {};   // id de la sección prestada -> marcador de su lugar original
 function devolverPrestadas(){
   // Al volver a su lugar, la pantalla se oculta: si no, queda visible encima de «Minería de datos» (error E1 de la
   // auditoría del 24-11-2026). ir() vuelve a mostrar la que corresponda.
-  Object.entries(PREST).forEach(([v, ph]) => { const s = $("v-" + v); if(!s) return; if(ph.nextSibling !== s) ph.after(s); s.hidden = true; });
+  Object.entries(PREST).forEach(([id, ph]) => { const s = $(id); if(!s) return; if(ph.nextSibling !== s) ph.after(s); s.hidden = true; });
   const c = $("mn-prestadas"); if(c) c.innerHTML = "";
 }
 function mnTab(){ return MN_TABS.find(t => t.k === S.mnTec) || MN_TABS[0]; }
@@ -2489,7 +2522,7 @@ function pintarMineria(){
   Object.keys(MN_NUEVAS).forEach(k => $("mn-f-" + k).hidden = !(tab.nuevas || []).includes(k));
   (tab.nuevas || []).forEach(k => seguro(MN_NUEVAS[k], $("mn-f-" + k)));
   (tab.prest || []).filter(puede).forEach(v => {
-    const s = $("v-" + v); if(!PREST[v]){ PREST[v] = document.createComment("lugar de v-" + v); s.before(PREST[v]); }
+    const s = $("v-" + v); if(!PREST[s.id]){ PREST[s.id] = document.createComment("lugar de " + s.id); s.before(PREST[s.id]); }
     const w = document.createElement("div"); w.className = "mn-prest";
     w.innerHTML = `<p class="de">Pantalla del portal: <a href="#${v}">${esc(VISTAS.find(x => x[0] === v)[1])}</a>, también en el menú verde.</p>`;
     w.appendChild(s); $("mn-prestadas").appendChild(w); s.hidden = false;
@@ -2499,6 +2532,84 @@ function pintarMineria(){
 $("mn-sub").addEventListener("click", e => { const b = e.target.closest("button[data-k]"); if(!b) return;
   S.mnTec = b.dataset.k; pintarMineria(); $("mn-sub").querySelector(`[data-k="${b.dataset.k}"]`).focus();
   const top = $("v-mineria").querySelector(".mn-sub").getBoundingClientRect().top; if(top < 0) $("mn-intro").scrollIntoView({block:"start"}); });
+
+/* ==================== TRES MÓDULOS Y TABLAS (pedido del docente, 27-11-2026) ====================
+   Cada módulo presta las mismas pantallas que «Minería de datos» y muestra sólo sus gráficos; Tablas presta todas y
+   muestra sólo sus tablas. Debajo de cada gráfico, «Ver la tabla» lleva a la tabla que lo respalda. */
+const MODULOS = {m1:["dashboard","clientes","temporadas","predicciones","val"], m2:["alertas","rotacion","plan","cap"], m3:["simulador","proveedores","tc","ing"]};
+const MOD_TEC = {dashboard:"desc", clientes:"desc", val:"sba", predicciones:"logit", temporadas:"estac", rotacion:"abc", plan:"abc", alertas:"ss", simulador:"mc", cap:"mc", tc:"tc", ing:"ing"};
+// Tablas que ya son un gráfico (mapa de calor, matriz, barras dentro de la fila): se quedan también en el módulo.
+const TB_VISUALES = ["t-rt-mat", "t-tm-mapa", "t-pr"];
+// Pantallas que sólo tenían tabla: el módulo dibuja barras con las mismas filas de la tabla, así no pueden diferir.
+// et: columna del nombre; col: columna del valor; min: se destaca el menor (si no, el mayor).
+const TB_BARRAS = {
+  "t-alertas": {et:0, col:8, tit:d => `El pedido sugerido más caro es ${d.e}: ${d.txt}`},
+  "t-pv": {et:0, col:2, min:true, tit:d => `${d.e} es el que deja el repuesto más barato en Santa Cruz: ${d.txt}`},
+  "t-plan": {et:1, col:4, tit:d => `Con el presupuesto entran estos repuestos; el que más pesa es ${d.e}: ${d.txt}`},
+  "t-cli": {et:1, col:2, max:10, tit:d => `${d.e} es el cliente que más compra: ${d.txt}`},
+  "t-cli-tipo": {et:1, col:2, tit:d => `Los clientes de tipo «${d.e}» son los que más compran: ${d.txt}`},
+  "t-tc2": {et:0, col:3, tit:d => `Con el dólar paralelo, ${d.e} es el que más sube: ${d.txt} por unidad`}};
+const numTexto = x => Number(x.replace(/−/g, "-").replace(/[^\d,\-]/g, "").replace(",", "."));
+function barrasDeTabla(t, g, cfg){
+  const filas = [...(t.tBodies[0] || {rows:[]}).rows].filter(r => r.cells.length > cfg.col)
+    .map(r => ({e:((c => c.querySelector("b") || c.firstChild || c)(r.cells[cfg.et]).textContent || "").trim().replace(/^Proveedor /, ""), txt:r.cells[cfg.col].innerText.split("\n")[0].trim(), v:numTexto(r.cells[cfg.col].innerText.split("\n")[0])}))
+    .filter(d => d.txt !== "—" && isFinite(d.v)).slice(0, cfg.max || 15);   // «—»: sin pedido, no es una barra en cero
+  if(!filas.length) return;
+  const top = filas.reduce((a, d) => (cfg.min ? d.v < a.v : d.v > a.v) ? d : a, filas[0]);
+  const W = Math.max(300, g.clientWidth || 900), et = Math.min(260, Math.round(W * .38)), vr = 90, h = 26, H = filas.length * h + 8;
+  const cab = Math.floor((et - 12) / 6.6);   // letras que caben en la columna del nombre (12 px por letra ≈ 6,6 de ancho)
+  const mx = Math.max(...filas.map(d => Math.abs(d.v))) || 1, L = v => Math.abs(v) / mx * (W - et - vr);
+  g.innerHTML = `<h3 class="chart-t">${esc(cfg.tit(top))}</h3><svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(cfg.tit(top))}">` +
+    filas.map((d, i) => `<text x="${et - 8}" y="${i * h + 18}" text-anchor="end">${esc(d.e.length > cab ? d.e.slice(0, cab - 1) + "…" : d.e)}</text>` +
+      `<rect x="${et}" y="${i * h + 5}" width="${L(d.v).toFixed(1)}" height="${h - 10}" rx="3" fill="${d === top ? "var(--brand)" : "#c9cec8"}"><title>${esc(d.e)}: ${esc(d.txt)}</title></rect>` +
+      `<text x="${(et + L(d.v) + 6).toFixed(1)}" y="${i * h + 18}">${esc(d.txt)}</text>`).join("") + "</svg>";
+}
+function prepararTablas(cont, graficos){
+  cont.querySelectorAll(".chartbox, .legend").forEach(c => c.classList.add("solo-graf"));
+  cont.querySelectorAll("button.mas").forEach(b => b.classList.add("solo-tabla"));
+  cont.querySelectorAll("table").forEach(t => {
+    if(TB_VISUALES.includes(t.id)) return;
+    const sec = t.closest(".mn-fn, .vista"); if(!t.id) t.id = sec.id + "-t" + [...sec.querySelectorAll("table")].indexOf(t);
+    const caja = t.closest("details") || t.closest(".scroll") || t; caja.classList.add("solo-tabla");
+    if(!graficos && caja.tagName === "DETAILS") caja.open = true;
+    let link = caja.previousElementSibling;
+    if(!link || !link.classList.contains("ver-tabla")){ link = document.createElement("a"); link.className = "ver-tabla"; link.href = "#tablas"; link.dataset.t = t.id; link.textContent = "Ver la tabla"; caja.before(link); }
+    const cfg = TB_BARRAS[t.id];
+    if(cfg && graficos){ let g = $("g-" + t.id); if(!g){ g = document.createElement("div"); g.id = "g-" + t.id; g.className = "chartbox deriv solo-graf"; link.before(g); } barrasDeTabla(t, g, cfg); }
+  });
+}
+function prestarEn(k, cont, conTecnica){
+  const nueva = k in MN_NUEVAS, s = $(nueva ? "mn-f-" + k : "v-" + k);
+  if(!s || (!nueva && !puede(k))) return;
+  if(!PREST[s.id]){ PREST[s.id] = document.createComment("lugar de " + s.id); s.before(PREST[s.id]); }
+  const tab = MN_TABS.find(t => t.k === MOD_TEC[k]), w = document.createElement("div"); w.className = "mn-prest";
+  w.innerHTML = conTecnica ? `<p class="de">${tab ? esc(tab.tec) : "Comparación de costos (no es una técnica de minería de datos)"}</p>` : "";
+  w.appendChild(s); cont.appendChild(w); s.hidden = false;
+  seguro(nueva ? MN_NUEVAS[k] : MN_PINTAR[k], nueva ? s : undefined); if(!nueva) pintado[k] = true;
+}
+function pintarModulo(m){
+  devolverPrestadas(); const c = $(m + "-cont"); c.innerHTML = "";
+  MODULOS[m].forEach(k => prestarEn(k, c, true)); prepararTablas(c, true);
+}
+function modRedibujar(){
+  MODULOS[S.vista].forEach(k => { if(MN_NUEVAS[k]) seguro(MN_NUEVAS[k]); if(["dashboard","predicciones","temporadas"].includes(k)) seguro(MN_PINTAR[k]); if(k === "simulador" && S.rep) pintarVentas(pronostico(S.rep)); });
+  prepararTablas($(S.vista + "-cont"), true);
+}
+function pintarTablas(){
+  devolverPrestadas(); const c = $("tb-cont"); c.innerHTML = "";
+  $("tb-ind").innerHTML = Object.keys(MODULOS).map((m, i) => `<a href="#tb-${m}">Módulo ${i + 1}: ${esc(VISTAS.find(x => x[0] === m)[1])}</a>`).join("");
+  Object.entries(MODULOS).forEach(([m, ks], i) => {
+    const h = document.createElement("h2"); h.className = "tb-mod"; h.id = "tb-" + m; h.textContent = `Módulo ${i + 1}: ${VISTAS.find(x => x[0] === m)[1]}`; c.appendChild(h);
+    ks.forEach(k => prestarEn(k, c, false)); });
+  prepararTablas(c, false);
+  if(S.tbFoco && $(S.tbFoco)){ const t = $(S.tbFoco); S.tbFoco = null;
+    c.querySelectorAll(".tb-foco").forEach(x => x.classList.remove("tb-foco")); t.classList.add("tb-foco");
+    requestAnimationFrame(() => t.scrollIntoView({block:"center"})); }
+}
+// «Ver la tabla»: recuerda qué tabla mostrar y deja que el cambio de dirección (#tablas) abra la vista.
+document.addEventListener("click", e => { const a = e.target.closest("a.ver-tabla"); if(a) S.tbFoco = a.dataset.t; });
+// El índice de Tablas salta dentro de la vista sin cambiar la dirección (que es la de la vista).
+$("tb-ind").addEventListener("click", e => { const a = e.target.closest("a"); if(!a) return; e.preventDefault(); $(a.getAttribute("href").slice(1)).scrollIntoView({block:"start"}); });
 
 /* Ejes y cuadrícula comunes a las gráficas nuevas: un solo eje vertical y la misma letra que el resto del portal. */
 function marco(W, H, pl, pr, pb, mx, fmtY, ytit, xtit){
@@ -2710,11 +2821,11 @@ let tRz = null;
 window.addEventListener("resize", () => { clearTimeout(tRz); tRz = setTimeout(() => { if(S.vista === "simulador") pintarVentas(pronostico(S.rep));
   if(S.vista === "temporadas") pintarTemporadas();
   if(S.vista === "dashboard") pintarDashboard(); if(S.vista === "predicciones") pintarPredicciones();
-  if(S.vista === "mineria") mnRedibujar(); }, 150); });
+  if(S.vista === "mineria") mnRedibujar(); if(MODULOS[S.vista]) modRedibujar(); }, 150); });
 
 /* ---- Arranque ---- */
-if(PORTAL){ pintarSesion(); iniciarPortal().finally(() => ir(location.hash.slice(1) || (puede("dashboard") ? "dashboard" : SES.rol === "proveedor" ? "miprov" : "entrar"))); }
-else ir(location.hash.slice(1) || "dashboard");
+if(PORTAL){ pintarSesion(); iniciarPortal().finally(() => ir(location.hash.slice(1) || (puede("m1") ? "m1" : SES.rol === "proveedor" ? "miprov" : "entrar"))); }
+else ir(location.hash.slice(1) || "m1");
 })();
 </script>
 </body>
