@@ -23,6 +23,30 @@ with sync_playwright() as p:
             pg.goto(url + "#" + v); pg.wait_for_timeout(2500)
             chk(pg.evaluate("document.documentElement.scrollWidth") <= w, f"{w} {v}: sin desborde a lo ancho")
             pg.screenshot(path=f"{out}/{v}-{w}.png", full_page=True)
+        # Las frases salen de los datos: cambian con el período (m1), el repuesto (m3) y el presupuesto (m2).
+        LEER = """s => Object.fromEntries([...document.querySelectorAll(s + ' article.tab-c')].filter(a => a.offsetParent)
+                   .map(a => [a.id, (a.querySelector('h2') || {}).textContent + ' | ' + ((a.querySelector('.nota-sit') || {}).textContent || '')]))"""
+        def cambian(antes, despues, fijas, que):
+            for k, t in antes.items():
+                if k in fijas: continue
+                chk(t != despues.get(k), f"{w} {que}: cambia {k}")
+        pg.goto(url + "#m1"); pg.wait_for_timeout(2500)
+        a1 = pg.evaluate(LEER, "#v-m1"); pg.click('#tab-per button[data-v="todo"]'); pg.wait_for_timeout(1500)
+        cambian(a1, pg.evaluate(LEER, "#v-m1"), {"tab-pred"}, "m1 con «Todo el período»")
+        chk(pg.evaluate("document.documentElement.scrollWidth") <= w, f"{w} m1 con «Todo el período»: sin desborde a lo ancho")
+        for v in ("m1", "m2", "m3"):
+            pg.goto(url + "#" + v); pg.wait_for_timeout(2500); pg.screenshot(path=f"{out}/{v}-todo-{w}.png", full_page=True)
+        pg.goto(url + "#m1"); pg.wait_for_timeout(1500); pg.click('#tab-per button[data-v="12m"]'); pg.wait_for_timeout(1000)
+        pg.goto(url + "#m3"); pg.wait_for_timeout(2500)
+        a3 = pg.evaluate(LEER, "#v-m3"); otro = pg.evaluate("() => { const s = document.getElementById('cs-rep'); return [...s.options].map(o => o.value).find(v => v !== s.value && v === 'REP-0013') || [...s.options].map(o => o.value).find(v => v !== s.value); }")
+        pg.select_option("#cs-rep", otro); pg.wait_for_timeout(5000)
+        cambian(a3, pg.evaluate(LEER, "#v-m3"), {"tab-dol"}, f"m3 con {otro}")
+        pg.screenshot(path=f"{out}/m3-otro-{w}.png", full_page=True)
+        pg.goto(url + "#m2"); pg.wait_for_timeout(2500)
+        h = pg.text_content("#tab-plan-h"); pg.fill("#rp-presu", "500"); pg.wait_for_timeout(1200)
+        chk(pg.text_content("#tab-plan-h") != h, f"{w} m2: el plan cambia con el presupuesto")
+        pg.goto(url + "#alertas"); pg.wait_for_timeout(2000)
+        chk(pg.evaluate("location.hash") == "#m2", f"{w}: #alertas lleva al m2")
         for v in ("m1", "m2", "m3"):
             pg.goto(url + "#" + v); pg.wait_for_timeout(2500)
             ids = pg.eval_on_selector_all(f"#v-{v} a.ver-tabla", "as => as.filter(a => a.offsetParent).map(a => a.dataset.t)")
