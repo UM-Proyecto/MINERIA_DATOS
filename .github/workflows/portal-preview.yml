@@ -1,4 +1,5 @@
 # Vista previa del portal para revisar el PR del apartado «Minería de datos» sin tocar producción.
+# Desde el 27-11-2026 también publica la rama de los tres módulos y Tablas (la última que empuja es la que se ve).
 #
 # Publica la versión COMPLETA del servidor (datos y app incluidos, armar_portal.py sin --liviano) en la rama de
 # vista previa «mineria» del proyecto multipartes-univalle: https://mineria.multipartes-univalle.pages.dev
@@ -13,7 +14,7 @@ name: Vista previa del portal (Minería de datos)
 
 on:
   push:
-    branches: [feature/mineria-datos-canvas]
+    branches: [feature/mineria-datos-canvas, feature/tres-modulos]
   workflow_dispatch:
 
 concurrency:
