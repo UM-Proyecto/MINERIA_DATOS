@@ -3005,7 +3005,7 @@ function pintarTab(){
   $("tab-rep-h").textContent = `${reps[0].e} es el que más dinero deja: ${bs(reps[0].v)}`;
   $("tab-rep-s").textContent = `Los que más dinero dejaron ${perTE}, en bolivianos.`;
   $("tab-rep-g").innerHTML = svgBarras(reps, Math.max(300, $("tab-rep-g").clientWidth || 600), reps[0], $("tab-rep-h").textContent);
-  $("tab-rep-n").textContent = `Dejan el ${nf(TE.top_repuestos_pct)} % de lo vendido por los ${TE.repuestos_total} repuestos que tuvieron ventas ${perTE}.`;
+  $("tab-rep-n").textContent = `Dejan el ${nf(TE.top_repuestos_pct)} % de lo vendido por los ${TE.repuestos_total} repuestos que tuvieron ventas ${todo ? `de ${mesL(TE.desde)} a ${mesL(TE.hasta)}` : "en los últimos 12 meses"}.`;
   $("t-tab-rep").innerHTML = `<thead><tr><th>#</th><th>Repuesto</th><th>Ventas</th><th>Parte del total</th></tr></thead><tbody>` +
     reps.map((r, i) => `<tr><td>${i + 1}</td><td><b>${esc(r.e)}</b><span class="ayuda">${r.id}</span></td><td>${r.txt}</td><td>${nf(r.pct, 1)} %</td></tr>`).join("") + "</tbody>";
 
