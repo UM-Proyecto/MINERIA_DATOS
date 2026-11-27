@@ -2278,7 +2278,7 @@ async function api(ruta, opc){
   const r = await fetch(ruta, {method: opc.method || "GET", headers: h, body: opc.body === undefined ? undefined : JSON.stringify(opc.body)});
   if(opc.crudo) { if(!r.ok) throw new Error("El servidor respondió " + r.status); return r; }
   let d = null; try { d = await r.json(); } catch(e) {}
-  if(!r.ok){ const e = new Error((d && d.error) || "El servidor respondió " + r.status); e.status = r.status; throw e; }
+  if(!r.ok){ const e = new Error((d && d.error) || "El servidor respondió " + r.status); e.status = r.status; e.datos = d; throw e; }
   return d;
 }
 // «Jefatura de compras (demostración)»: la aclaración va aparte para poder ocultarla en pantallas angostas.
@@ -2484,15 +2484,21 @@ async function marcarVenta(n, forzar){ return api(`/api/cotizaciones/${n}/venta`
 // Antes de descontar se muestra qué se vende y cómo queda el stock. Si no alcanza, el botón lo dice y la venta va
 // con «forzar» (el servidor la rechaza con 409 sin él).
 let VT = null;
-$("t-cz").addEventListener("click", e => { const b = e.target.closest("button[data-venta]"); if(!b) return;
-  const f = CZ_FILAS[b.dataset.venta]; if(!f) return;
-  const antes = f.repuesto_id in STOCK_REAL ? STOCK_REAL[f.repuesto_id] : (REP[f.repuesto_id] ? REP[f.repuesto_id].stock_al_2026_11_10 : null);
+// Pinta el diálogo con el stock que se le pasa. Se llama al abrirlo (stock que tiene la pantalla) y otra vez si el
+// servidor responde que no alcanza (stock real): así el botón pasa a «Confirmar aunque falte stock» y envía forzar.
+function pintarDialogoVenta(f, antes){
   const despues = antes === null ? null : antes - f.cantidad, falta = despues !== null && despues < 0;
-  VT = {n: f.numero, boton: b, forzar: falta};
+  VT.forzar = falta;
   $("vt-cuerpo").innerHTML = `<p>Cotización N° ${f.numero}: <b>${nf(f.cantidad)} ${(f.cantidad === 1 ? "unidad" : "unidades")}</b> de <b>${esc(nombreRep(f.repuesto_id))}</b> (${f.repuesto_id}).</p>
     <p>Stock en el almacén: <b>${antes === null ? "sin dato" : nf(antes)}</b> → <b class="${falta ? "c-bad" : ""}">${despues === null ? "sin dato" : nf(despues)}</b> después de la venta.</p>` +
     (falta ? `<p class="nota-sit"><strong>No alcanza el stock.</strong> Confirme solo si las unidades salieron igual del almacén; el stock quedará en negativo hasta que se registre un ingreso.</p>` : "");
   $("vt-ok").textContent = falta ? "Confirmar aunque falte stock" : "Confirmar venta";
+}
+$("t-cz").addEventListener("click", e => { const b = e.target.closest("button[data-venta]"); if(!b) return;
+  const f = CZ_FILAS[b.dataset.venta]; if(!f) return;
+  const antes = f.repuesto_id in STOCK_REAL ? STOCK_REAL[f.repuesto_id] : (REP[f.repuesto_id] ? REP[f.repuesto_id].stock_al_2026_11_10 : null);
+  VT = {n: f.numero, f: f, boton: b, forzar: false};
+  pintarDialogoVenta(f, antes);
   $("vt-msg").textContent = ""; $("vt-msg").className = "msg";
   $("vt-dlg").showModal(); $("vt-cancelar").focus();
 });
@@ -2505,7 +2511,22 @@ $("vt-ok").addEventListener("click", async () => { if(!VT) return;
     await cargarServidor(); await pintarCotizaciones();
     $("cz-msg").className = "msg ok";
     $("cz-msg").textContent = `Venta registrada: la cotización N° ${r.numero} descontó ${nf(r.cantidad)} ${(r.cantidad === 1 ? "unidad" : "unidades")} de ${nombreRep(r.repuesto_id)}. Stock: ${nf(r.stock_antes)} → ${nf(r.stock_despues)}.`;
-  } catch(err){ $("vt-msg").className = "msg mal"; $("vt-msg").textContent = err.message; }
+  } catch(err){
+    // La pantalla tenía un stock viejo (otra persona vendió o ajustó en el medio) y no alcanza: se muestra el stock
+    // real que mandó el servidor y el botón pasa a forzar. Sin esto, «Confirmar venta» repetía el mismo rechazo.
+    const d = err.datos;
+    if(err.status === 409 && VT && d && typeof d.stock === "number"){
+      STOCK_REAL[VT.f.repuesto_id] = d.stock;
+      pintarDialogoVenta(VT.f, d.stock);
+      $("vt-msg").className = "msg mal";
+      $("vt-msg").textContent = `El stock cambió desde que se abrió esta lista: hoy hay ${nf(d.stock)}. Revise y confirme otra vez.`;
+      cargarServidor().catch(() => {});
+    } else {
+      $("vt-msg").className = "msg mal"; $("vt-msg").textContent = err.message;
+      // Si la cotización ya se vendió desde otra pantalla, se recarga la lista para que el botón desaparezca.
+      if(err.status === 404 || err.status === 409) cargarServidor().then(pintarCotizaciones).catch(() => {});
+    }
+  }
   finally { $("vt-ok").disabled = false; } });
 $("cz-csv").addEventListener("click", async () => {
   try { const q = filtrosCz(); q.set("formato", "csv"); const r = await api("/api/cotizaciones?" + q.toString(), {crudo:true});
