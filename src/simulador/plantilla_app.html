@@ -537,15 +537,6 @@ svg.chart .pm{fill:none;stroke:var(--graphite);stroke-width:2}
 .tb-mod{margin-top:34px;font-size:20px}
 .tb-ind{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px}.tb-ind a{color:var(--brand-dark);font-weight:600}
 .tb-foco{outline:3px solid var(--mina);outline-offset:4px;border-radius:4px}
-/* Revisión del 27-11-2026: en los módulos, la frase de lectura (la conclusión) pasa a ser el título de la tarjeta y la
-   pregunta queda arriba en chico, como en el tablero del módulo 1. En Tablas se ve como antes. */
-.modulo .card-h:has(.lectura:not(:empty)) h2{font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--ink-3);font-weight:600}
-.modulo .card-h:has(.lectura:not(:empty)) .lectura{font-size:18px;font-weight:600;line-height:1.3;color:var(--ink);margin-top:2px}
-/* Módulo 3: de cada alternativa queda a la vista el puntaje; las cifras se abren con «Ver el detalle» (y están en Tablas). */
-.ver-det{display:none;margin-top:12px}
-.modulo .ver-det{display:inline-block}
-.modulo #alts:not(.ver) .alt :is(.dato,.porque){display:none}
-.deriv svg text{font-size:12px;fill:var(--ink-2)}
 /* Módulo 1: tablero de ventas sobre el boceto de Sabrina (27-11-2026): tarjetas con la pregunta arriba, la conclusión
    como título, un gráfico por tarjeta y una frase que dice qué hacer. */
 .tab-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:18px}
@@ -560,6 +551,18 @@ svg.chart .pm{fill:none;stroke:var(--graphite);stroke-width:2}
 .dona li i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:8px;vertical-align:-1px}
 .dona .ir{font-size:13px;font-weight:600;color:var(--brand-dark);text-decoration:underline}
 .nota-sit.alerta{background:var(--bad-soft);border-color:#f1c9c2;color:#6b2219}
+.modulo .solo-tablas{display:none}   /* tarjetas que solo respaldan (ventas por año; ingresos y gastos): van en Tablas */
+.tab-grid>.card{margin:0}
+.tec-c{font-size:11px;color:var(--ink-3);margin-top:8px}.tec-c:empty{display:none}
+.cs-sel{display:grid;gap:4px;max-width:520px;margin-bottom:12px}.cs-sel label{font-size:13px;font-weight:600}.cs-sel .ayuda{display:block;font-weight:400}
+.cs-sel select,.cs-sel input{min-height:40px;border:1px solid var(--line-2);border-radius:8px;padding:6px 10px;font:inherit;background:#fff;max-width:100%}
+.mat{display:grid;grid-template-columns:minmax(76px,.8fr) repeat(3,minmax(0,1fr));gap:5px;font-size:12px}
+.mat>div{border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;justify-content:center;gap:2px;min-width:0}
+.mat span{color:var(--ink-3);font-size:11px;line-height:1.3}
+.mat .mh{text-align:center}.mat .mf{background:#f4f5f3}
+.mat .mc{background:#f1f2ef;text-align:center;min-height:74px}.mat .mc b{font-size:24px;line-height:1}
+.mat .mc.ok{background:var(--ok-soft)}.mat .mc.warn{background:var(--warn-soft)}.mat .mc.bad{background:var(--bad-soft)}.mat .mc.cero b{color:var(--ink-3)}
+@media (max-width:560px){.mat{font-size:11px}.mat span{display:none}.mat .mc span{display:block;font-size:10px}}
 .tab-grid>*{min-width:0}   /* sin esto, en Tablas la tarjeta crece al ancho de su tabla y la página desborda */
 @media (max-width:900px){.tab-grid{grid-template-columns:minmax(0,1fr)}}
 .mn-fn .card-h h2 .nueva{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.6px;border-radius:99px;padding:2px 8px;background:var(--mina);color:var(--mina-ink);margin-left:8px;vertical-align:3px}
@@ -713,7 +716,6 @@ details.tecnico[open]>summary::before{transform:rotate(90deg)}
         <p id="como-txt"></p>
       </div>
       <div class="alts" id="alts"></div>
-      <button class="btn2 ver-det" id="alts-det" type="button" aria-expanded="false" aria-controls="alts">Ver el detalle de cada alternativa</button>
       <p class="alts-ocultas" id="alts-ocultas" hidden></p>
       <p class="pie" id="alts-nota"></p>
       <p class="nota-sit" id="alts-q" hidden></p>
@@ -1111,32 +1113,86 @@ details.tecnico[open]>summary::before{transform:rotate(90deg)}
     <nav class="mn-sub" id="mn-sub" aria-label="Técnicas de minería de datos"></nav>
     <div class="mn-intro" id="mn-intro" aria-live="polite"></div>
 
-    <!-- Módulo 1: tablero de ventas (base: boceto de Sabrina del 27-11-2026) -->
+    <!-- Módulo 1: tablero de ventas (base: boceto de Sabrina del 27-11-2026; temporada y predicción fundidas el mismo día) -->
     <section class="mn-fn" id="mn-f-tab" hidden>
       <div class="grid-k" id="tab-kpis" aria-live="polite" style="margin-top:0"></div>
       <p class="tab-precio" id="tab-precio"></p>
       <div class="tab-grid">
       <article class="card tab-c ancha" id="tab-mes"><div class="eyebrow">¿Cuánto vendimos cada mes y cuánto venderemos el que viene?</div><h2 id="tab-mes-h"></h2><p class="tab-sub" id="tab-mes-s"></p>
-        <div class="chartbox" id="tab-mes-g"></div><div class="legend"><span><i class="sw" style="background:var(--brand)"></i>Últimos 12 meses</span><span><i class="sw" style="background:#c9cec8"></i>Mismo mes del año anterior</span><span><i class="sw" style="background:var(--brand-soft);border:1px dashed var(--brand)"></i>Pronóstico con su margen de error</span></div><p class="nota-sit" id="tab-mes-n"></p>
+        <div class="chartbox" id="tab-mes-g"></div><div class="legend"><span><i class="sw" style="background:var(--brand)"></i>Últimos 12 meses</span><span><i class="sw" style="background:#c9cec8"></i>Mismo mes del año anterior</span><span><i class="sw" style="background:var(--brand-soft);border:1px dashed var(--brand)"></i>Pronóstico con su margen de error</span></div><p class="nota-sit" id="tab-mes-n"></p><p class="tec-c"></p>
         <details><summary>Ver los datos como tabla</summary><div class="scroll"><table id="t-tab-mes"></table></div></details></article>
+      <article class="card tab-c" id="tab-estac"><div class="eyebrow">¿En qué meses se vende más?</div><h2 id="tab-estac-h"></h2><p class="tab-sub" id="tab-estac-s"></p>
+        <div class="chartbox" id="tab-estac-g"></div><p class="nota-sit" id="tab-estac-n"></p><p class="tec-c"></p>
+        <details><summary>Ver los datos como tabla</summary><div class="scroll"><table id="t-tab-estac"></table></div></details></article>
+      <article class="card tab-c" id="tab-pred"><div class="eyebrow">¿Qué se venderá el mes que viene?</div><h2 id="tab-pred-h"></h2><p class="tab-sub" id="tab-pred-s"></p>
+        <div class="chartbox" id="tab-pred-g"></div><p class="nota-sit" id="tab-pred-n"></p><p class="tec-c"></p>
+        <details><summary>Ver los datos como tabla</summary><div class="scroll"><table id="t-tab-pred"></table></div></details></article>
       <article class="card tab-c" id="tab-tipo"><div class="eyebrow">¿Quiénes nos compran?</div><h2 id="tab-tipo-h"></h2><p class="tab-sub" id="tab-tipo-s"></p>
-        <div class="chartbox" id="tab-tipo-g"></div><p class="nota-sit" id="tab-tipo-n"></p>
+        <div class="chartbox" id="tab-tipo-g"></div><p class="nota-sit" id="tab-tipo-n"></p><p class="tec-c"></p>
         <details><summary>Ver los datos como tabla</summary><div class="scroll"><table id="t-tab-tipo"></table></div></details></article>
-      <article class="card tab-c" id="tab-alm"><div class="eyebrow">¿Cómo está el almacén?</div><h2 id="tab-alm-h"></h2><p class="tab-sub" id="tab-alm-s"></p>
-        <div class="chartbox" id="tab-alm-g"></div><p class="nota-sit" id="tab-alm-n"></p>
-        <details><summary>Ver los datos como tabla</summary><div class="scroll"><table id="t-tab-alm"></table></div></details></article>
-      <article class="card tab-c" id="tab-cat"><div class="eyebrow">¿Qué tipo de repuesto vendemos más?</div><h2 id="tab-cat-h"></h2><p class="tab-sub" id="tab-cat-s"></p>
-        <div class="chartbox" id="tab-cat-g"></div><p class="nota-sit" id="tab-cat-n"></p>
-        <details><summary>Ver los datos como tabla</summary><div class="scroll"><table id="t-tab-cat"></table></div></details></article>
       <article class="card tab-c" id="tab-par"><div class="eyebrow">¿De cuántos clientes dependen las ventas?</div><h2 id="tab-par-h"></h2><p class="tab-sub" id="tab-par-s"></p>
-        <div class="chartbox" id="tab-par-g"></div><p class="nota-sit" id="tab-par-n"></p>
+        <div class="chartbox" id="tab-par-g"></div><p class="nota-sit" id="tab-par-n"></p><p class="tec-c"></p>
         <details><summary>Ver los datos como tabla</summary><div class="scroll"><table id="t-tab-par"></table></div></details></article>
+      <article class="card tab-c" id="tab-cat"><div class="eyebrow">¿Qué tipo de repuesto vendemos más?</div><h2 id="tab-cat-h"></h2><p class="tab-sub" id="tab-cat-s"></p>
+        <div class="chartbox" id="tab-cat-g"></div><p class="nota-sit" id="tab-cat-n"></p><p class="tec-c"></p>
+        <details><summary>Ver los datos como tabla</summary><div class="scroll"><table id="t-tab-cat"></table></div></details></article>
       <article class="card tab-c" id="tab-rep"><div class="eyebrow">¿Cuáles son los 10 repuestos estrella?</div><h2 id="tab-rep-h"></h2><p class="tab-sub" id="tab-rep-s"></p>
-        <div class="chartbox" id="tab-rep-g"></div><p class="nota-sit" id="tab-rep-n"></p>
+        <div class="chartbox" id="tab-rep-g"></div><p class="nota-sit" id="tab-rep-n"></p><p class="tec-c"></p>
         <details><summary>Ver los datos como tabla</summary><div class="scroll"><table id="t-tab-rep"></table></div></details></article>
-      <article class="card tab-c" id="tab-anio"><div class="eyebrow">¿Cómo van las ventas año a año?</div><h2 id="tab-anio-h"></h2><p class="tab-sub" id="tab-anio-s"></p>
-        <div class="chartbox" id="tab-anio-g"></div><p class="nota-sit" id="tab-anio-n"></p>
+      <article class="card tab-c ancha solo-tablas" id="tab-anio"><div class="eyebrow">¿Cómo van las ventas año a año?</div><h2 id="tab-anio-h"></h2><p class="tab-sub" id="tab-anio-s"></p>
+        <div class="chartbox" id="tab-anio-g"></div><p class="nota-sit" id="tab-anio-n"></p><p class="tec-c"></p>
         <details><summary>Ver los datos como tabla</summary><div class="scroll"><table id="t-tab-anio"></table></div></details></article>
+      </div>
+    </section>
+
+    <!-- Módulo 2: tablero de reposición (27-11-2026) -->
+    <section class="mn-fn" id="mn-f-rep" hidden>
+      <div class="grid-k" id="rp-kpis" aria-live="polite" style="margin-top:0"></div>
+      <div class="tab-grid">
+      <article class="card tab-c" id="tab-alm"><div class="eyebrow">¿Cómo está el almacén?</div><h2 id="tab-alm-h"></h2><p class="tab-sub" id="tab-alm-s"></p>
+        <div class="chartbox" id="tab-alm-g"></div><p class="nota-sit" id="tab-alm-n"></p><p class="tec-c"></p>
+        <details><summary>Ver los datos como tabla</summary><div class="scroll"><table id="t-tab-alm"></table></div></details></article>
+      <article class="card tab-c" id="tab-urg"><div class="eyebrow">¿Qué hay que pedir esta semana?</div><h2 id="tab-urg-h"></h2><p class="tab-sub" id="tab-urg-s"></p>
+        <div class="chartbox" id="tab-urg-g"></div><p class="nota-sit" id="tab-urg-n"></p><p class="tec-c"></p>
+        <details><summary>Ver los datos como tabla</summary><div class="scroll"><table id="t-tab-urg"></table></div></details></article>
+      <article class="card tab-c ancha" id="tab-abc"><div class="eyebrow">¿Qué repuestos cuidar y cuáles frenar?</div><h2 id="tab-abc-h"></h2><p class="tab-sub" id="tab-abc-s"></p>
+        <div class="chartbox" id="tab-abc-g"></div><p class="nota-sit" id="tab-abc-n"></p><p class="tec-c"></p>
+        <details><summary>Ver los datos como tabla</summary><div class="scroll"><table id="t-tab-abc"></table></div></details></article>
+      <article class="card tab-c" id="tab-plan"><div class="eyebrow">¿Qué conviene comprar primero con el presupuesto?</div><h2 id="tab-plan-h"></h2><p class="tab-sub" id="tab-plan-s"></p>
+        <div class="cs-sel"><label for="rp-presu">Presupuesto para comprar<span class="ayuda">En bolivianos, con el dólar oficial de hoy.</span></label><input id="rp-presu" type="number" min="0" step="500" inputmode="numeric"></div><div class="chartbox" id="tab-plan-g"></div><p class="nota-sit" id="tab-plan-n"></p><p class="tec-c"></p>
+        <details><summary>Ver los datos como tabla</summary><div class="scroll"><table id="t-tab-plan"></table></div></details></article>
+      <article class="card tab-c" id="tab-sobra"><div class="eyebrow">¿Qué repuestos sobran?</div><h2 id="tab-sobra-h"></h2><p class="tab-sub" id="tab-sobra-s"></p>
+        <div class="chartbox" id="tab-sobra-g"></div><p class="nota-sit" id="tab-sobra-n"></p><p class="tec-c"></p>
+        <details><summary>Ver los datos como tabla</summary><div class="scroll"><table id="t-tab-sobra"></table></div></details></article>
+      </div>
+    </section>
+
+    <!-- Módulo 3: tablero de costo y riesgo (27-11-2026). El simulador completo queda en #simulador. -->
+    <section class="mn-fn" id="mn-f-cost" hidden>
+      <div class="cs-sel"><label for="cs-rep">Repuesto que quiere comprar<span class="ayuda">Las tarjetas de abajo se calculan para este repuesto, con el dólar de hoy.</span></label><select id="cs-rep"></select></div>
+      <div class="grid-k" id="cs-kpis" aria-live="polite"></div>
+      <div class="tab-grid">
+      <article class="card tab-c ancha" id="tab-dol"><div class="eyebrow">¿Cómo se movió el dólar?</div><h2 id="tab-dol-h"></h2><p class="tab-sub" id="tab-dol-s"></p>
+        <div class="chartbox" id="tab-dol-g"></div><p class="nota-sit" id="tab-dol-n"></p><p class="tec-c"></p>
+        <details><summary>Ver los datos como tabla</summary><div class="scroll"><table id="t-tab-dol"></table></div></details></article>
+      <article class="card tab-c" id="tab-gana"><div class="eyebrow">¿Cuánto conviene pedir?</div><h2 id="tab-gana-h"></h2><p class="tab-sub" id="tab-gana-s"></p>
+        <div class="chartbox" id="tab-gana-g"></div><p class="nota-sit" id="tab-gana-n"></p><p class="tec-c"></p>
+        <details><summary>Ver los datos como tabla</summary><div class="scroll"><table id="t-tab-gana"></table></div></details></article>
+      <article class="card tab-c" id="tab-quie"><div class="eyebrow">¿Desde qué dólar conviene comprar más?</div><h2 id="tab-quie-h"></h2><p class="tab-sub" id="tab-quie-s"></p>
+        <div class="chartbox" id="tab-quie-g"></div><p class="nota-sit" id="tab-quie-n"></p><p class="tec-c"></p>
+        <details><summary>Ver los datos como tabla</summary><div class="scroll"><table id="t-tab-quie"></table></div></details></article>
+      <article class="card tab-c" id="tab-sens"><div class="eyebrow">¿Qué es lo que más mueve el resultado?</div><h2 id="tab-sens-h"></h2><p class="tab-sub" id="tab-sens-s"></p>
+        <div class="chartbox" id="tab-sens-g"></div><p class="nota-sit" id="tab-sens-n"></p><p class="tec-c"></p>
+        <details><summary>Ver los datos como tabla</summary><div class="scroll"><table id="t-tab-sens"></table></div></details></article>
+      <article class="card tab-c" id="tab-cap"><div class="eyebrow">¿Cuánto dinero queda parado con cada forma de comprar?</div><h2 id="tab-cap-h"></h2><p class="tab-sub" id="tab-cap-s"></p>
+        <div class="chartbox" id="tab-cap-g"></div><p class="nota-sit" id="tab-cap-n"></p><p class="tec-c"></p>
+        <details><summary>Ver los datos como tabla</summary><div class="scroll"><table id="t-tab-cap"></table></div></details></article>
+      <article class="card tab-c" id="tab-prov"><div class="eyebrow">¿A qué proveedor conviene comprarle?</div><h2 id="tab-prov-h"></h2><p class="tab-sub" id="tab-prov-s"></p>
+        <div class="chartbox" id="tab-prov-g"></div><p class="nota-sit" id="tab-prov-n"></p><p class="tec-c"></p>
+        <details><summary>Ver los datos como tabla</summary><div class="scroll"><table id="t-tab-prov"></table></div></details></article>
+      <article class="card tab-c" id="tab-dif"><div class="eyebrow">¿Cuánto encarece el dólar paralelo?</div><h2 id="tab-dif-h"></h2><p class="tab-sub" id="tab-dif-s"></p>
+        <div class="chartbox" id="tab-dif-g"></div><p class="nota-sit" id="tab-dif-n"></p><p class="tec-c"></p>
+        <details><summary>Ver los datos como tabla</summary><div class="scroll"><table id="t-tab-dif"></table></div></details></article>
       </div>
     </section>
 
@@ -1304,6 +1360,7 @@ const VISTAS = [["m1","¿Cómo se vende?","db","módulo 1"],["m2","¿Qué y cuá
 const GRUPOS = [["Módulos",["m1","m2","m3"]],["Respaldo",["tablas"]],
   ["Gestionar",["cotizaciones","cargar","catalogo","cotizar"]],["Proveedor",["miprov"]],["",["entrar"]]];
 // «Minería de datos» (proyecto integrador) va en ámbar, separado del verde: así lo pidió Sam en su boceto del 20-11.
+const ALIAS = {dashboard:"m1", temporadas:"m1", predicciones:"m1", clientes:"m1", mineria:"m1", alertas:"m2", rotacion:"m2", plan:"m2", proveedores:"m3"};
 const enlaceMenu = ([k,t,i,h]) => `<a href="#${k}" data-v="${k}"${k === "mineria" ? ' class="mn"' : ""} aria-label="${t}" title="${t}"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">${IC[i]}</svg><span>${t}</span></a>`;
 function pintarMenu(){
   $("menu").innerHTML = GRUPOS.map(([g, vs]) => { const items = VISTAS.filter(x => vs.includes(x[0]) && puede(x[0]));
@@ -1315,6 +1372,8 @@ pintarMenu();
 const pintado = {};
 function ir(v){
   devolverPrestadas();   // las pantallas prestadas a «Minería de datos», a un módulo o a Tablas vuelven a su lugar
+  // Direcciones viejas (enlaces guardados, #dashboard de la entrega): llevan al módulo que las reemplaza. #simulador sigue abriendo el simulador completo.
+  if(ALIAS[v]){ v = ALIAS[v]; history.replaceState(null, "", "#" + v); }
   const inicio = () => puede("m1") ? "m1" : SES.rol === "proveedor" ? "miprov" : PORTAL && !SES.rol ? "entrar" : "catalogo";
   if(!VISTAS.some(x => x[0] === v)){ v = inicio(); if(location.hash && location.hash.slice(1) !== v) history.replaceState(null, "", "#" + v); }
   if(!puede(v)){ // la dirección escrita no corresponde a este rol: no se muestra
@@ -2556,7 +2615,7 @@ const MN_TABS = [
 /* técnico: fin */
 const MN_PINTAR = {dashboard:() => pintarDashboard(), clientes:() => pintarClientes(), predicciones:() => pintarPredicciones(), temporadas:() => pintarTemporadas(),
   rotacion:() => pintarRotacion(), plan:() => pintarPlan(), alertas:() => pintarAlertas(), simulador:() => pintarSimulador(), proveedores:() => pintarProveedoresVista()};
-const MN_NUEVAS = {tab:() => pintarTab(), val:() => pintarVal(), cap:() => pintarCap(), tc:() => pintarTc2(), ing:() => pintarIng()};
+const MN_NUEVAS = {tab:() => pintarTab(), rep:() => pintarRep(), cost:() => pintarCost(), val:() => pintarVal(), cap:() => pintarCap(), tc:() => pintarTc2(), ing:() => pintarIng()};
 // Al cambiar el ancho, solo se redibujan las gráficas (no se vuelve a correr el simulador).
 function mnRedibujar(){ const t = mnTab(); (t.nuevas || []).forEach(k => seguro(MN_NUEVAS[k]));
   (t.prest || []).forEach(v => { if(["dashboard","predicciones","temporadas"].includes(v)) seguro(MN_PINTAR[v]); if(v === "simulador" && S.rep) pintarVentas(pronostico(S.rep)); }); }
@@ -2594,33 +2653,10 @@ $("mn-sub").addEventListener("click", e => { const b = e.target.closest("button[
 /* ==================== TRES MÓDULOS Y TABLAS (pedido del docente, 27-11-2026) ====================
    Cada módulo presta las mismas pantallas que «Minería de datos» y muestra sólo sus gráficos; Tablas presta todas y
    muestra sólo sus tablas. Debajo de cada gráfico, «Ver la tabla» lleva a la tabla que lo respalda. */
-const MODULOS = {m1:["tab","temporadas","predicciones"], m2:["alertas","rotacion","plan","cap"], m3:["simulador","proveedores","tc","ing"]};
-const MOD_TEC = {tab:"desc", dashboard:"desc", clientes:"desc", val:"sba", predicciones:"logit", temporadas:"estac", rotacion:"abc", plan:"abc", alertas:"ss", simulador:"mc", cap:"mc", tc:"tc", ing:"ing"};
-// Tablas que ya son un gráfico (mapa de calor, matriz, barras dentro de la fila): se quedan también en el módulo.
-const TB_VISUALES = ["t-rt-mat", "t-tm-mapa", "t-pr"];
-// Pantallas que sólo tenían tabla: el módulo dibuja barras con las mismas filas de la tabla, así no pueden diferir.
-// et: columna del nombre; col: columna del valor; min: se destaca el menor (si no, el mayor).
-const urgencia = r => /Pedir ya/.test(r.innerText) ? "var(--bad)" : /Vigilar/.test(r.innerText) ? "var(--warn)" : "#c9cec8";
-const cuantos = (f, c) => { const n = f.filter(x => x.c === c).length; return `${n} ${n === 1 ? "repuesto" : "repuestos"}`; };
-const TB_BARRAS = {
-  // Ordenadas por urgencia, como la tabla: el color dice la urgencia y la etiqueta, el costo del pedido.
-  "t-alertas": {et:0, col:8, color:urgencia, tit:(d, f) => `${cuantos(f, "var(--bad)")} hay que pedir ya y ${cuantos(f, "var(--warn)")} vigilar; pedir todo cuesta ${bs(f.reduce((s, x) => s + x.v, 0))}`},
-  "t-pv": {et:0, col:2, min:true, tit:d => `${d.e} es el que deja el repuesto más barato en Santa Cruz: ${d.txt}`},
-  "t-plan": {et:1, col:4, color:urgencia, tit:d => `Con el presupuesto entran estos repuestos; el que más pesa es ${d.e}: ${d.txt}`},
-  "t-cli": {et:1, col:2, max:10, tit:d => `${d.e} es el cliente que más compra: ${d.txt}`},
-  "t-cli-tipo": {et:1, col:2, tit:d => `Los clientes de tipo «${d.e}» son los que más compran: ${d.txt}`},
-  "t-tc2": {et:0, col:3, tit:d => `Con el dólar paralelo, ${d.e} es el que más sube: ${d.txt} por unidad`}};
-const numTexto = x => Number(x.replace(/−/g, "-").replace(/[^\d,\-]/g, "").replace(",", "."));
-function barrasDeTabla(t, g, cfg){
-  const filas = [...(t.tBodies[0] || {rows:[]}).rows].filter(r => r.cells.length > cfg.col)
-    .map(r => ({c:cfg.color ? cfg.color(r) : null, e:(e => /^REP-\d+$/.test(e) && REP[e] ? nombreRep(e) : e)(((c => c.querySelector("b") || c.firstChild || c)(r.cells[cfg.et]).textContent || "").trim().replace(/^Proveedor /, "")), txt:r.cells[cfg.col].innerText.split("\n")[0].trim(), v:numTexto(r.cells[cfg.col].innerText.split("\n")[0])}))
-    .filter(d => d.txt !== "—" && isFinite(d.v)).slice(0, cfg.max || 15);   // «—»: sin pedido, no es una barra en cero
-  if(!filas.length) return;
-  const top = filas.reduce((a, d) => (cfg.min ? d.v < a.v : d.v > a.v) ? d : a, filas[0]);
-  const tit = cfg.tit(top, filas);
-  g.innerHTML = `<h3 class="chart-t">${esc(tit)}</h3>` + (cfg.color ? `<div class="legend"><span><i class="sw" style="background:var(--bad)"></i>Pedir ya</span><span><i class="sw" style="background:var(--warn)"></i>Vigilar</span></div>` : "") + svgBarras(filas, Math.max(300, g.clientWidth || 900), top, tit);
-}
-// Barras horizontales: {e: nombre, txt: valor escrito, v: valor}; la fila «top» va en verde.
+// Revisión del 27-11-2026 (Sam): cada módulo es UN tablero; las pantallas viejas quedan fuera del menú y redirigidas.
+const MODULOS = {m1:["tab"], m2:["rep"], m3:["cost"]};
+const TABLAS_EXTRA = {m3:["ing"]};   // solo respaldo: no se muestra en el módulo
+// Barras horizontales: {e: nombre, txt: valor escrito, v: valor, c: color opcional}; la fila «top» va en verde.
 function svgBarras(filas, W, top, titulo){
   const et = Math.min(260, Math.round(W * .38)), vr = 90, h = 26, H = filas.length * h + 8;
   const cab = Math.floor((et - 12) / 6.6);   // letras que caben en la columna del nombre (12 px por letra ≈ 6,6 de ancho)
@@ -2632,33 +2668,27 @@ function svgBarras(filas, W, top, titulo){
 }
 function prepararTablas(cont, graficos){
   cont.querySelectorAll(".chartbox, .legend").forEach(c => c.classList.add("solo-graf"));
-  cont.querySelectorAll("button.mas").forEach(b => b.classList.add("solo-tabla"));
   cont.querySelectorAll("table").forEach(t => {
-    if(TB_VISUALES.includes(t.id)) return;
     const sec = t.closest(".mn-fn, .vista"); if(!t.id) t.id = sec.id + "-t" + [...sec.querySelectorAll("table")].indexOf(t);
     const caja = t.closest("details") || t.closest(".scroll") || t; caja.classList.add("solo-tabla");
     if(!graficos && caja.tagName === "DETAILS") caja.open = true;
     let link = caja.previousElementSibling;
     if(!link || !link.classList.contains("ver-tabla")){ link = document.createElement("a"); link.className = "ver-tabla"; link.href = "#tablas"; link.dataset.t = t.id; link.textContent = "Ver la tabla"; caja.before(link); }
-    const cfg = TB_BARRAS[t.id];
-    if(cfg && graficos){ let g = $("g-" + t.id); if(!g){ g = document.createElement("div"); g.id = "g-" + t.id; g.className = "chartbox deriv solo-graf"; link.before(g); } barrasDeTabla(t, g, cfg); }
   });
 }
-function prestarEn(k, cont, conTecnica){
+function prestarEn(k, cont){
   const nueva = k in MN_NUEVAS, s = $(nueva ? "mn-f-" + k : "v-" + k);
   if(!s || (!nueva && !puede(k))) return;
   if(!PREST[s.id]){ PREST[s.id] = document.createComment("lugar de " + s.id); s.before(PREST[s.id]); }
-  const tab = MN_TABS.find(t => t.k === MOD_TEC[k]), w = document.createElement("div"); w.className = "mn-prest";
-  w.innerHTML = conTecnica ? `<p class="de">${tab ? esc(tab.tec) : "Comparación de costos (no es una técnica de minería de datos)"}</p>` : "";
-  w.appendChild(s); cont.appendChild(w); s.hidden = false;
+  const w = document.createElement("div"); w.className = "mn-tablero"; w.appendChild(s); cont.appendChild(w); s.hidden = false;
   seguro(nueva ? MN_NUEVAS[k] : MN_PINTAR[k], nueva ? s : undefined); if(!nueva) pintado[k] = true;
 }
 function pintarModulo(m){
   devolverPrestadas(); const c = $(m + "-cont"); c.innerHTML = "";
-  MODULOS[m].forEach(k => prestarEn(k, c, true)); prepararTablas(c, true);
+  MODULOS[m].forEach(k => prestarEn(k, c)); prepararTablas(c, true);
 }
 function modRedibujar(){
-  MODULOS[S.vista].forEach(k => { if(MN_NUEVAS[k]) seguro(MN_NUEVAS[k]); if(["dashboard","predicciones","temporadas"].includes(k)) seguro(MN_PINTAR[k]); if(k === "simulador" && S.rep) pintarVentas(pronostico(S.rep)); });
+  MODULOS[S.vista].forEach(k => seguro(MN_NUEVAS[k]));
   prepararTablas($(S.vista + "-cont"), true);
 }
 function pintarTablas(){
@@ -2666,14 +2696,12 @@ function pintarTablas(){
   $("tb-ind").innerHTML = Object.keys(MODULOS).map((m, i) => `<a href="#tb-${m}">Módulo ${i + 1}: ${esc(VISTAS.find(x => x[0] === m)[1])}</a>`).join("");
   Object.entries(MODULOS).forEach(([m, ks], i) => {
     const h = document.createElement("h2"); h.className = "tb-mod"; h.id = "tb-" + m; h.textContent = `Módulo ${i + 1}: ${VISTAS.find(x => x[0] === m)[1]}`; c.appendChild(h);
-    ks.forEach(k => prestarEn(k, c, false)); });
+    ks.concat(TABLAS_EXTRA[m] || []).forEach(k => prestarEn(k, c)); });
   prepararTablas(c, false);
   if(S.tbFoco && $(S.tbFoco)){ const t = $(S.tbFoco); S.tbFoco = null;
     c.querySelectorAll(".tb-foco").forEach(x => x.classList.remove("tb-foco")); t.classList.add("tb-foco");
     requestAnimationFrame(() => t.scrollIntoView({block:"center"})); }
 }
-$("alts-det").addEventListener("click", e => { const v = $("alts").classList.toggle("ver");
-  e.currentTarget.setAttribute("aria-expanded", v); e.currentTarget.textContent = v ? "Ocultar el detalle" : "Ver el detalle de cada alternativa"; });
 // «Ver la tabla»: recuerda qué tabla mostrar y deja que el cambio de dirección (#tablas) abra la vista.
 document.addEventListener("click", e => { const a = e.target.closest("a.ver-tabla"); if(a) S.tbFoco = a.dataset.t; });
 // El índice de Tablas salta dentro de la vista sin cambiar la dirección (que es la de la vista).
@@ -2767,19 +2795,6 @@ function pintarTab(){
   $("tab-tipo-n").textContent = tipos[0].v / tot12 > .5 ? `Más de la mitad de lo que se vende se lo llevan los clientes de tipo «${tipos[0].e.toLowerCase()}»: son los que hay que cuidar.` : `Ningún tipo de cliente se lleva más de la mitad: las ventas están repartidas.`;
   $("t-tab-tipo").innerHTML = `<thead><tr><th>Tipo de cliente</th><th>Compras en 12 meses</th><th>Parte del total</th></tr></thead><tbody>` + tipos.map(t => `<tr><td>${esc(t.e)}</td><td>${bs(t.v)}</td><td>${t.txt}</td></tr>`).join("") + "</tbody>";
 
-  // 3. Cómo está el almacén (estado de las alertas de reposición).
-  const EST = [["pedir ya", "var(--bad)"], ["vigilar esta semana", "var(--warn)"], ["con stock suficiente", "var(--brand)"], ["sin datos de venta", "#c9cec8"]];
-  const cuenta = EST.map((x, e) => ({e:x[0], c:x[1], v:al.filter(a => a.est === e).length})), bien = cuenta[2].v;
-  cuenta.forEach(x => x.txt = nf(x.v));
-  $("tab-alm-h").textContent = `${ya.length} ${pal(ya.length, "repuesto hay", "repuestos hay")} que pedir ya; ${bien} de ${al.length} están bien`;
-  $("tab-alm-s").textContent = `Los ${al.length} repuestos, según su stock y lo que se espera vender mientras llega un pedido.`;
-  $("tab-alm-g").innerHTML = `<div class="dona">${dona(cuenta.filter(x => x.v), String(bien), [`de ${al.length}`, "están bien"])}<ul>${cuenta.filter(x => x.v).map(x => `<li><i style="background:${x.c}"></i><b>${x.v}</b> ${x.e}</li>`).join("")}<li><a class="ir" href="#m2">Ver qué pedir →</a></li></ul></div>`;
-  const urge = ya.slice().sort((a, b) => (porRep[b.id] || 0) - (porRep[a.id] || 0))[0];
-  $("tab-alm-n").textContent = urge ? `${nombreRep(urge.id)}, de los que más dinero dejan, tiene solo ${nf(urge.stock)} ${pal(urge.stock, "unidad", "unidades")}: hay que pedir hoy.` : "Ningún repuesto llegó al mínimo para pedir.";
-  $("tab-alm-n").classList.toggle("alerta", !!urge);
-  $("t-tab-alm").innerHTML = `<thead><tr><th>Repuesto</th><th>Estado</th><th>Stock</th><th>En camino</th><th>Pedir cuando queden</th></tr></thead><tbody>` +
-    al.slice().sort((a, b) => a.est - b.est).map(a => `<tr><td><b>${esc(nombreRep(a.id))}</b><span class="ayuda">${a.id}</span></td><td>${insignia(a.est)}</td><td>${nf(a.stock)}</td><td>${nf(a.en_camino)}</td><td>${a.est === 3 ? "—" : nf(a.punto_pedido)}</td></tr>`).join("") + "</tbody>";
-
   // 4. Qué tipo de repuesto vendemos más (categoría del catálogo, 12 meses).
   const catDe = {}; D.catalogo.repuestos.forEach(c => catDe[c.repuesto_id] = c.categoria);
   const porCat = {}; Object.entries(porRep).forEach(([id, v]) => { const c = catDe[id] || "Otros"; porCat[c] = (porCat[c] || 0) + v; });
@@ -2832,7 +2847,217 @@ function pintarTab(){
   $("tab-anio-n").textContent = nota || "Hace falta más de un año completo para comparar.";
   $("t-tab-anio").innerHTML = `<thead><tr><th>Año</th><th>Vendido</th><th>Piezas</th><th>Meses con datos</th></tr></thead><tbody>` +
     an.map(a => `<tr><td>${a.anio}</td><td>${bs(a.monto_bs)}</td><td>${nf(a.unidades)}</td><td>${a.meses}</td></tr>`).join("") + "</tbody>";
+  // 8. En qué meses se vende más (temporada de los 30 repuestos juntos).
+  const TMt = tmDatos().total, idx = TMt.indice, fuertes = TMt.meses_fuertes || [], pico = TMt.mes_pico;
+  $("tab-estac-h").textContent = `${capital(MES_L[pico - 1])} es el mes más fuerte: se vende ${nf((idx[pico - 1] - 1) * 100)} % más que un mes normal`;
+  $("tab-estac-s").textContent = "Venta de cada mes del año comparada con un mes normal (la línea), con todos los años de datos. En verde, los meses fuertes.";
+  { const g = $("tab-estac-g"), W = Math.max(300, g.clientWidth || 600), H = 220, pl = 40, pr = 8, pb = 40, bw = (W - pl - pr) / 12, mx = Math.max(...idx) * 1.12, Y = v => 10 + (1 - v / mx) * (H - pb - 10);
+    g.innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc($("tab-estac-h").textContent)}">` +
+      idx.map((v, i) => `<rect x="${(pl + i * bw + bw * .15).toFixed(1)}" y="${Y(v).toFixed(1)}" width="${(bw * .7).toFixed(1)}" height="${(H - pb - Y(v)).toFixed(1)}" rx="2" fill="${fuertes.includes(i + 1) ? "var(--brand)" : "#c9cec8"}"><title>${capital(MES_L[i])}: ${nf(v * 100)} % de un mes normal</title></rect>` +
+        `<text x="${(pl + i * bw + bw / 2).toFixed(1)}" y="${H - 24}" text-anchor="middle">${W < 480 ? MES[i].charAt(0) : MES[i]}</text>`).join("") +
+      `<line class="pe" x1="${pl}" x2="${W - pr}" y1="${Y(1)}" y2="${Y(1)}"/><text x="${pl - 4}" y="${Y(1) + 4}" text-anchor="end">normal</text></svg>`; }
+  $("tab-estac-n").textContent = `Los meses fuertes son ${fuertes.map(k => MES_L[k - 1]).join(", ").replace(/, ([^,]*)$/, " y $1")}: conviene tener el stock listo antes de que empiecen.`;
+  $("t-tab-estac").innerHTML = `<thead><tr><th>Mes</th><th>Venta promedio (unidades)</th><th>Frente a un mes normal</th><th>¿Mes fuerte?</th></tr></thead><tbody>` +
+    idx.map((v, i) => `<tr><td>${capital(MES_L[i])}</td><td>${nf(TMt.promedio_mes[i], 1)}</td><td>${nf(v * 100)} %</td><td>${fuertes.includes(i + 1) ? "Sí" : "No"}</td></tr>`).join("") + "</tbody>";
+
+  // 9. Qué se venderá el mes que viene (probabilidad de cada repuesto).
+  const PRd = D.prediccion;
+  if(PRd){ const NIV = {alta:["Probable","var(--brand)"], media:["Posible","#86c49c"], baja:["Poco probable","#c9cec8"]};
+    const pr = PRd.predicciones.slice().sort((a, b) => b.probabilidad - a.probabilidad), alta = pr.filter(p => p.nivel === "alta").length, mesP = MES_L[+PRd.mes_predicho.slice(5, 7) - 1];
+    $("tab-pred-h").textContent = `${alta} ${pal(alta, "repuesto tiene", "repuestos tienen")} más de 50 % de probabilidad de venderse en ${mesP}`;
+    $("tab-pred-s").textContent = `Los 10 repuestos con más probabilidad de vender al menos una unidad en ${mesP}, calculada con su historial de ventas.`;
+    $("tab-pred-g").innerHTML = `<div class="legend">${Object.values(NIV).map(([t, c]) => `<span><i class="sw" style="background:${c}"></i>${t}</span>`).join("")}</div>` +
+      svgBarras(pr.slice(0, 10).map(p => ({e:nombreRep(p.repuesto_id), v:p.probabilidad * 100, txt:nf(p.probabilidad * 100) + " %", c:NIV[p.nivel][1]})), Math.max(300, $("tab-pred-g").clientWidth || 600), null, $("tab-pred-h").textContent);
+    $("tab-pred-n").textContent = `El más probable es ${nombreRep(pr[0].repuesto_id)} (${nf(pr[0].probabilidad * 100)} %): conviene asegurar su stock.`;
+    $("t-tab-pred").innerHTML = `<thead><tr><th>#</th><th>Repuesto</th><th>Probabilidad de venderse en ${mesP}</th><th>Nivel</th></tr></thead><tbody>` +
+      pr.map((p, i) => `<tr><td>${i + 1}</td><td><b>${esc(nombreRep(p.repuesto_id))}</b><span class="ayuda">${p.repuesto_id}</span></td><td>${nf(p.probabilidad * 100)} %</td><td>${NIV[p.nivel][0]}</td></tr>`).join("") + "</tbody>"; }
+  tecCards($("mn-f-tab"));
 }
+
+/* ---- Técnica de cada tarjeta de los tres tableros: va en chico al pie, para nombrarla en la defensa ---- */
+/* técnico: inicio */
+const TEC_CARD = {mes:"pronóstico SBA (método de Croston corregido) y comparación con el mismo mes del año anterior", estac:"índice estacional", pred:"regresión logística (clasificación)",
+  tipo:"estadística descriptiva", par:"principio de Pareto", cat:"estadística descriptiva", rep:"estadística descriptiva", anio:"estadística descriptiva",
+  alm:"punto de pedido (s, S)", urg:"punto de pedido (s, S) con stock de seguridad", abc:"clasificación ABC cruzada con la rotación del stock", plan:"priorización por urgencia y clase ABC dentro de un presupuesto", sobra:"rotación del stock (cobertura y meses sin venta)",
+  dol:"serie diaria del tipo de cambio oficial (BCB) y del paralelo", gana:"simulación de Monte Carlo con 1.500 futuros", quie:"simulación de Monte Carlo repetida para cada dólar (dólar de quiebre)", sens:"análisis de sensibilidad", cap:"simulación de Monte Carlo", prov:"costo puesto en Santa Cruz por proveedor", dif:"costo puesto con los dos tipos de cambio"};
+/* técnico: fin */
+function tecCards(sec){ sec.querySelectorAll("article.tab-c").forEach(a => { const k = a.id.slice(4), p = a.querySelector(".tec-c"); if(p && TEC_CARD[k]) p.textContent = "Técnica: " + TEC_CARD[k] + "."; }); }
+const nomCorto = id => nombreRep(id);
+const nomProv = n => String(n).replace(/^Proveedor /, "").replace(" (ficticio)", "");
+
+/* ---- Módulo 2: tablero de reposición ---- */
+const MAT_FIL = [["A","Mucho","los que suman el 80 % de lo vendido"],["B","Algo","del 80 al 95 %"],["C","Poco","el 5 % restante"]];
+const MAT_COL = [["alta","Rápido","se vende en 3 meses o menos"],["media","Normal","hasta 12 meses"],["baja","Lento","más de un año o sin ventas"]];
+const MAT_CEL = {A:{alta:["Imprescindibles","ok"],media:["Importantes, ritmo normal","ok"],baja:["Caros y lentos","warn"]},
+  B:{alta:["Rápidos de valor medio","ok"],media:["Valor medio, ritmo normal",""],baja:["Valor medio y lentos","warn"]},
+  C:{alta:["Baratos que salen",""],media:["Baratos de ritmo normal",""],baja:["Sobran","bad"]}};
+function pintarRep(){
+  const tc = tcHoy(), Dm = DM(), al = alertas(), R = Motor.rotacion(Dm, tc);
+  const ya = al.filter(a => a.est === 0), vig = al.filter(a => a.est === 1), urg = al.filter(a => a.est < 2), costoUrg = urg.reduce((s, a) => s + a.costo_bs, 0);
+  $("rp-kpis").innerHTML = `
+    <div class="kpi"><div class="t">¿Qué hay que pedir ya?</div><div class="v c-bad">${ya.length}<small>${pal(ya.length, "repuesto", "repuestos")}</small></div><div class="d">llegaron al mínimo para pedir</div></div>
+    <div class="kpi"><div class="t">¿Qué hay que vigilar?</div><div class="v c-warn">${vig.length}<small>${pal(vig.length, "repuesto", "repuestos")}</small></div><div class="d">llegarán al mínimo antes de que pueda llegar un pedido</div></div>
+    <div class="kpi"><div class="t">¿Cuánto cuesta pedir todo?</div><div class="v">${bs(costoUrg)}</div><div class="d">lo de «pedir ya» y «vigilar», puesto en Santa Cruz</div></div>
+    <div class="kpi"><div class="t">¿Cuánto dinero está parado?</div><div class="v">${bs(R.valor_acumulado_bs)}</div><div class="d">en ${R.acumulacion} ${pal(R.acumulacion, "repuesto", "repuestos")} que casi no se venden</div></div>`;
+
+  // 1. Estado del almacén.
+  const EST = [["pedir ya", "var(--bad)"], ["vigilar", "var(--warn)"], ["con stock suficiente", "var(--brand)"], ["sin datos de venta", "#c9cec8"]];
+  const cuenta = EST.map((x, e) => ({e:x[0], c:x[1], v:al.filter(a => a.est === e).length, txt:""})), bien = cuenta[2].v;
+  $("tab-alm-h").textContent = `${bien} de ${al.length} repuestos tienen stock suficiente; ${ya.length} hay que pedirlos ya`;
+  $("tab-alm-s").textContent = `Los ${al.length} repuestos según su stock y lo que se espera vender mientras llega un pedido.`;
+  $("tab-alm-g").innerHTML = `<div class="dona">${dona(cuenta.filter(x => x.v), String(bien), [`de ${al.length}`, "están bien"])}<ul>${cuenta.filter(x => x.v).map(x => `<li><i style="background:${x.c}"></i><b>${x.v}</b> ${x.e}</li>`).join("")}</ul></div>`;
+  const porVenta = {}; R.repuestos.forEach(f => porVenta[f.id] = f.valor12_bs || 0);
+  const masVende = ya.slice().sort((a, b) => (porVenta[b.id] || 0) - (porVenta[a.id] || 0))[0];
+  $("tab-alm-n").textContent = masVende ? `${nomCorto(masVende.id)}, de los que más dinero dejan, tiene solo ${nf(masVende.stock)} ${pal(masVende.stock, "unidad", "unidades")}: hay que pedir hoy.` : "Ningún repuesto llegó al mínimo para pedir.";
+  $("tab-alm-n").classList.toggle("alerta", !!masVende);
+  $("t-tab-alm").innerHTML = `<thead><tr><th>Estado</th><th>Repuestos</th></tr></thead><tbody>` + cuenta.map(x => `<tr><td>${capital(x.e)}</td><td>${x.v}</td></tr>`).join("") + "</tbody>";
+
+  // 2. Qué pedir: por urgencia, con el costo de cada pedido.
+  const filas = urg.map(a => ({e:nomCorto(a.id), v:a.costo_bs, txt:bs(a.costo_bs), c:a.est === 0 ? "var(--bad)" : "var(--warn)"}));
+  $("tab-urg-h").textContent = `${ya.length} ${pal(ya.length, "repuesto", "repuestos")} hay que pedir ya y ${vig.length} vigilar; pedir todo cuesta ${bs(costoUrg)}`;
+  $("tab-urg-s").textContent = "Del más urgente al menos urgente. El color dice la urgencia y la cifra, lo que cuesta el pedido sugerido.";
+  $("tab-urg-g").innerHTML = filas.length ? `<div class="legend"><span><i class="sw" style="background:var(--bad)"></i>Pedir ya</span><span><i class="sw" style="background:var(--warn)"></i>Vigilar</span></div>` + svgBarras(filas, Math.max(300, $("tab-urg-g").clientWidth || 600), null, $("tab-urg-h").textContent) : '<p class="pie">No hay pedidos pendientes.</p>';
+  $("tab-urg-n").textContent = ya.length ? `Primero ${ya.map(a => nomCorto(a.id)).join(", ").replace(/, ([^,]*)$/, " y $1")}: ya llegaron al mínimo.` : "Nada llegó al mínimo: alcanza con vigilar.";
+  $("t-tab-urg").innerHTML = `<thead><tr><th>Repuesto</th><th>Estado</th><th>Stock</th><th>En camino</th><th>Pedir cuando queden</th><th>Cantidad sugerida</th><th>Costo final en Santa Cruz</th></tr></thead><tbody>` +
+    al.map(a => `<tr><td><b>${esc(nomCorto(a.id))}</b><span class="ayuda">${a.id}</span></td><td>${insignia(a.est)}</td><td>${nf(a.stock)}</td><td>${nf(a.en_camino)}</td><td>${a.est === 3 ? "—" : nf(a.punto_pedido)}</td><td>${a.est < 2 ? nf(a.cantidad_sugerida) : "—"}</td><td>${a.est < 2 ? bs(a.costo_bs) : "—"}</td></tr>`).join("") + "</tbody>";
+
+  // 3. Importancia por rapidez de venta (matriz como gráfico).
+  const M = R.matriz;
+  $("tab-abc-h").textContent = `${M.A.alta} repuestos importantes salen rápido y no pueden faltar; ${M.C.baja} sobran`;
+  $("tab-abc-s").textContent = "Filas: cuánto vende cada repuesto en dinero. Columnas: qué tan rápido se vende su stock. Cada casilla dice cuántos repuestos hay.";
+  $("tab-abc-g").innerHTML = `<div class="mat" role="img" aria-label="${esc($("tab-abc-h").textContent)}"><div class="mh"></div>` +
+    MAT_COL.map(([, t, d]) => `<div class="mh"><b>${t}</b><span>${d}</span></div>`).join("") +
+    MAT_FIL.map(([k, t, d]) => `<div class="mf"><b>${t}</b><span>${d}</span></div>` + MAT_COL.map(([c]) => { const [n, cl] = MAT_CEL[k][c];
+      return `<div class="mc ${cl}${M[k][c] ? "" : " cero"}"><b>${M[k][c]}</b><span>${n}</span></div>`; }).join("")).join("") + "</div>";
+  const rev = R.repuestos.filter(f => f.clase_abc === "A" && f.clase_rot === "baja").sort((a, b) => b.valor12_bs - a.valor12_bs)[0];
+  $("tab-abc-n").textContent = `Los ${M.A.alta} de arriba a la izquierda se revisan cada semana. Los ${M.C.baja} de abajo a la derecha no se vuelven a comprar.` + (rev ? ` Ojo con ${nomCorto(rev.id)}: vende mucho en dinero pero sale lento.` : "");
+  const COLT = {alta:"Rápido", media:"Normal", baja:"Lento"}, FILT = {A:"Mucho", B:"Algo", C:"Poco"};
+  $("t-tab-abc").innerHTML = `<thead><tr><th>Repuesto</th><th>Vende en dinero</th><th>Qué tan rápido sale</th><th>Vendido en 12 meses</th><th>Le alcanza el stock para</th><th>Grupo</th></tr></thead><tbody>` +
+    R.repuestos.map(f => `<tr><td><b>${esc(nomCorto(f.id))}</b><span class="ayuda">${f.id}</span></td><td>${FILT[f.clase_abc] || "—"}</td><td>${COLT[f.clase_rot] || "—"}</td><td>${bs(f.valor12_bs || 0)}</td><td>${f.cobertura_meses === null || !isFinite(f.cobertura_meses) ? "—" : nf(f.cobertura_meses, 1) + " meses"}</td><td>${MAT_CEL[f.clase_abc] && MAT_CEL[f.clase_abc][f.clase_rot] ? MAT_CEL[f.clase_abc][f.clase_rot][0] : "—"}</td></tr>`).join("") + "</tbody>";
+
+  // 4. Qué entra con el presupuesto.
+  if(!S.presu) S.presu = Math.max(1000, Math.round(costoUrg / 2 / 1000) * 1000);
+  if(document.activeElement !== $("rp-presu")) $("rp-presu").value = S.presu;
+  const plan = Motor.planPresupuesto(urg, S.presu), entran = plan.filter(f => f.alcanza), usado = entran.reduce((s, f) => s + f.costo_bs, 0);
+  $("tab-plan-h").textContent = plan.length ? `Con ${bs(S.presu)} entran ${entran.length} de ${plan.length} pedidos; pedir todo cuesta ${bs(plan[plan.length - 1].acumulado_bs)}` : "No hay pedidos pendientes";
+  $("tab-plan-s").textContent = "En el orden en que conviene comprar: primero lo más urgente y lo más importante. En verde, lo que entra en el presupuesto.";
+  $("tab-plan-g").innerHTML = plan.length ? svgBarras(plan.map(f => ({e:nomCorto(f.id), v:f.costo_bs, txt:bs(f.costo_bs), c:f.alcanza ? "var(--brand)" : "#c9cec8"})), Math.max(300, $("tab-plan-g").clientWidth || 600), null, $("tab-plan-h").textContent) : "";
+  const fuera = plan.find(f => !f.alcanza);
+  $("tab-plan-n").textContent = !plan.length ? "" : fuera ? `Se usan ${bs(usado)}. Para sumar ${nomCorto(fuera.id)} hacen falta ${bs(fuera.acumulado_bs - S.presu)} más.` : `Alcanza para todo y sobran ${bs(S.presu - usado)}.`;
+  $("t-tab-plan").innerHTML = `<thead><tr><th>Orden</th><th>Repuesto</th><th>Estado</th><th>Costo</th><th>Acumulado</th><th>¿Entra?</th></tr></thead><tbody>` +
+    plan.map((f, i) => `<tr><td>${i + 1}</td><td><b>${esc(nomCorto(f.id))}</b><span class="ayuda">${f.id}</span></td><td>${insignia(f.est)}</td><td>${bs(f.costo_bs)}</td><td>${bs(f.acumulado_bs)}</td><td>${f.alcanza ? "Sí" : "No"}</td></tr>`).join("") + "</tbody>";
+
+  // 5. Lo que sobra y el dinero que deja parado.
+  const sob = R.repuestos.filter(f => f.acumulacion).sort((a, b) => b.valor_stock_bs - a.valor_stock_bs);
+  $("tab-sobra-h").textContent = sob.length ? `${sob.length} repuestos sobran y dejan ${bs(R.valor_acumulado_bs)} parados; el que más, ${nomCorto(sob[0].id)}` : "Ningún repuesto tiene stock de más";
+  $("tab-sobra-s").textContent = "Dinero en stock de los repuestos que tienen más de lo necesario o que no se venden hace un año.";
+  $("tab-sobra-g").innerHTML = sob.length ? svgBarras(sob.map(f => ({e:nomCorto(f.id), v:f.valor_stock_bs, txt:bs(f.valor_stock_bs)})), Math.max(300, $("tab-sobra-g").clientWidth || 600), {}, $("tab-sobra-h").textContent) : "";
+  $("tab-sobra-n").textContent = sob.length ? "No volver a comprarlos hasta que bajen; conviene ofrecerlos en promoción para liberar dinero." : "";
+  $("tab-sobra-n").style.cssText = sob.length ? "background:var(--warn-soft);border-color:#f1d9a6;color:#5a3d00" : "";
+  $("t-tab-sobra").innerHTML = `<thead><tr><th>Repuesto</th><th>Stock</th><th>Dinero parado</th><th>Meses sin venta</th><th>Por qué sobra</th></tr></thead><tbody>` +
+    sob.map(f => `<tr><td><b>${esc(nomCorto(f.id))}</b><span class="ayuda">${f.id}</span></td><td>${nf(f.stock)}</td><td>${bs(f.valor_stock_bs)}</td><td>${f.meses_sin_venta}</td><td style="text-align:left">${esc(f.motivos_acumulacion.join("; "))}</td></tr>`).join("") + "</tbody>";
+  tecCards($("mn-f-rep"));
+}
+$("rp-presu").addEventListener("input", e => { const v = parseFloat(e.target.value); if(v >= 0){ clearTimeout(tPresu); tPresu = setTimeout(() => { S.presu = v; seguro(pintarRep); prepararTablas($("m2-cont"), true); }, 200); } });
+
+/* ---- Módulo 3: tablero de costo y riesgo ---- */
+const csMemo = {};
+function csCorrer(id){
+  const clave = id + "|" + tcHoy(); if(csMemo[clave]) return csMemo[clave];
+  const s = {tc_base:tcHoy(), tc_90:tcHoy(), venta_pct:0, atraso_dias:0, precio_sigue_dolar:true}, prov = REP[id].proveedor_id;
+  return csMemo[clave] = {R:Motor.simular(D, id, prov, s, OPC), Q:Motor.quiebreDolar(D, id, prov, s, OPC), T:Motor.sensibilidad(D, id, prov, s, OPC)};
+}
+function pintarCost(){
+  const ids = D.repuestos.map(r => r.repuesto_id).filter(id => (D.ventas[id] || []).length);
+  if(!S.csRep || !ids.includes(S.csRep)){ const al = alertas(); S.csRep = (al.find(a => a.est === 0 && ids.includes(a.id)) || {id:ids[0]}).id; }
+  $("cs-rep").innerHTML = ids.map(id => `<option value="${id}">${esc(nomCorto(id))} (${id})</option>`).join(""); $("cs-rep").value = S.csRep;
+  const id = S.csRep, nom = nomCorto(id), {R, Q, T} = csCorrer(id), brecha = (PA.valor - tcHoy()) / tcHoy() * 100;
+  $("cs-kpis").innerHTML = `
+    <div class="kpi"><div class="t">Dólar oficial</div><div class="v">${nf(tcHoy(), 2)}<small>Bs</small></div><div class="d">Banco Central de Bolivia, ${fecha(OF.fecha)}</div></div>
+    <div class="kpi"><div class="t">Dólar paralelo</div><div class="v">${nf(PA.valor, 2)}<small>Bs</small></div><div class="d">referencia privada, ${fecha(PA.fecha)}</div></div>
+    <div class="kpi"><div class="t">Diferencia</div><div class="v">${brecha >= 0 ? "+" : "−"}${nf(Math.abs(brecha), 1)}<small>%</small></div><div class="d">paralelo frente al oficial</div></div>
+    <div class="kpi"><div class="t">¿Desde qué dólar comprar más?</div><div class="v">${Q ? nf(Q.valor, 2) + "<small>Bs</small>" : "—"}</div><div class="d">${Q ? `para ${esc(nom)}` : "no depende del dólar"}</div></div>`;
+
+  // 1. El dólar en el tiempo.
+  const se = D.tc.serie, ps = (PA.serie || []).filter(x => x[0] >= se[0][0]), g = $("tab-dol-g"), W = Math.max(320, g.clientWidth || 900), H = 240, pl = 56, pr = 16, pb = 44;
+  const vs = se.map(x => x[1]).concat(ps.map(x => x[1])), lo = Math.floor(Math.min(...vs) * 2) / 2, hi = Math.ceil(Math.max(...vs) * 2) / 2;
+  const t0 = Date.parse(se[0][0]), t1 = Date.parse(se[se.length - 1][0]), X = f => pl + (Date.parse(f) - t0) / Math.max(1, t1 - t0) * (W - pl - pr), Y = v => 10 + (hi - v) / Math.max(.01, hi - lo) * (H - pb - 10);
+  $("tab-dol-h").textContent = `El dólar oficial pasó de ${nf(se[0][1], 2)} a ${nf(tcHoy(), 2)} Bs desde ${fecha(se[0][0])}; el paralelo está ${nf(Math.abs(brecha), 1)} % ${brecha >= 0 ? "más caro" : "más barato"}`;
+  $("tab-dol-s").textContent = "Bolivianos por dólar. Línea verde: oficial, cada día. Puntos grises: paralelo, en los días en que se guardó.";
+  g.innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc($("tab-dol-h").textContent)}">` +
+    [lo, (lo + hi) / 2, hi].map(v => `<line class="grid" x1="${pl}" x2="${W - pr}" y1="${Y(v)}" y2="${Y(v)}"/><text x="${pl - 6}" y="${Y(v) + 4}" text-anchor="end">${nf(v, 2)}</text>`).join("") +
+    `<path class="ln" stroke="var(--brand)" d="${se.map((x, i) => `${i ? "L" : "M"}${X(x[0]).toFixed(1)} ${Y(x[1]).toFixed(1)}`).join(" ")}"/>` +
+    ps.map(x => `<circle cx="${X(x[0]).toFixed(1)}" cy="${Y(x[1]).toFixed(1)}" r="3.5" fill="#8d938c"><title>Paralelo ${x[0]}: ${nf(x[1], 2)}</title></circle>`).join("") +
+    [se[0], se[Math.floor(se.length / 2)], se[se.length - 1]].map((x, i) => `<text x="${X(x[0])}" y="${H - 24}" text-anchor="${["start","middle","end"][i]}">${fecha(x[0])}</text>`).join("") +
+    `<text class="axt" x="${(pl + W - pr) / 2}" y="${H - 4}" text-anchor="middle">Fecha</text></svg>`;
+  $("tab-dol-n").textContent = `Cada 10 centavos que sube el dólar encarecen las compras. Los cálculos usan el oficial; el paralelo es solo una referencia.`;
+  const PAm = {}; ps.forEach(x => PAm[x[0]] = x[1]);
+  $("t-tab-dol").innerHTML = `<thead><tr><th>Fecha</th><th>Oficial</th><th>Paralelo</th></tr></thead><tbody>` + se.slice().reverse().map(x => `<tr><td>${fecha(x[0])}</td><td>${nf(x[1], 2)}</td><td>${PAm[x[0]] ? nf(PAm[x[0]], 2) : "—"}</td></tr>`).join("") + "</tbody>";
+
+  // 2. Cuánto pedir: de cada 100 casos, cuál gana.
+  const L = ["A","B","C","D"], m = R.mejor;
+  $("tab-gana-h").textContent = `Para ${nom}, conviene ${ALT[m].t.toLowerCase()}: gana en ${R[m].puntaje} de cada 100 casos`;
+  $("tab-gana-s").textContent = "Se probaron 1.500 futuros posibles de 90 días, cada uno con otro dólar, otra venta y otra demora. La barra dice en cuántos de cada 100 esa forma de comprar dejó más ganancia.";
+  $("tab-gana-g").innerHTML = svgBarras(L.map(k => ({e:`${k}. ${ALT[k].t}`, v:R[k].puntaje, txt:`${R[k].puntaje} de 100`, c:k === m ? "var(--brand)" : "#c9cec8"})), Math.max(300, $("tab-gana-g").clientWidth || 600), null, $("tab-gana-h").textContent);
+  $("tab-gana-n").innerHTML = `Pedir ${R[m].cantidad === 1 ? "1 unidad" : nf(R[m].cantidad) + " unidades"} cuesta ${bs(R[m].costo.total_bs)} puesto en Santa Cruz. <a class="ir" href="#simulador" id="cs-abrir">Abrir el simulador con este repuesto →</a>`;
+  $("cs-abrir").addEventListener("click", e => { e.preventDefault(); abrirEnSimulador(id); });
+  $("t-tab-gana").innerHTML = `<thead><tr><th>Forma de comprar</th><th>Gana de cada 100</th><th>Cantidad</th><th>Costo final</th><th>Riesgo de quedarse sin stock</th><th>Dinero parado</th><th>Ganancia esperada en 90 días</th></tr></thead><tbody>` +
+    L.map(k => { const o = R[k]; return `<tr><td><b>${k}. ${esc(ALT[k].t)}</b></td><td>${o.puntaje}</td><td>${nf(o.cantidad)}</td><td>${bs(o.costo.total_bs)}</td><td>${nf(o.riesgo_quiebre)} %</td><td>${bs(o.capital_inmovilizado_bs)}</td><td>${bs(o.ganancia_media_bs)}</td></tr>`; }).join("") + "</tbody>";
+
+  // 3. Desde qué dólar conviene comprar más.
+  { const g = $("tab-quie-g"), W = Math.max(300, g.clientWidth || 600), H = 120, pl = 12, pr = 12, X = v => pl + (Math.min(15, Math.max(9, v)) - 9) / 6 * (W - pl - pr), hoy = tcHoy();
+    $("tab-quie-h").textContent = Q ? `Si el dólar pasa de ${nf(Q.valor, 2)} Bs, conviene ${ALT[Q.despues].t.toLowerCase()}; hoy está en ${nf(hoy, 2)}` : `Con cualquier dólar entre 9 y 15 Bs conviene ${ALT[m].t.toLowerCase()}`;
+    $("tab-quie-s").textContent = `Dólar que usted espera en 90 días, de 9 a 15 Bs, para ${nom}.`;
+    g.innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc($("tab-quie-h").textContent)}">` +
+      (Q ? `<rect x="${X(9)}" y="34" width="${X(Q.valor) - X(9)}" height="26" rx="5" fill="#e3e6e2"/><rect x="${X(Q.valor)}" y="34" width="${X(15) - X(Q.valor)}" height="26" rx="5" fill="var(--brand-soft)"/>` +
+        `<text x="${(X(9) + X(Q.valor)) / 2}" y="51" text-anchor="middle" class="lbl" style="fill:var(--ink-2)">${W < 480 ? Q.antes : Q.antes + ". " + ALT[Q.antes].t}</text><text x="${(X(Q.valor) + X(15)) / 2}" y="51" text-anchor="middle" class="lbl" style="fill:var(--brand-dark)">${W < 480 ? Q.despues : Q.despues + ". " + ALT[Q.despues].t}</text>` +
+        `<line x1="${X(Q.valor)}" x2="${X(Q.valor)}" y1="26" y2="68" stroke="var(--bad)" stroke-width="2"/><text x="${X(Q.valor)}" y="20" text-anchor="middle" class="lbl" style="fill:var(--bad)">desde ${nf(Q.valor, 2)}</text>`
+        : `<rect x="${X(9)}" y="34" width="${X(15) - X(9)}" height="26" rx="5" fill="var(--brand-soft)"/><text x="${(X(9) + X(15)) / 2}" y="51" text-anchor="middle" class="lbl" style="fill:var(--brand-dark)">${m}. ${ALT[m].t}</text>`) +
+      `<line x1="${X(hoy)}" x2="${X(hoy)}" y1="30" y2="64" stroke="var(--graphite)" stroke-width="2"/><text x="${X(hoy)}" y="${Q && Math.abs(X(hoy) - X(Q.valor)) < 60 ? 82 : 20}" text-anchor="middle" class="lbl">hoy ${nf(hoy, 2)}</text>` +
+      [9, 10, 11, 12, 13, 14, 15].map(v => `<text x="${X(v)}" y="${H - 18}" text-anchor="middle">${v}</text>`).join("") + `<text class="axt" x="${W / 2}" y="${H - 2}" text-anchor="middle">Dólar en 90 días (Bs)</text></svg>`;
+    $("tab-quie-n").textContent = Q ? `Si cree que en 90 días el dólar pasará de ${nf(Q.valor, 2)} Bs, conviene comprar más ahora; si no, ${ALT[Q.antes].t.toLowerCase()}.` : "La decisión no depende de adivinar el dólar.";
+    $("t-tab-quie").innerHTML = `<thead><tr><th>Dólar en 90 días</th><th>Conviene</th></tr></thead><tbody>` +
+      (Q ? `<tr><td>de 9,00 a ${nf(Q.valor, 2)} Bs</td><td>${Q.antes}. ${esc(ALT[Q.antes].t)}</td></tr><tr><td>de ${nf(Q.valor, 2)} a 15,00 Bs</td><td>${Q.despues}. ${esc(ALT[Q.despues].t)}</td></tr>` : `<tr><td>de 9,00 a 15,00 Bs</td><td>${m}. ${esc(ALT[m].t)}</td></tr>`) + "</tbody>"; }
+
+  // 4. Lo que más mueve el resultado.
+  const fr = {dolar:"El dólar", venta:"La venta", atraso:"El atraso del proveedor"};
+  $("tab-sens-h").textContent = `${fr[T[0].supuesto]} es lo que más mueve la ganancia: hasta ${bs(T[0].rango_bs)} de diferencia`;
+  $("tab-sens-s").textContent = "Cuánto cambia la ganancia esperada al llevar cada supuesto de un extremo al otro.";
+  $("tab-sens-g").innerHTML = svgBarras(T.map(t => ({e:SUP[t.supuesto][0], v:t.rango_bs, txt:bs(t.rango_bs)})), Math.max(300, $("tab-sens-g").clientWidth || 600), {}, $("tab-sens-h").textContent);
+  $("tab-sens-n").textContent = `Es el supuesto que conviene vigilar antes de comprar ${nom}.`;
+  $("t-tab-sens").innerHTML = `<thead><tr><th>Supuesto</th><th>Rango probado</th><th>Ganancia en un extremo</th><th>En el otro</th><th>Diferencia</th></tr></thead><tbody>` +
+    T.map(t => `<tr><td>${SUP[t.supuesto][0]}</td><td>${SUP[t.supuesto][1]}</td><td>${bs(t.de)}</td><td>${bs(t.a)}</td><td>${bs(t.rango_bs)}</td></tr>`).join("") + "</tbody>";
+
+  // 5. Dinero parado de cada forma de comprar.
+  const lo2 = L.reduce((x, k) => R[k].capital_inmovilizado_bs < R[x].capital_inmovilizado_bs ? k : x, "A"), hi2 = L.reduce((x, k) => R[k].capital_inmovilizado_bs > R[x].capital_inmovilizado_bs ? k : x, "A");
+  $("tab-cap-h").textContent = `${ALT[lo2].t} deja ${bs(R[lo2].capital_inmovilizado_bs)} parados; ${ALT[hi2].t.toLowerCase()}, ${bs(R[hi2].capital_inmovilizado_bs)}`;
+  $("tab-cap-s").textContent = `Dinero en mercadería todavía sin vender, en promedio durante los 90 días, para ${nom}.`;
+  $("tab-cap-g").innerHTML = svgBarras(L.map(k => ({e:`${k}. ${ALT[k].t}`, v:R[k].capital_inmovilizado_bs, txt:bs(R[k].capital_inmovilizado_bs), c:k === m ? "var(--brand)" : "#c9cec8"})), Math.max(300, $("tab-cap-g").clientWidth || 600), null, $("tab-cap-h").textContent);
+  $("tab-cap-n").textContent = `Comprar de más protege del dólar, pero deja dinero quieto en el depósito.`;
+  $("t-tab-cap").innerHTML = `<thead><tr><th>Forma de comprar</th><th>Dinero parado</th></tr></thead><tbody>` + L.map(k => `<tr><td>${k}. ${esc(ALT[k].t)}</td><td>${bs(R[k].capital_inmovilizado_bs)}</td></tr>`).join("") + "</tbody>";
+
+  // 6. Qué proveedor sale más barato para este repuesto.
+  const pv = Motor.compararProveedores(D, id, tcHoy()).slice().sort((a, b) => a.total_bs - b.total_bs), b0 = pv[0];
+  $("tab-prov-h").textContent = `${nomProv(b0.nombre)} deja ${nom} más barato en Santa Cruz: ${bs(b0.total_bs)}`;
+  $("tab-prov-s").textContent = "Costo final de una unidad: fábrica, flete y aduana, con el dólar oficial de hoy.";
+  $("tab-prov-g").innerHTML = svgBarras(pv.map(p => ({e:nomProv(p.nombre), v:p.total_bs, txt:bs(p.total_bs), c:p === b0 ? "var(--brand)" : "#c9cec8"})), Math.max(300, $("tab-prov-g").clientWidth || 600), null, $("tab-prov-h").textContent);
+  $("tab-prov-n").textContent = `Tarda ${b0.plazo_normal_dias} días y entrega a tiempo ${b0.pct_entregas_a_tiempo} de cada 100 pedidos.` + (b0.asignado ? " Es el proveedor de hoy." : "");
+  $("t-tab-prov").innerHTML = `<thead><tr><th>Proveedor</th><th>Origen</th><th>Costo final</th><th>Plazo</th><th>Entregas a tiempo</th></tr></thead><tbody>` +
+    pv.map(p => `<tr><td>${esc(nomProv(p.nombre))}${p.asignado ? '<span class="ayuda">el de hoy</span>' : ""}</td><td>${esc(p.origen)}</td><td>${bs(p.total_bs)}</td><td>${p.plazo_normal_dias} días</td><td>${p.pct_entregas_a_tiempo} de 100</td></tr>`).join("") + "</tbody>";
+
+  // 7. Cuánto sube cada repuesto con el paralelo.
+  const PRV2 = {}; D.proveedores.forEach(p => PRV2[p.proveedor_id] = p);
+  const dif = D.repuestos.map(r => ({id:r.repuesto_id, o:Motor.costoPuesto(r, PRV2[r.proveedor_id], tcHoy()).total_bs, p:Motor.costoPuesto(r, PRV2[r.proveedor_id], PA.valor).total_bs})).sort((a, b) => (b.p - b.o) - (a.p - a.o));
+  $("tab-dif-h").textContent = `Con el dólar paralelo, ${nomCorto(dif[0].id)} es el que más sube: ${bs(dif[0].p - dif[0].o)} por unidad`;
+  $("tab-dif-s").textContent = "Diferencia por unidad entre pagar con el paralelo y con el oficial. Los 10 que más cambian.";
+  $("tab-dif-g").innerHTML = svgBarras(dif.slice(0, 10).map(f => ({e:nomCorto(f.id), v:f.p - f.o, txt:"+" + bs(f.p - f.o)})), Math.max(300, $("tab-dif-g").clientWidth || 600), {}, $("tab-dif-h").textContent);
+  const so = dif.reduce((s, f) => s + f.o, 0), sp = dif.reduce((s, f) => s + f.p, 0);
+  $("tab-dif-n").textContent = `Una unidad de cada uno de los ${dif.length} repuestos cuesta ${bs(so)} con el oficial y ${bs(sp)} con el paralelo.`;
+  $("t-tab-dif").innerHTML = `<thead><tr><th>Repuesto</th><th>Con el oficial</th><th>Con el paralelo</th><th>Diferencia por unidad</th></tr></thead><tbody>` +
+    dif.map(f => `<tr><td><b>${esc(nomCorto(f.id))}</b><span class="ayuda">${f.id}</span></td><td>${bs(f.o)}</td><td>${bs(f.p)}</td><td>+${bs(f.p - f.o)}</td></tr>`).join("") + "</tbody>";
+  tecCards($("mn-f-cost"));
+}
+$("cs-rep").addEventListener("change", e => { S.csRep = e.target.value; seguro(pintarCost); prepararTablas($("m3-cont"), true); });
 
 /* ---- a. Pronóstico contra lo vendido (backtest de 12 meses) ---- */
 let VAL = null;
