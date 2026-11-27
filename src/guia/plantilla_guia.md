@@ -39,7 +39,7 @@ El área de la empresa tiene trece pantallas, agrupadas en el menú:
 
 | Grupo | Pantalla | Pregunta que responde | Historia |
 |---|---|---|---|
-| Resumen | Tablero de ventas | ¿Cómo van las ventas? | SCRUM-79 |
+| Resumen | Tablero de ventas | ¿Cómo van las ventas, quién nos compra y qué hay que reponer? | SCRUM-79 |
 | Resumen | Predicción de ventas | ¿Qué repuestos se venderán el mes que viene? | SCRUM-80 |
 | Decidir | Alertas de reposición | ¿Qué hay que pedir esta semana? | SCRUM-66 (HU-09) |
 | Decidir | Simulador de compra | ¿Cuánto pedir y cuándo? | SCRUM-53 a SCRUM-64 |
@@ -203,24 +203,39 @@ horas y va firmada con una clave secreta guardada en Cloudflare.
 
 ### 4.3 Tablero de ventas — SCRUM-79
 
-- **Qué muestra:**
-  - ventas totales: {{db_total}}, {{db_unidades}} unidades de {{mes_ini}} a {{mes_fin}};
-  - ventas de los últimos 12 meses: {{db_ult12}}, contra {{db_prev12}} de los 12 anteriores ({{db_var12}});
-  - repuesto más vendido: {{db_top_rep}}, con {{db_top_rep_u}} unidades;
-  - cliente que más compra: {{db_top_cli}} ({{db_top_cli_pct}}); los 5 primeros suman el {{db_top5}};
-  - gráfico de unidades por mes con su promedio móvil de 12 meses, ventas por año y evolución de cada cliente por
-    trimestre.
-- **Técnica:** estadística descriptiva (totales, ordenamientos, serie mensual, promedio móvil) y concentración
-  (Pareto).
+Desde el 27-11-2026 es una pantalla para la gerencia: se entiende sin saber estadística. Lleva más gráficos simples
+(columnas, donas y barras) y menos tablas, y debajo de cada gráfico, una frase que dice qué se lee en él.
+
+- **Qué muestra, de arriba hacia abajo:**
+  - **Filtro de período:** «Últimos 12 meses» (por defecto, de {{te_desde}} a {{te_hasta}}) o «Todo el período»
+    ({{te_todo_meses}} meses, {{te_todo_ventas}}). Cambia las cifras de ventas y sus gráficos. Lo que es de hoy (qué
+    comprar, dinero parado y almacén) y las ventas por año no dependen del período.
+  - **Cuatro tarjetas:**
+    - ¿Cuánto vendimos?: {{te_ventas}}, {{te_var_bs}} contra los 12 meses anteriores;
+    - ¿Cuántas piezas salieron?: {{te_piezas}}, {{te_var_u}};
+    - ¿Qué hay que comprar ya?: {{te_pedir}} repuestos en «Pedir ya», y reponerlos cuesta {{te_pedir_bs}};
+    - ¿Cuánto dinero está parado?: {{te_parado}} en {{te_parado_n}} repuestos con más stock del que se vende.
+  - **Ventas de cada mes:** columnas en bolivianos, con una línea punteada en el promedio del período y el mejor mes
+    resaltado. «{{te_c_meses}}»
+  - **¿Quiénes nos compran?** (dona): {{te_tipos}}. «{{te_c_tipos_cliente}}»
+  - **¿Cómo está el almacén?** (dona de semáforo, la única con rojo, amarillo y verde): {{te_alm}}, con el enlace
+    «Ver qué pedir →» a Alertas de reposición. «{{te_c_almacen}}»
+  - **¿Qué tipo de repuesto vendemos más?** (barras, porque son ocho tipos). «{{te_c_categorias}}»
+  - **Nuestros 5 mejores clientes** (barras). «{{te_c_top_clientes}}»
+  - **Los 10 repuestos estrella** (barras). «{{te_c_top_repuestos}}»
+  - **Ventas por año** (columnas; los años sin los 12 meses, en gris y con cuántos meses tienen). «{{te_c_anios}}»
+  - **Ver detalle** (plegado): las tablas de cada mes, de cada año, de los repuestos y de los clientes del período.
+- **Técnica:** estadística descriptiva (totales, ordenamientos, serie mensual) y concentración de las ventas en
+  pocos clientes y pocos repuestos (Pareto). Fuera del «Detalle técnico» plegado, que tienen todas las pantallas,
+  no aparece ningún término técnico.
 - **Datos y cálculo:**
   - unidades: `ventas_mensuales.csv`;
   - bolivianos: unidades × precio de lista de hoy (carparts no trae precios de 1998), con el dólar del día;
-  - función `Motor.dashboard`.
-- **Lectura del gráfico:** el mes con más ventas fue {{db_pico_mes}} ({{db_pico_u}} unidades); se venden en promedio
-  {{db_prom_mes}} unidades por mes.
-  - El promedio móvil del último año es {{db_pm_ult}} por mes, contra {{db_pm_prev}} del año anterior: en unidades
-    la demanda {{db_dir_u}}.
-  - En bolivianos {{db_dir_bs}} ({{db_var12}}){{db_mezcla}}.
+  - tipo de cliente: `clientes.csv` (SCRUM-76); tipo de repuesto: columna `categoria` del catálogo (SCRUM-74);
+  - función `Motor.tableroEmpresa(datos, dólar, período)`, que usa `Motor.dashboard` (ventas), `Motor.alertas`
+    (semáforo y qué pedir) y `Motor.rotacion` (dinero parado). También arma las frases de conclusión: la página no
+    calcula nada, solo dibuja.
+  - Los porcentajes de las donas son enteros que suman 100 (método del resto mayor).
 
 ### 4.4 Predicción de ventas — SCRUM-80
 
@@ -404,6 +419,8 @@ de entrega. Lo que no es suyo no se lo entrega el servidor.
   tendencia.
 - **Ejemplo:** en los 12 meses hasta {{db_ult_mes}} se vendieron {{db_ult12_u}} unidades; ÷ 12 = {{db_pm_ult}} por
   mes. Un año antes el promedio era {{db_pm_prev}}.
+- **Dónde se usa:** desde el 27-11-2026 el Tablero de ventas ya no lo muestra: en su lugar, una línea con el
+  promedio simple del período, más fácil de leer para la gerencia.
 
 ### 5.4 Pronóstico: método SBA (Croston corregido)
 

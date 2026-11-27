@@ -39,7 +39,7 @@ El área de la empresa tiene trece pantallas, agrupadas en el menú:
 
 | Grupo | Pantalla | Pregunta que responde | Historia |
 |---|---|---|---|
-| Resumen | Tablero de ventas | ¿Cómo van las ventas? | SCRUM-79 |
+| Resumen | Tablero de ventas | ¿Cómo van las ventas, quién nos compra y qué hay que reponer? | SCRUM-79 |
 | Resumen | Predicción de ventas | ¿Qué repuestos se venderán el mes que viene? | SCRUM-80 |
 | Decidir | Alertas de reposición | ¿Qué hay que pedir esta semana? | SCRUM-66 (HU-09) |
 | Decidir | Simulador de compra | ¿Cuánto pedir y cuándo? | SCRUM-53 a SCRUM-64 |
@@ -203,24 +203,39 @@ horas y va firmada con una clave secreta guardada en Cloudflare.
 
 ### 4.3 Tablero de ventas — SCRUM-79
 
-- **Qué muestra:**
-  - ventas totales: Bs 474.272, 797 unidades de ago-2022 a oct-2026;
-  - ventas de los últimos 12 meses: Bs 109.460, contra Bs 105.598 de los 12 anteriores (+4 %);
-  - repuesto más vendido: REP-0019, con 89 unidades;
-  - cliente que más compra: Taller El Cruce (16,1 %); los 5 primeros suman el 51 %;
-  - gráfico de unidades por mes con su promedio móvil de 12 meses, ventas por año y evolución de cada cliente por
-    trimestre.
-- **Técnica:** estadística descriptiva (totales, ordenamientos, serie mensual, promedio móvil) y concentración
-  (Pareto).
+Desde el 27-11-2026 es una pantalla para la gerencia: se entiende sin saber estadística. Lleva más gráficos simples
+(columnas, donas y barras) y menos tablas, y debajo de cada gráfico, una frase que dice qué se lee en él.
+
+- **Qué muestra, de arriba hacia abajo:**
+  - **Filtro de período:** «Últimos 12 meses» (por defecto, de nov-2025 a oct-2026) o «Todo el período»
+    (51 meses, Bs 474.272). Cambia las cifras de ventas y sus gráficos. Lo que es de hoy (qué
+    comprar, dinero parado y almacén) y las ventas por año no dependen del período.
+  - **Cuatro tarjetas:**
+    - ¿Cuánto vendimos?: Bs 109.460, ▲ 4 % contra los 12 meses anteriores;
+    - ¿Cuántas piezas salieron?: 159, ▼ 20 %;
+    - ¿Qué hay que comprar ya?: 3 repuestos en «Pedir ya», y reponerlos cuesta Bs 1.863;
+    - ¿Cuánto dinero está parado?: Bs 16.031 en 8 repuestos con más stock del que se vende.
+  - **Ventas de cada mes:** columnas en bolivianos, con una línea punteada en el promedio del período y el mejor mes
+    resaltado. «Diciembre de 2025 fue el mejor mes (Bs 13.445). En promedio, cada mes se venden Bs 9.122.»
+  - **¿Quiénes nos compran?** (dona): taller mecánico 55 %, repuestera 20 %, flota de empresa 19 %, particular 6 %. «Más de la mitad de lo que vendemos se lo llevan los talleres mecánicos (55 %).»
+  - **¿Cómo está el almacén?** (dona de semáforo, la única con rojo, amarillo y verde): pedir ya 3, vigilar 4, con stock suficiente 23, con el enlace
+    «Ver qué pedir →» a Alertas de reposición. «3 repuestos están por agotarse y hay que pedirlos ya. 4 más hay que vigilarlos. 23 tienen stock suficiente.»
+  - **¿Qué tipo de repuesto vendemos más?** (barras, porque son ocho tipos). «Lo que más vendemos es kit de embrague: el 23 % de las ventas. Lo que menos, pastillas de freno (5 %).»
+  - **Nuestros 5 mejores clientes** (barras). «Estos 5 clientes (de 20) dejan el 59 % de las ventas. Si uno deja de comprar, se nota.»
+  - **Los 10 repuestos estrella** (barras). «Estos 10 repuestos (de 26) dejan el 72 % de las ventas. Conviene no quedarse nunca sin ellos.»
+  - **Ventas por año** (columnas; los años sin los 12 meses, en gris y con cuántos meses tienen). «2024 y 2025 vendieron lo mismo en dinero, aunque en 2025 salieron más piezas: se vendieron repuestos más baratos.»
+  - **Ver detalle** (plegado): las tablas de cada mes, de cada año, de los repuestos y de los clientes del período.
+- **Técnica:** estadística descriptiva (totales, ordenamientos, serie mensual) y concentración de las ventas en
+  pocos clientes y pocos repuestos (Pareto). Fuera del «Detalle técnico» plegado, que tienen todas las pantallas,
+  no aparece ningún término técnico.
 - **Datos y cálculo:**
   - unidades: `ventas_mensuales.csv`;
   - bolivianos: unidades × precio de lista de hoy (carparts no trae precios de 1998), con el dólar del día;
-  - función `Motor.dashboard`.
-- **Lectura del gráfico:** el mes con más ventas fue mar-2025 (36 unidades); se venden en promedio
-  15,6 unidades por mes.
-  - El promedio móvil del último año es 13,3 por mes, contra 16,5 del año anterior: en unidades
-    la demanda baja.
-  - En bolivianos sube (+4 %), porque se vendieron menos unidades pero más caras.
+  - tipo de cliente: `clientes.csv` (SCRUM-76); tipo de repuesto: columna `categoria` del catálogo (SCRUM-74);
+  - función `Motor.tableroEmpresa(datos, dólar, período)`, que usa `Motor.dashboard` (ventas), `Motor.alertas`
+    (semáforo y qué pedir) y `Motor.rotacion` (dinero parado). También arma las frases de conclusión: la página no
+    calcula nada, solo dibuja.
+  - Los porcentajes de las donas son enteros que suman 100 (método del resto mayor).
 
 ### 4.4 Predicción de ventas — SCRUM-80
 
@@ -404,6 +419,8 @@ de entrega. Lo que no es suyo no se lo entrega el servidor.
   tendencia.
 - **Ejemplo:** en los 12 meses hasta oct-2026 se vendieron 159 unidades; ÷ 12 = 13,3 por
   mes. Un año antes el promedio era 16,5.
+- **Dónde se usa:** desde el 27-11-2026 el Tablero de ventas ya no lo muestra: en su lugar, una línea con el
+  promedio simple del período, más fácil de leer para la gerencia.
 
 ### 5.4 Pronóstico: método SBA (Croston corregido)
 

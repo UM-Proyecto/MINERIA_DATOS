@@ -53,7 +53,8 @@ RUNNER = r"""
 const fs = require("fs");
 const M = require(process.argv[2]);
 const out = process.argv.slice(3).map(p => { const D = JSON.parse(fs.readFileSync(p, "utf8"));
-  return {dashboard: M.dashboard(D, %TC%), rotacion: M.rotacion(D, %TC%)}; });
+  return {dashboard: M.dashboard(D, %TC%), rotacion: M.rotacion(D, %TC%),
+          tablero_12m: M.tableroEmpresa(D, %TC%, "12m"), tablero_todo: M.tableroEmpresa(D, %TC%, "todo")}; });
 process.stdout.write(JSON.stringify(out));
 """.replace("%TC%", str(TC))
 
@@ -166,7 +167,9 @@ class Equivalencia(unittest.TestCase):
             with open(runner, "w", encoding="utf-8") as f:
                 f.write(RUNNER)
             js = json.loads(subprocess.run(["node", runner, MOTOR] + rutas, capture_output=True, text=True, check=True).stdout)
-        py = json.loads(json.dumps([{"dashboard": ref.dashboard(x, TC), "rotacion": ref.rotacion(x, TC)} for x in (d, raro(d))]))
+        py = json.loads(json.dumps([{"dashboard": ref.dashboard(x, TC), "rotacion": ref.rotacion(x, TC),
+                                  "tablero_12m": ref.tablero_empresa(x, TC, "12m"), "tablero_todo": ref.tablero_empresa(x, TC, "todo")}
+                                 for x in (d, raro(d))]))
         self.assertEqual(diferencias(js, py), [])
 
 
