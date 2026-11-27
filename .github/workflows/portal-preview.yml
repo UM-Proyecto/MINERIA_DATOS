@@ -14,7 +14,7 @@ name: Vista previa del portal (Minería de datos)
 
 on:
   push:
-    branches: [feature/mineria-datos-canvas, feature/tres-modulos]
+    branches: [feature/mineria-datos-canvas, feature/tres-modulos, feature/nombres-y-textos]
   workflow_dispatch:
 
 concurrency:

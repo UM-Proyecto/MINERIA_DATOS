@@ -591,7 +591,7 @@ svg.chart .pm{fill:none;stroke:var(--graphite);stroke-width:2}
 .modulo .solo-tablas{display:none}   /* tarjetas que solo respaldan (ventas por año; ingresos y gastos): van en Tablas */
 .tab-grid>.card{margin:0}
 /* 27-11-2026 (Sam): en los módulos no van textos fijos; el subtítulo y la técnica quedan solo en Tablas */
-.modulo .tab-sub,.modulo .tec-c{display:none}.nota-sit:empty{display:none}
+.modulo .tab-sub,.modulo .tec-c,.modulo .nota-sit{display:none}   /* 27-11 (Sam): sin cajas de nota en los módulos */.nota-sit:empty{display:none}
 .tec-c{font-size:11px;color:var(--ink-3);margin-top:8px}.tec-c:empty{display:none}
 .cs-sel{display:grid;gap:4px;max-width:520px;margin-bottom:12px}.cs-sel label{font-size:13px;font-weight:600}.cs-sel .ayuda{display:block;font-weight:400}
 .cs-sel select,.cs-sel input{min-height:40px;border:1px solid var(--line-2);border-radius:8px;padding:6px 10px;font:inherit;background:#fff;max-width:100%}
@@ -1161,15 +1161,15 @@ details.tecnico[open]>summary::before{transform:rotate(90deg)}
 
   <!-- ============ TRES MÓDULOS Y TABLAS (pedido del docente, 27-11-2026) ============ -->
   <section class="vista modulo" id="v-m1" hidden aria-labelledby="h1-m1">
-    <div class="hero"><div><div class="eyebrow">Módulo 1 de 3 · Demanda</div><h1 id="h1-m1">¿Cómo se vende?</h1></div></div>
+    <div class="hero"><div><h1 id="h1-m1">Tablero de ventas</h1></div></div>
     <div id="m1-cont"></div>
   </section>
   <section class="vista modulo" id="v-m2" hidden aria-labelledby="h1-m2">
-    <div class="hero"><div><div class="eyebrow">Módulo 2 de 3 · Reposición</div><h1 id="h1-m2">¿Qué y cuánto pedir?</h1></div></div>
+    <div class="hero"><div><h1 id="h1-m2">Alertas de reposición</h1></div></div>
     <div id="m2-cont"></div>
   </section>
   <section class="vista modulo" id="v-m3" hidden aria-labelledby="h1-m3">
-    <div class="hero"><div><div class="eyebrow">Módulo 3 de 3 · Costo y riesgo</div><h1 id="h1-m3">¿A quién comprar y con qué dólar?</h1></div></div>
+    <div class="hero"><div><h1 id="h1-m3">Simulador de compra</h1></div></div>
     <div id="m3-cont"></div>
   </section>
   <section class="vista" id="v-tablas" hidden aria-labelledby="h1-tb">
@@ -1193,28 +1193,28 @@ details.tecnico[open]>summary::before{transform:rotate(90deg)}
       <div class="grid-k" id="tab-kpis" aria-live="polite" style="margin-top:0"></div>
       <p class="tab-precio" id="tab-precio"></p>
       <div class="tab-grid">
-      <article class="card tab-c ancha" id="tab-mes"><div class="eyebrow">¿Cuánto vendimos cada mes y cuánto venderemos el que viene?</div><h2 id="tab-mes-h"></h2><p class="tab-sub" id="tab-mes-s"></p>
-        <div class="chartbox" id="tab-mes-g"></div><div class="legend"><span><i class="sw" style="background:var(--brand)"></i>Últimos 12 meses</span><span><i class="sw" style="background:#c9cec8"></i>Mismo mes del año anterior</span><span><i class="sw" style="background:var(--brand-soft);border:1px dashed var(--brand)"></i>Pronóstico con su margen de error</span></div><p class="nota-sit" id="tab-mes-n"></p><p class="tec-c"></p>
+      <article class="card tab-c ancha" id="tab-mes"><div class="eyebrow">Ventas de cada mes</div><h2 id="tab-mes-h"></h2><p class="tab-sub" id="tab-mes-s"></p>
+        <div class="chartbox" id="tab-mes-g"></div><div class="legend" id="tab-mes-ley"></div><p class="nota-sit" id="tab-mes-n"></p><p class="tec-c"></p>
         <details><summary>Ver los datos como tabla</summary><div class="scroll"><table id="t-tab-mes"></table></div></details></article>
-      <article class="card tab-c" id="tab-estac"><div class="eyebrow">¿En qué meses se vende más?</div><h2 id="tab-estac-h"></h2><p class="tab-sub" id="tab-estac-s"></p>
+      <article class="card tab-c" id="tab-estac"><div class="eyebrow">Temporadas de venta</div><h2 id="tab-estac-h"></h2><p class="tab-sub" id="tab-estac-s"></p>
         <div class="chartbox" id="tab-estac-g"></div><p class="nota-sit" id="tab-estac-n"></p><p class="tec-c"></p>
         <details><summary>Ver los datos como tabla</summary><div class="scroll"><table id="t-tab-estac"></table></div></details></article>
-      <article class="card tab-c" id="tab-pred"><div class="eyebrow">¿Qué se venderá el mes que viene?</div><h2 id="tab-pred-h"></h2><p class="tab-sub" id="tab-pred-s"></p>
+      <article class="card tab-c" id="tab-pred"><div class="eyebrow">Predicción de ventas</div><h2 id="tab-pred-h"></h2><p class="tab-sub" id="tab-pred-s"></p>
         <div class="chartbox" id="tab-pred-g"></div><p class="nota-sit" id="tab-pred-n"></p><p class="tec-c"></p>
         <details><summary>Ver los datos como tabla</summary><div class="scroll"><table id="t-tab-pred"></table></div></details></article>
       <article class="card tab-c" id="tab-tipo"><div class="eyebrow">¿Quiénes nos compran?</div><h2 id="tab-tipo-h"></h2><p class="tab-sub" id="tab-tipo-s"></p>
         <div class="chartbox" id="tab-tipo-g"></div><p class="nota-sit" id="tab-tipo-n"></p><p class="tec-c"></p>
         <details><summary>Ver los datos como tabla</summary><div class="scroll"><table id="t-tab-tipo"></table></div></details></article>
-      <article class="card tab-c" id="tab-par"><div class="eyebrow">¿De cuántos clientes dependen las ventas?</div><h2 id="tab-par-h"></h2><p class="tab-sub" id="tab-par-s"></p>
+      <article class="card tab-c" id="tab-par"><div class="eyebrow">Clientes que más compran</div><h2 id="tab-par-h"></h2><p class="tab-sub" id="tab-par-s"></p>
         <div class="chartbox" id="tab-par-g"></div><p class="nota-sit" id="tab-par-n"></p><p class="tec-c"></p>
         <details><summary>Ver los datos como tabla</summary><div class="scroll"><table id="t-tab-par"></table></div></details></article>
       <article class="card tab-c" id="tab-cat"><div class="eyebrow">¿Qué tipo de repuesto vendemos más?</div><h2 id="tab-cat-h"></h2><p class="tab-sub" id="tab-cat-s"></p>
         <div class="chartbox" id="tab-cat-g"></div><p class="nota-sit" id="tab-cat-n"></p><p class="tec-c"></p>
         <details><summary>Ver los datos como tabla</summary><div class="scroll"><table id="t-tab-cat"></table></div></details></article>
-      <article class="card tab-c" id="tab-rep"><div class="eyebrow">¿Cuáles son los 10 repuestos estrella?</div><h2 id="tab-rep-h"></h2><p class="tab-sub" id="tab-rep-s"></p>
+      <article class="card tab-c" id="tab-rep"><div class="eyebrow">Los 10 repuestos estrella</div><h2 id="tab-rep-h"></h2><p class="tab-sub" id="tab-rep-s"></p>
         <div class="chartbox" id="tab-rep-g"></div><p class="nota-sit" id="tab-rep-n"></p><p class="tec-c"></p>
         <details><summary>Ver los datos como tabla</summary><div class="scroll"><table id="t-tab-rep"></table></div></details></article>
-      <article class="card tab-c ancha solo-tablas" id="tab-anio"><div class="eyebrow">¿Cómo van las ventas año a año?</div><h2 id="tab-anio-h"></h2><p class="tab-sub" id="tab-anio-s"></p>
+      <article class="card tab-c ancha solo-tablas" id="tab-anio"><div class="eyebrow">Ventas por año</div><h2 id="tab-anio-h"></h2><p class="tab-sub" id="tab-anio-s"></p>
         <div class="chartbox" id="tab-anio-g"></div><p class="nota-sit" id="tab-anio-n"></p><p class="tec-c"></p>
         <details><summary>Ver los datos como tabla</summary><div class="scroll"><table id="t-tab-anio"></table></div></details></article>
       </div>
@@ -1230,13 +1230,13 @@ details.tecnico[open]>summary::before{transform:rotate(90deg)}
       <article class="card tab-c" id="tab-urg"><div class="eyebrow">¿Qué hay que pedir esta semana?</div><h2 id="tab-urg-h"></h2><p class="tab-sub" id="tab-urg-s"></p>
         <div class="chartbox" id="tab-urg-g"></div><p class="nota-sit" id="tab-urg-n"></p><p class="tec-c"></p>
         <details><summary>Ver los datos como tabla</summary><div class="scroll"><table id="t-tab-urg"></table></div></details></article>
-      <article class="card tab-c ancha" id="tab-abc"><div class="eyebrow">¿Qué repuestos cuidar y cuáles frenar?</div><h2 id="tab-abc-h"></h2><p class="tab-sub" id="tab-abc-s"></p>
+      <article class="card tab-c ancha" id="tab-abc"><div class="eyebrow">Importancia y ritmo de venta</div><h2 id="tab-abc-h"></h2><p class="tab-sub" id="tab-abc-s"></p>
         <div class="chartbox" id="tab-abc-g"></div><p class="nota-sit" id="tab-abc-n"></p><p class="tec-c"></p>
         <details><summary>Ver los datos como tabla</summary><div class="scroll"><table id="t-tab-abc"></table></div></details></article>
-      <article class="card tab-c" id="tab-plan"><div class="eyebrow">¿Qué conviene comprar primero con el presupuesto?</div><h2 id="tab-plan-h"></h2><p class="tab-sub" id="tab-plan-s"></p>
+      <article class="card tab-c" id="tab-plan"><div class="eyebrow">Plan de compra con presupuesto</div><h2 id="tab-plan-h"></h2><p class="tab-sub" id="tab-plan-s"></p>
         <div class="cs-sel"><label for="rp-presu">Presupuesto para comprar, en Bs</label><input id="rp-presu" type="number" min="0" step="500" inputmode="numeric"></div><div class="chartbox" id="tab-plan-g"></div><p class="nota-sit" id="tab-plan-n"></p><p class="tec-c"></p>
         <details><summary>Ver los datos como tabla</summary><div class="scroll"><table id="t-tab-plan"></table></div></details></article>
-      <article class="card tab-c" id="tab-sobra"><div class="eyebrow">¿Qué repuestos sobran?</div><h2 id="tab-sobra-h"></h2><p class="tab-sub" id="tab-sobra-s"></p>
+      <article class="card tab-c" id="tab-sobra"><div class="eyebrow">Repuestos que sobran</div><h2 id="tab-sobra-h"></h2><p class="tab-sub" id="tab-sobra-s"></p>
         <div class="chartbox" id="tab-sobra-g"></div><p class="nota-sit" id="tab-sobra-n"></p><p class="tec-c"></p>
         <details><summary>Ver los datos como tabla</summary><div class="scroll"><table id="t-tab-sobra"></table></div></details></article>
       </div>
@@ -1247,25 +1247,25 @@ details.tecnico[open]>summary::before{transform:rotate(90deg)}
       <div class="cs-sel"><label for="cs-rep">Repuesto que quiere comprar</label><select id="cs-rep"></select></div>
       <div class="grid-k" id="cs-kpis" aria-live="polite"></div>
       <div class="tab-grid">
-      <article class="card tab-c ancha" id="tab-dol"><div class="eyebrow">¿Cómo se movió el dólar?</div><h2 id="tab-dol-h"></h2><p class="tab-sub" id="tab-dol-s"></p>
+      <article class="card tab-c ancha" id="tab-dol"><div class="eyebrow">Dólar oficial y paralelo</div><h2 id="tab-dol-h"></h2><p class="tab-sub" id="tab-dol-s"></p>
         <div class="chartbox" id="tab-dol-g"></div><p class="nota-sit" id="tab-dol-n"></p><p class="tec-c"></p>
         <details><summary>Ver los datos como tabla</summary><div class="scroll"><table id="t-tab-dol"></table></div></details></article>
-      <article class="card tab-c" id="tab-gana"><div class="eyebrow">¿Cuánto conviene pedir?</div><h2 id="tab-gana-h"></h2><p class="tab-sub" id="tab-gana-s"></p>
+      <article class="card tab-c" id="tab-gana"><div class="eyebrow">¿Cuánto pedir y cuándo?</div><h2 id="tab-gana-h"></h2><p class="tab-sub" id="tab-gana-s"></p>
         <div class="chartbox" id="tab-gana-g"></div><p class="nota-sit" id="tab-gana-n"></p><p class="tec-c"></p>
         <details><summary>Ver los datos como tabla</summary><div class="scroll"><table id="t-tab-gana"></table></div></details></article>
       <article class="card tab-c" id="tab-quie"><div class="eyebrow">¿Desde qué dólar conviene comprar más?</div><h2 id="tab-quie-h"></h2><p class="tab-sub" id="tab-quie-s"></p>
         <div class="chartbox" id="tab-quie-g"></div><p class="nota-sit" id="tab-quie-n"></p><p class="tec-c"></p>
         <details><summary>Ver los datos como tabla</summary><div class="scroll"><table id="t-tab-quie"></table></div></details></article>
-      <article class="card tab-c" id="tab-sens"><div class="eyebrow">¿Qué es lo que más mueve el resultado?</div><h2 id="tab-sens-h"></h2><p class="tab-sub" id="tab-sens-s"></p>
+      <article class="card tab-c" id="tab-sens"><div class="eyebrow">Lo que más mueve el resultado</div><h2 id="tab-sens-h"></h2><p class="tab-sub" id="tab-sens-s"></p>
         <div class="chartbox" id="tab-sens-g"></div><p class="nota-sit" id="tab-sens-n"></p><p class="tec-c"></p>
         <details><summary>Ver los datos como tabla</summary><div class="scroll"><table id="t-tab-sens"></table></div></details></article>
       <article class="card tab-c" id="tab-cap"><div class="eyebrow">¿Cuánto dinero queda parado con cada forma de comprar?</div><h2 id="tab-cap-h"></h2><p class="tab-sub" id="tab-cap-s"></p>
         <div class="chartbox" id="tab-cap-g"></div><p class="nota-sit" id="tab-cap-n"></p><p class="tec-c"></p>
         <details><summary>Ver los datos como tabla</summary><div class="scroll"><table id="t-tab-cap"></table></div></details></article>
-      <article class="card tab-c" id="tab-prov"><div class="eyebrow">¿A qué proveedor conviene comprarle?</div><h2 id="tab-prov-h"></h2><p class="tab-sub" id="tab-prov-s"></p>
+      <article class="card tab-c" id="tab-prov"><div class="eyebrow">Comparar proveedores</div><h2 id="tab-prov-h"></h2><p class="tab-sub" id="tab-prov-s"></p>
         <div class="chartbox" id="tab-prov-g"></div><p class="nota-sit" id="tab-prov-n"></p><p class="tec-c"></p>
         <details><summary>Ver los datos como tabla</summary><div class="scroll"><table id="t-tab-prov"></table></div></details></article>
-      <article class="card tab-c" id="tab-dif"><div class="eyebrow">¿Cuánto encarece el dólar paralelo?</div><h2 id="tab-dif-h"></h2><p class="tab-sub" id="tab-dif-s"></p>
+      <article class="card tab-c" id="tab-dif"><div class="eyebrow">Costo con el dólar paralelo</div><h2 id="tab-dif-h"></h2><p class="tab-sub" id="tab-dif-s"></p>
         <div class="chartbox" id="tab-dif-g"></div><p class="nota-sit" id="tab-dif-n"></p><p class="tec-c"></p>
         <details><summary>Ver los datos como tabla</summary><div class="scroll"><table id="t-tab-dif"></table></div></details></article>
       </div>
@@ -2693,7 +2693,7 @@ function puede(v){ const q = QUIEN[v], r = rol();
   if(q === "imp-portal") return PORTAL && r === "importador";
   if(q === "prov") return PORTAL && r === "proveedor";
   return r === "importador"; }
-const VISTAS = [["m1","¿Cómo se vende?","db","módulo 1"],["m2","¿Qué y cuánto pedir?","al","módulo 2"],["m3","¿A quién y con qué dólar?","sim","módulo 3"],["tablas","Tablas","rt","respaldo"],
+const VISTAS = [["m1","Tablero de ventas","db","SCRUM-79"],["m2","Alertas de reposición","al","módulo 2"],["m3","Simulador de compra","sim","SCRUM-61"],["tablas","Tablas","rt","respaldo"],
   ["dashboard","Tablero de ventas","db","SCRUM-79"],["predicciones","Predicción de ventas","pr","SCRUM-80"],["rotacion","Importancia y ritmo de venta","rt","SCRUM-81"],
   ["alertas","Alertas de reposición","al","nuevo"],["simulador","Simulador de compra","sim","SCRUM-61"],["proveedores","Comparar proveedores","prov","nuevo"],
   ["plan","Plan de compra con presupuesto","plan","nuevo"],
@@ -4189,14 +4189,18 @@ function pintarTab(){
   const suma = (a, k) => a.reduce((s, x) => s + x[k], 0), per = `${mesL(ult[0].mes)} a ${mesL(fin)}`;
   const perTE = todo ? `de ${mesL(TE.desde)} a ${mesL(TE.hasta)}` : "de los últimos 12 meses", tot = TE.tarjetas.ventas_bs || 1;
   const col = (a, b) => a >= b ? "c-ok" : "c-bad";
+  const yaL = alertas().filter(a => a.est === 0), sobL = Motor.rotacion(Dm, tc).repuestos.filter(f => f.acumulacion).sort((a, b) => b.valor_stock_bs - a.valor_stock_bs);
+  const kYa = yaL.length ? `el más urgente, ${nombreRep(yaL[0].id)}; ` : "", kPar = sobL.length ? `; el que más, ${nombreRep(sobL[0].id)} (${bs(sobL[0].valor_stock_bs)})` : "";
   $("tab-kpis").innerHTML = `
     <div class="kpi"><div class="t">¿Cuánto vendimos?</div><div class="v">${bs(TE.tarjetas.ventas_bs)}</div><div class="d ${todo ? "" : col(C.ult12_bs, C.prev12_bs)}">${todo ? perTE : varTxt(C.ult12_bs, C.prev12_bs)}</div></div>
     <div class="kpi"><div class="t">¿Cuántas piezas salieron?</div><div class="v">${nf(TE.tarjetas.unidades)}<small>piezas</small></div><div class="d ${todo ? "" : col(C.ult12_u, C.prev12_u)}">${todo ? perTE : varTxt(C.ult12_u, C.prev12_u)}</div></div>
-    <div class="kpi"><div class="t">¿Qué hay que comprar ya?</div><div class="v c-bad">${TE.hoy.pedir_ya.repuestos}<small>${pal(TE.hoy.pedir_ya.repuestos, "repuesto", "repuestos")}</small></div><div class="d">por agotarse · reponerlos cuesta ${bs(TE.hoy.pedir_ya.costo_bs)}</div></div>
-    <div class="kpi"><div class="t">¿Cuánto dinero está parado?</div><div class="v">${bs(TE.hoy.dinero_parado.valor_bs)}</div><div class="d">en ${TE.hoy.dinero_parado.repuestos} ${pal(TE.hoy.dinero_parado.repuestos, "repuesto", "repuestos")} que casi no se venden</div></div>`;
+    <div class="kpi"><div class="t">¿Qué hay que comprar ya?</div><div class="v c-bad">${TE.hoy.pedir_ya.repuestos}<small>${pal(TE.hoy.pedir_ya.repuestos, "repuesto", "repuestos")}</small></div><div class="d">${kYa}reponerlos cuesta ${bs(TE.hoy.pedir_ya.costo_bs)}</div></div>
+    <div class="kpi"><div class="t">¿Cuánto dinero está parado?</div><div class="v">${bs(TE.hoy.dinero_parado.valor_bs)}</div><div class="d">en ${TE.hoy.dinero_parado.repuestos} ${pal(TE.hoy.dinero_parado.repuestos, "repuesto", "repuestos")}${kPar}</div></div>`;
   const b12 = C.ult12_bs, bP = C.prev12_bs, u12 = C.ult12_u, p12 = C.prev12_u;
   const pm = u12 ? b12 / u12 : 0, pmA = p12 ? bP / p12 : 0, opuesto = (b12 >= bP) !== (u12 >= p12);
-  $("tab-precio").innerHTML = `<b>Precio medio por pieza:</b> ${bs(pm)} en los últimos 12 meses, contra ${bs(pmA)} en los 12 anteriores.` +
+  const compA = TE.por_anio.filter(a => a.completo), a1 = compA[0], a2 = compA[compA.length - 1];
+  if(todo && a1 && a2 && a1 !== a2) $("tab-precio").innerHTML = `<b>Precio medio por pieza:</b> ${bs(TE.tarjetas.ventas_bs / (TE.tarjetas.unidades || 1))} ${perTE}; ${bs(a1.monto_bs / a1.unidades)} en ${a1.anio} y ${bs(a2.monto_bs / a2.unidades)} en ${a2.anio}.`;
+  else $("tab-precio").innerHTML = `<b>Precio medio por pieza:</b> ${bs(pm)} en los últimos 12 meses, contra ${bs(pmA)} en los 12 anteriores.` +
     (opuesto ? ` Por eso ${b12 >= bP ? "el dinero subió aunque salieron menos piezas: se vendieron repuestos más caros" : "salieron más piezas pero entró menos dinero: se vendieron repuestos más baratos"}.` : "");
   // 1. Ventas de cada mes, el mismo mes del año anterior y el pronóstico del mes que viene con su margen.
   const ids = V.ids, sig = mesSig(fin);
@@ -4205,25 +4209,31 @@ function pintarTab(){
   const mae = bt.reduce((s, b) => s + Math.abs(b.real - b.pron), 0) / bt.length, errPct = suma(bt, "real") ? bt.reduce((s, b) => s + Math.abs(b.real - b.pron), 0) / suma(bt, "real") * 100 : 0;
   const lo = Math.max(0, pron - mae), hi = pron + mae, BT = {}; bt.forEach(b => BT[b.mes] = b);
   const ant = x => (dm.find(y => y.mes === `${+x.mes.slice(0, 4) - 1}${x.mes.slice(4)}`) || {}).monto_bs;
-  const mejor = ult.reduce((a, x) => x.monto_bs > a.monto_bs ? x : a, ult[0]), prom = suma(ult, "monto_bs") / ult.length;
+  const ser = todo ? dmC : ult, NB = ser.length;   // «Todo el período»: todos los meses cerrados, sin la comparación con el año anterior
+  const mejor = ser.reduce((a, x) => x.monto_bs > a.monto_bs ? x : a, ser[0]), prom = suma(ser, "monto_bs") / NB;
+  const mesMenos12 = m => `${+m.slice(0, 4) - 1}${m.slice(4)}`;
   const nomMes = m => ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"][+m.slice(5, 7) - 1];
-  $("tab-mes-h").textContent = `Para ${nomMes(sig)} se esperan unos ${bs(pron)}, entre ${bs(lo)} y ${bs(hi)}`;
-  $("tab-mes-s").textContent = (!todo && TE.hasta === fin ? TE.conclusiones.meses + " " : "") + `En bolivianos, de ${per}. La línea punteada es el promedio.`;
-  { const g = $("tab-mes-g"), W = Math.max(320, g.clientWidth || 900), H = 290, pl = 74, pr = 10, pb = 44, n = 13, bw = (W - pl - pr) / n, angosto = W < 560;
-    const mx = Math.max(hi, ...ult.map(x => Math.max(x.monto_bs, ant(x) || 0))) * 1.1, M = marco(W, H, pl, pr, pb, mx, t => bs(t), "Bs por mes", "Mes"), X = i => pl + i * bw;
+  const perS = `${mesL(ser[0].mes)} a ${mesL(fin)}`;
+  $("tab-mes-h").textContent = `Para ${nomMes(sig)} se esperan unos ${bs(pron)}; el mes más alto de ${perS} fue ${mesL(mejor.mes)}, con ${bs(mejor.monto_bs)}`;
+  $("tab-mes-s").textContent = `En bolivianos, de ${perS}. La línea punteada es el promedio.`;
+  $("tab-mes-ley").innerHTML = `<span><i class="sw" style="background:var(--brand)"></i>${perS}</span>` + (todo ? "" : `<span><i class="sw" style="background:#c9cec8"></i>${mesL(mesMenos12(ult[0].mes))} a ${mesL(mesMenos12(fin))}</span>`) +
+    `<span><i class="sw" style="background:var(--brand-soft);border:1px dashed var(--brand)"></i>Pronóstico de ${mesL(sig)}, entre ${bs(lo)} y ${bs(hi)}</span><span>Promedio: ${bs(prom)} por mes</span>`;
+  { const g = $("tab-mes-g"), W = Math.max(320, g.clientWidth || 900), H = 290, pl = 74, pr = 10, pb = 44, n = NB + 1, bw = (W - pl - pr) / n, angosto = W < 560;
+    const mx = Math.max(hi, ...ser.map(x => Math.max(x.monto_bs, todo ? 0 : ant(x) || 0))) * 1.1, M = marco(W, H, pl, pr, pb, mx, t => bs(t), "Bs por mes", "Mes"), X = i => pl + i * bw;
     const base = H - pb, alto = v => Math.max(0, base - M.Y(v));
     $("tab-mes-g").innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc($("tab-mes-h").textContent)}">${M.svg}` +
-      ult.map((x, i) => { const a = ant(x);
+      ser.map((x, i) => { const a = todo ? undefined : ant(x), w = todo ? .8 : .44, x0 = todo ? .1 : .46;
         return (a === undefined ? "" : `<rect x="${(X(i) + bw * .1).toFixed(1)}" y="${M.Y(a).toFixed(1)}" width="${(bw * .34).toFixed(1)}" height="${alto(a).toFixed(1)}" rx="2" fill="#c9cec8"><title>${mesL(x.mes.replace(/^\d{4}/, y => y - 1))}: ${bs(a)}</title></rect>`) +
-          `<rect x="${(X(i) + bw * .46).toFixed(1)}" y="${M.Y(x.monto_bs).toFixed(1)}" width="${(bw * .44).toFixed(1)}" height="${alto(x.monto_bs).toFixed(1)}" rx="2" fill="${x === mejor ? "var(--brand-dark)" : "var(--brand)"}" opacity="${x === mejor ? 1 : .62}"><title>${mesL(x.mes)}: ${bs(x.monto_bs)}${a === undefined ? "" : "; un año antes " + bs(a)}</title></rect>` +
-          (angosto && i % 2 ? "" : `<text x="${(X(i) + bw / 2).toFixed(1)}" y="${H - 26}" text-anchor="middle"${x === mejor ? ' style="fill:var(--brand-dark);font-weight:600"' : ""}>${MES[+x.mes.slice(5, 7) - 1]}</text>`); }).join("") +
-      `<line class="pe" x1="${pl}" x2="${X(12)}" y1="${M.Y(prom).toFixed(1)}" y2="${M.Y(prom).toFixed(1)}"/>` +
-      `<rect x="${(X(12) + bw * .2).toFixed(1)}" y="${M.Y(pron).toFixed(1)}" width="${(bw * .6).toFixed(1)}" height="${alto(pron).toFixed(1)}" rx="2" fill="var(--brand-soft)" stroke="var(--brand)" stroke-dasharray="4 3"><title>Pronóstico de ${mesL(sig)}: ${bs(pron)} (entre ${bs(lo)} y ${bs(hi)})</title></rect>` +
-      `<path d="M${X(12) + bw / 2} ${M.Y(hi).toFixed(1)}V${M.Y(lo).toFixed(1)}M${X(12) + bw * .35} ${M.Y(hi).toFixed(1)}h${(bw * .3).toFixed(1)}M${X(12) + bw * .35} ${M.Y(lo).toFixed(1)}h${(bw * .3).toFixed(1)}" stroke="var(--ink-2)" stroke-width="1.5" fill="none"/>` +
-      `<text x="${X(12) + bw / 2}" y="${H - 26}" text-anchor="middle" style="fill:var(--brand-dark);font-weight:600">${MES[+sig.slice(5, 7) - 1]}*</text></svg>`; }
-  $("tab-mes-n").textContent = (todo ? "" : TE.conclusiones.meses + " ") + `*El pronóstico se equivoca en promedio ±${bs(mae)}.`;
+          `<rect x="${(X(i) + bw * x0).toFixed(1)}" y="${M.Y(x.monto_bs).toFixed(1)}" width="${(bw * w).toFixed(1)}" height="${alto(x.monto_bs).toFixed(1)}" rx="2" fill="${x === mejor ? "var(--brand-dark)" : "var(--brand)"}" opacity="${x === mejor ? 1 : .62}"><title>${mesL(x.mes)}: ${bs(x.monto_bs)}${a === undefined ? "" : "; un año antes " + bs(a)}</title></rect>` +
+          (todo ? (x.mes.endsWith("-01") ? `<text x="${(X(i) + bw / 2).toFixed(1)}" y="${H - 26}" text-anchor="middle">${x.mes.slice(0, 4)}</text>` : "")
+            : angosto && i % 2 ? "" : `<text x="${(X(i) + bw / 2).toFixed(1)}" y="${H - 26}" text-anchor="middle"${x === mejor ? ' style="fill:var(--brand-dark);font-weight:600"' : ""}>${MES[+x.mes.slice(5, 7) - 1]}</text>`); }).join("") +
+      `<line class="pe" x1="${pl}" x2="${X(NB)}" y1="${M.Y(prom).toFixed(1)}" y2="${M.Y(prom).toFixed(1)}"/>` +
+      `<rect x="${(X(NB) + bw * .2).toFixed(1)}" y="${M.Y(pron).toFixed(1)}" width="${(bw * .6).toFixed(1)}" height="${alto(pron).toFixed(1)}" rx="2" fill="var(--brand-soft)" stroke="var(--brand)" stroke-dasharray="4 3"><title>Pronóstico de ${mesL(sig)}: ${bs(pron)} (entre ${bs(lo)} y ${bs(hi)})</title></rect>` +
+      `<path d="M${X(NB) + bw / 2} ${M.Y(hi).toFixed(1)}V${M.Y(lo).toFixed(1)}M${X(NB) + bw * .35} ${M.Y(hi).toFixed(1)}h${(bw * .3).toFixed(1)}M${X(NB) + bw * .35} ${M.Y(lo).toFixed(1)}h${(bw * .3).toFixed(1)}" stroke="var(--ink-2)" stroke-width="1.5" fill="none"/>` +
+      `<text x="${X(NB) + bw / 2}" y="${H - 26}" text-anchor="middle" style="fill:var(--brand-dark);font-weight:600">${MES[+sig.slice(5, 7) - 1]}*</text></svg>`; }
+  $("tab-mes-n").textContent = `En promedio, ${bs(prom)} por mes. El pronóstico de los últimos 12 meses se equivocó en promedio ±${bs(mae)} (${nf(errPct)} %).`;
   $("t-tab-mes").innerHTML = `<thead><tr><th>Mes</th><th>Vendido</th><th>Mismo mes del año anterior</th><th>Diferencia</th><th>Pronóstico hecho antes del mes</th><th>Error del pronóstico</th></tr></thead><tbody>` +
-    ult.map(x => { const a = ant(x), b = BT[x.mes];
+    ser.map(x => { const a = ant(x), b = BT[x.mes];
       return `<tr><td>${mesL(x.mes)}</td><td>${bs(x.monto_bs)}</td><td>${a === undefined ? "—" : bs(a)}</td><td>${a ? (x.monto_bs >= a ? "+" : "−") + nf(Math.abs(x.monto_bs - a) / a * 100) + " %" : "—"}</td><td>${b ? bs(b.pron) : "—"}</td><td>${b ? (b.real >= b.pron ? "+" : "−") + bs(Math.abs(b.real - b.pron)) : "—"}</td></tr>`; }).join("") +
     `<tr><td><b>${mesL(sig)} (pronóstico)</b></td><td>—</td><td>${ant({mes:sig}) === undefined ? "—" : bs(ant({mes:sig}))}</td><td>—</td><td><b>${bs(pron)}</b><span class="ayuda">entre ${bs(lo)} y ${bs(hi)}</span></td><td>error promedio ${bs(mae)}</td></tr></tbody>`;
 
@@ -4235,11 +4245,13 @@ function pintarTab(){
   $("tab-tipo-g").innerHTML = `<div class="dona">${dona(tipos, tipos[0].txt, [tipos[0].e.toLowerCase().split(" ")[0]])}<ul>${tipos.map(t => `<li><i style="background:${t.c}"></i>${esc(t.e)} · <b>${t.txt}</b></li>`).join("")}</ul></div>`;
   // Qué tipo de cliente creció más frente a los 12 meses anteriores (solo con «Últimos 12 meses»).
   const tipoDe = {}; Dc.clientes.lista.forEach(c => tipoDe[c.cliente_id] = c.tipo);
-  const r0 = ult[0].mes, p0 = `${+r0.slice(0, 4) - 1}${r0.slice(4)}`, crec = {};
-  Dc.clientes.ventas.forEach(v => { const m = String(v[0]).slice(0, 7), t = tipoDe[v[2]], q = Number(v[3]) * (precio[v[1]] || 0); if(!t || !isFinite(q) || m < p0) return;
-    crec[t] = crec[t] || [0, 0]; crec[t][m >= r0 ? 0 : 1] += q; });
+  // «Últimos 12 meses»: contra los 12 anteriores. «Todo el período»: el último año completo contra el primero.
+  const r0 = ult[0].mes, p0 = mesMenos12(r0), crec = {}, cmpTodo = todo && a1 && a2 && a1 !== a2;
+  const ventana = m => cmpTodo ? (m.startsWith(a2.anio) ? 0 : m.startsWith(a1.anio) ? 1 : -1) : m >= r0 ? 0 : m >= p0 ? 1 : -1;
+  Dc.clientes.ventas.forEach(v => { const m = String(v[0]).slice(0, 7), t = tipoDe[v[2]], q = Number(v[3]) * (precio[v[1]] || 0), w = ventana(m); if(!t || !isFinite(q) || w < 0) return;
+    crec[t] = crec[t] || [0, 0]; crec[t][w] += q; });
   const sube = Object.entries(crec).filter(([, x]) => x[1] > 0).map(([t, x]) => [t, (x[0] - x[1]) / x[1] * 100]).sort((a, b) => b[1] - a[1])[0];
-  $("tab-tipo-n").textContent = !todo && sube ? `${sube[1] >= 0 ? "El que más creció" : "Todos bajaron; el que menos"}: ${sube[0].toLowerCase()}, ${sube[1] >= 0 ? "+" : "−"}${nf(Math.abs(sube[1]))} % frente a los 12 meses anteriores.` : "";
+  $("tab-tipo-n").textContent = sube ? `${sube[1] >= 0 ? "El que más creció" : "Todos bajaron; el que menos"}: ${sube[0].toLowerCase()}, ${sube[1] >= 0 ? "+" : "−"}${nf(Math.abs(sube[1]))} % ${cmpTodo ? `de ${a1.anio} a ${a2.anio}` : "frente a los 12 meses anteriores"}.` : "";
   $("t-tab-tipo").innerHTML = `<thead><tr><th>Tipo de cliente</th><th>Compras</th><th>Parte del total</th></tr></thead><tbody>` + tipos.map(t => `<tr><td>${esc(t.e)}</td><td>${bs(t.bsv)}</td><td>${t.txt}</td></tr>`).join("") + "</tbody>";
 
   // 4. Qué tipo de repuesto vendemos más.
@@ -4247,7 +4259,7 @@ function pintarTab(){
   $("tab-cat-h").textContent = TE.conclusiones.categorias;
   $("tab-cat-s").textContent = `Ventas ${perTE} por tipo de repuesto, en bolivianos.`;
   $("tab-cat-g").innerHTML = svgBarras(cats, Math.max(300, $("tab-cat-g").clientWidth || 600), c0, $("tab-cat-h").textContent);
-  $("tab-cat-n").textContent = `${c0.e} y ${cats[1] ? cats[1].e.toLowerCase() : ""} suman el ${nf(c0.pct + (cats[1] ? cats[1].pct : 0))} % de lo vendido: son los que no pueden faltar.`;
+  $("tab-cat-n").textContent = `${c0.e} y ${cats[1] ? cats[1].e.toLowerCase() : ""} suman el ${nf(c0.pct + (cats[1] ? cats[1].pct : 0))} % de lo vendido ${perTE}.`;
   $("t-tab-cat").innerHTML = `<thead><tr><th>Tipo de repuesto</th><th>Ventas</th><th>Parte del total</th></tr></thead><tbody>` + cats.map(c => `<tr><td>${esc(c.e)}</td><td>${c.txt}</td><td>${nf(c.pct, 1)} %</td></tr>`).join("") + "</tbody>";
 
   // 5. De cuántos clientes dependen las ventas: cuánto deja cada cliente y el acumulado.
@@ -4257,13 +4269,13 @@ function pintarTab(){
   $("tab-par-h").textContent = `${n80} de ${cls.length} clientes dejan el 80 % de las ventas`;
   $("tab-par-s").textContent = `Compras ${perTE} de cada cliente, de mayor a menor. La línea suma lo que dejan, del primero al último.`;
   { const g = $("tab-par-g"), W = Math.max(300, g.clientWidth || 600), H = 250, pl = 86, pr = 40, pb = 40, n = cls.length, bw = (W - pl - pr) / n;
-    const mx = cls[0].v * 1.1, M = marco(W, H, pl, pr, pb, mx, t => bs(t), "Bs por cliente", "Clientes, del que más compra al que menos"), X = i => pl + i * bw, Yp = p => 10 + (1 - p / 100) * (H - pb - 10);
+    const mx = cls[0].v * 1.1, M = marco(W, H, pl, pr, pb, mx, t => bs(t), "Bs por cliente", `Los ${cls.length} clientes, del que más compra al que menos`), X = i => pl + i * bw, Yp = p => 10 + (1 - p / 100) * (H - pb - 10);
     g.innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc($("tab-par-h").textContent)}">${M.svg}` +
       cls.map((c, i) => `<rect x="${(X(i) + bw * .15).toFixed(1)}" y="${M.Y(c.v).toFixed(1)}" width="${(bw * .7).toFixed(1)}" height="${(H - pb - M.Y(c.v)).toFixed(1)}" rx="2" fill="${i < n80 ? "var(--brand)" : "#c9cec8"}"><title>${i + 1}. ${esc(c.e)}: ${bs(c.v)} (acumulado ${nf(c.ac)} %)</title></rect>`).join("") +
       `<line class="pe" x1="${pl}" x2="${W - pr}" y1="${Yp(80)}" y2="${Yp(80)}"/><text x="${W - pr + 4}" y="${Yp(80) + 4}">80 %</text><text x="${W - pr + 4}" y="${Yp(100) + 4}">100 %</text>` +
       `<path class="ln" stroke="var(--ink-2)" d="${cls.map((c, i) => `${i ? "L" : "M"}${(X(i) + bw / 2).toFixed(1)} ${Yp(c.ac).toFixed(1)}`).join(" ")}"/>` +
       cls.map((c, i) => `<circle cx="${(X(i) + bw / 2).toFixed(1)}" cy="${Yp(c.ac).toFixed(1)}" r="3" fill="var(--ink-2)"/>`).join("") + "</svg>"; }
-  $("tab-par-n").textContent = TE.conclusiones.top_clientes;
+  $("tab-par-n").textContent = `${cls[0].e} por sí solo deja el ${nf(cls[0].v / tot * 100)} %; los 5 primeros, el ${nf(cls[Math.min(4, cls.length - 1)].ac)} %.`;
   $("tab-par-n").style.cssText = "background:var(--warn-soft);border-color:#f1d9a6;color:#5a3d00";
   $("t-tab-par").innerHTML = `<thead><tr><th>#</th><th>Cliente</th><th>Compras</th><th>Parte del total</th><th>Acumulado</th></tr></thead><tbody>` +
     cls.map((c, i) => `<tr><td>${i + 1}</td><td>${esc(c.e)}</td><td>${bs(c.v)}</td><td>${nf(c.v / tot * 100, 1)} %</td><td>${nf(c.ac, 1)} %</td></tr>`).join("") + "</tbody>";
@@ -4289,15 +4301,20 @@ function pintarTab(){
   $("t-tab-anio").innerHTML = `<thead><tr><th>Año</th><th>Vendido</th><th>Piezas</th><th>Meses con datos</th></tr></thead><tbody>` +
     an.map(a => `<tr><td>${a.anio}</td><td>${bs(a.monto_bs)}</td><td>${nf(a.unidades)}</td><td>${a.meses}</td></tr>`).join("") + "</tbody>";
   // 8. En qué meses se vende más (temporada de los 30 repuestos juntos).
-  const TMt = tmDatos().total, idx = TMt.indice, fuertes = TMt.meses_fuertes || [], pico = TMt.mes_pico;
-  $("tab-estac-h").textContent = `${capital(MES_L[pico - 1])} es el mes más fuerte: se vende ${nf((idx[pico - 1] - 1) * 100)} % más que un mes normal`;
+  // «Todo el período»: índice estacional con todos los años. «Últimos 12 meses»: cada mes contra el promedio de esos 12.
+  const TMa = tmDatos().total, u12m = Array(12).fill(0); ult.forEach(x => u12m[+x.mes.slice(5, 7) - 1] = x.unidades);
+  const med12 = u12m.reduce((a, b) => a + b, 0) / 12 || 1;
+  const TMt = todo ? TMa : {indice:u12m.map(u => u / med12), promedio_mes:u12m}, idx = TMt.indice;
+  const fuertes = todo ? (TMa.meses_fuertes || []) : idx.map((v, i) => v > 1 ? i + 1 : 0).filter(Boolean), pico = idx.indexOf(Math.max(...idx)) + 1;
+  $("tab-estac-h").textContent = `${capital(MES_L[pico - 1])} es el mes más fuerte ${todo ? "de todos los años" : `de ${per}`}: ${nf((idx[pico - 1] - 1) * 100)} % más que un mes normal`;
   $("tab-estac-s").textContent = "Venta de cada mes del año comparada con un mes normal (la línea), con todos los años de datos. En verde, los meses fuertes.";
   { const g = $("tab-estac-g"), W = Math.max(300, g.clientWidth || 600), H = 220, pl = 40, pr = 8, pb = 40, bw = (W - pl - pr) / 12, mx = Math.max(...idx) * 1.12, Y = v => 10 + (1 - v / mx) * (H - pb - 10);
     g.innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc($("tab-estac-h").textContent)}">` +
       idx.map((v, i) => `<rect x="${(pl + i * bw + bw * .15).toFixed(1)}" y="${Y(v).toFixed(1)}" width="${(bw * .7).toFixed(1)}" height="${(H - pb - Y(v)).toFixed(1)}" rx="2" fill="${fuertes.includes(i + 1) ? "var(--brand)" : "#c9cec8"}"><title>${capital(MES_L[i])}: ${nf(v * 100)} % de un mes normal</title></rect>` +
         `<text x="${(pl + i * bw + bw / 2).toFixed(1)}" y="${H - 24}" text-anchor="middle">${W < 480 ? MES[i].charAt(0) : MES[i]}</text>`).join("") +
       `<line class="pe" x1="${pl}" x2="${W - pr}" y1="${Y(1)}" y2="${Y(1)}"/><text x="${pl - 4}" y="${Y(1) + 4}" text-anchor="end">normal</text></svg>`; }
-  $("tab-estac-n").textContent = `Los meses fuertes son ${fuertes.map(k => MES_L[k - 1]).join(", ").replace(/, ([^,]*)$/, " y $1")}: conviene tener el stock listo antes de que empiecen.`;
+  const flojo = idx.indexOf(Math.min(...idx)) + 1;
+  $("tab-estac-n").textContent = `${fuertes.length} meses por encima de lo normal: ${fuertes.map(k => MES_L[k - 1]).join(", ").replace(/, ([^,]*)$/, " y $1")}. El más flojo, ${MES_L[flojo - 1]} (${nf((1 - idx[flojo - 1]) * 100)} % menos).`;
   $("t-tab-estac").innerHTML = `<thead><tr><th>Mes</th><th>Venta promedio (unidades)</th><th>Frente a un mes normal</th><th>¿Mes fuerte?</th></tr></thead><tbody>` +
     idx.map((v, i) => `<tr><td>${capital(MES_L[i])}</td><td>${nf(TMt.promedio_mes[i], 1)}</td><td>${nf(v * 100)} %</td><td>${fuertes.includes(i + 1) ? "Sí" : "No"}</td></tr>`).join("") + "</tbody>";
 
@@ -4309,7 +4326,8 @@ function pintarTab(){
     $("tab-pred-s").textContent = `Los 10 repuestos con más probabilidad de vender al menos una unidad en ${mesP}, calculada con su historial de ventas.`;
     $("tab-pred-g").innerHTML = `<div class="legend">${Object.values(NIV).map(([t, c]) => `<span><i class="sw" style="background:${c}"></i>${t}</span>`).join("")}</div>` +
       svgBarras(pr.slice(0, 10).map(p => ({e:nombreRep(p.repuesto_id), v:p.probabilidad * 100, txt:nf(p.probabilidad * 100) + " %", c:NIV[p.nivel][1]})), Math.max(300, $("tab-pred-g").clientWidth || 600), null, $("tab-pred-h").textContent);
-    $("tab-pred-n").textContent = `El más probable es ${nombreRep(pr[0].repuesto_id)} (${nf(pr[0].probabilidad * 100)} %): conviene asegurar su stock.`;
+    const st0 = (alertas().find(a => a.id === pr[0].repuesto_id) || {}).stock;
+    $("tab-pred-n").textContent = `El más probable es ${nombreRep(pr[0].repuesto_id)} (${nf(pr[0].probabilidad * 100)} %)` + (st0 === undefined ? "." : ` y hoy tiene ${nf(st0)} ${pal(st0, "unidad", "unidades")} en stock.`);
     $("t-tab-pred").innerHTML = `<thead><tr><th>#</th><th>Repuesto</th><th>Probabilidad de venderse en ${mesP}</th><th>Nivel</th></tr></thead><tbody>` +
       pr.map((p, i) => `<tr><td>${i + 1}</td><td><b>${esc(nombreRep(p.repuesto_id))}</b><span class="ayuda">${p.repuesto_id}</span></td><td>${nf(p.probabilidad * 100)} %</td><td>${NIV[p.nivel][0]}</td></tr>`).join("") + "</tbody>"; }
   tecCards($("mn-f-tab"));
@@ -4327,6 +4345,7 @@ const nomCorto = id => nombreRep(id);
 const nomProv = n => String(n).replace(/^Proveedor /, "").replace(" (ficticio)", "");
 
 /* ---- Módulo 2: tablero de reposición ---- */
+const nombres = a => a.map(x => nomCorto(x.id)).join(", ").replace(/, ([^,]*)$/, " y $1");
 const MAT_FIL = [["A","Mucho","los que suman el 80 % de lo vendido"],["B","Algo","del 80 al 95 %"],["C","Poco","el 5 % restante"]];
 const MAT_COL = [["alta","Rápido","se vende en 3 meses o menos"],["media","Normal","hasta 12 meses"],["baja","Lento","más de un año o sin ventas"]];
 const MAT_CEL = {A:{alta:["Imprescindibles","ok"],media:["Importantes, ritmo normal","ok"],baja:["Caros y lentos","warn"]},
@@ -4335,11 +4354,12 @@ const MAT_CEL = {A:{alta:["Imprescindibles","ok"],media:["Importantes, ritmo nor
 function pintarRep(){
   const tc = tcHoy(), Dm = DM(), al = alertas(), R = Motor.rotacion(Dm, tc);
   const ya = al.filter(a => a.est === 0), vig = al.filter(a => a.est === 1), urg = al.filter(a => a.est < 2), costoUrg = urg.reduce((s, a) => s + a.costo_bs, 0);
+  const sob0 = R.repuestos.filter(f => f.acumulacion).sort((a, b) => b.valor_stock_bs - a.valor_stock_bs)[0];
   $("rp-kpis").innerHTML = `
-    <div class="kpi"><div class="t">¿Qué hay que pedir ya?</div><div class="v c-bad">${ya.length}<small>${pal(ya.length, "repuesto", "repuestos")}</small></div><div class="d">llegaron al mínimo para pedir</div></div>
-    <div class="kpi"><div class="t">¿Qué hay que vigilar?</div><div class="v c-warn">${vig.length}<small>${pal(vig.length, "repuesto", "repuestos")}</small></div><div class="d">llegarán al mínimo antes de que pueda llegar un pedido</div></div>
-    <div class="kpi"><div class="t">¿Cuánto cuesta pedir todo?</div><div class="v">${bs(costoUrg)}</div><div class="d">lo de «pedir ya» y «vigilar», puesto en Santa Cruz</div></div>
-    <div class="kpi"><div class="t">¿Cuánto dinero está parado?</div><div class="v">${bs(R.valor_acumulado_bs)}</div><div class="d">en ${R.acumulacion} ${pal(R.acumulacion, "repuesto", "repuestos")} que casi no se venden</div></div>`;
+    <div class="kpi"><div class="t">¿Qué hay que pedir ya?</div><div class="v c-bad">${ya.length}<small>${pal(ya.length, "repuesto", "repuestos")}</small></div><div class="d">${esc(nombres(ya)) || "ninguno"}</div></div>
+    <div class="kpi"><div class="t">¿Qué hay que vigilar?</div><div class="v c-warn">${vig.length}<small>${pal(vig.length, "repuesto", "repuestos")}</small></div><div class="d">${esc(nombres(vig)) || "ninguno"}</div></div>
+    <div class="kpi"><div class="t">¿Cuánto cuesta pedir todo?</div><div class="v">${bs(costoUrg)}</div><div class="d">${urg.length} ${pal(urg.length, "pedido", "pedidos")}; el más caro, ${urg.length ? esc(nomCorto(urg.slice().sort((a, b) => b.costo_bs - a.costo_bs)[0].id)) : "—"}</div></div>
+    <div class="kpi"><div class="t">¿Cuánto dinero está parado?</div><div class="v">${bs(R.valor_acumulado_bs)}</div><div class="d">en ${R.acumulacion} ${pal(R.acumulacion, "repuesto", "repuestos")}${sob0 ? `; el que más, ${esc(nomCorto(sob0.id))} (${bs(sob0.valor_stock_bs)})` : ""}</div></div>`;
 
   // 1. Estado del almacén.
   const EST = [["pedir ya", "var(--bad)"], ["vigilar", "var(--warn)"], ["con stock suficiente", "var(--brand)"], ["sin datos de venta", "#c9cec8"]];
@@ -4349,7 +4369,7 @@ function pintarRep(){
   $("tab-alm-g").innerHTML = `<div class="dona">${dona(cuenta.filter(x => x.v), String(bien), [`de ${al.length}`, "están bien"])}<ul>${cuenta.filter(x => x.v).map(x => `<li><i style="background:${x.c}"></i><b>${x.v}</b> ${x.e}</li>`).join("")}</ul></div>`;
   const porVenta = {}; R.repuestos.forEach(f => porVenta[f.id] = f.valor12_bs || 0);
   const masVende = ya.slice().sort((a, b) => (porVenta[b.id] || 0) - (porVenta[a.id] || 0))[0];
-  $("tab-alm-n").textContent = masVende ? `${nomCorto(masVende.id)}, de los que más dinero dejan, tiene solo ${nf(masVende.stock)} ${pal(masVende.stock, "unidad", "unidades")}: hay que pedir hoy.` : "Ningún repuesto llegó al mínimo para pedir.";
+  $("tab-alm-n").textContent = masVende ? `${nomCorto(masVende.id)} tiene ${nf(masVende.stock)} ${pal(masVende.stock, "unidad", "unidades")} y se ${masVende.venta_mes >= 1.05 ? "venden" : "vende"} ${nf(masVende.venta_mes, 1)} por mes.` : "";
   $("tab-alm-n").classList.toggle("alerta", !!masVende);
   $("t-tab-alm").innerHTML = `<thead><tr><th>Estado</th><th>Repuestos</th></tr></thead><tbody>` + cuenta.map(x => `<tr><td>${capital(x.e)}</td><td>${x.v}</td></tr>`).join("") + "</tbody>";
 
@@ -4357,7 +4377,7 @@ function pintarRep(){
   const filas = urg.map(a => ({e:nomCorto(a.id), v:a.costo_bs, txt:bs(a.costo_bs), c:a.est === 0 ? "var(--bad)" : "var(--warn)"}));
   $("tab-urg-h").textContent = `${ya.length} ${pal(ya.length, "repuesto", "repuestos")} hay que pedir ya y ${vig.length} vigilar; pedir todo cuesta ${bs(costoUrg)}`;
   $("tab-urg-s").textContent = "Del más urgente al menos urgente. El color dice la urgencia y la cifra, lo que cuesta el pedido sugerido.";
-  $("tab-urg-g").innerHTML = filas.length ? `<div class="legend"><span><i class="sw" style="background:var(--bad)"></i>Pedir ya</span><span><i class="sw" style="background:var(--warn)"></i>Vigilar</span></div>` + svgBarras(filas, Math.max(300, $("tab-urg-g").clientWidth || 600), null, $("tab-urg-h").textContent) : '<p class="pie">No hay pedidos pendientes.</p>';
+  $("tab-urg-g").innerHTML = filas.length ? `<div class="legend"><span><i class="sw" style="background:var(--bad)"></i>Pedir ya (${ya.length})</span><span><i class="sw" style="background:var(--warn)"></i>Vigilar (${vig.length})</span></div>` + svgBarras(filas, Math.max(300, $("tab-urg-g").clientWidth || 600), null, $("tab-urg-h").textContent) : '<p class="pie">No hay pedidos pendientes.</p>';
   $("tab-urg-n").textContent = ya.length ? `Primero ${ya.map(a => nomCorto(a.id)).join(", ").replace(/, ([^,]*)$/, " y $1")}: ya llegaron al mínimo.` : "Nada llegó al mínimo: alcanza con vigilar.";
   $("t-tab-urg").innerHTML = `<thead><tr><th>Repuesto</th><th>Estado</th><th>Stock</th><th>En camino</th><th>Pedir cuando queden</th><th>Cantidad sugerida</th><th>Costo final en Santa Cruz</th></tr></thead><tbody>` +
     al.map(a => `<tr><td><b>${esc(nomCorto(a.id))}</b><span class="ayuda">${a.id}</span></td><td>${insignia(a.est)}</td><td>${nf(a.stock)}</td><td>${nf(a.en_camino)}</td><td>${a.est === 3 ? "—" : nf(a.punto_pedido)}</td><td>${a.est < 2 ? nf(a.cantidad_sugerida) : "—"}</td><td>${a.est < 2 ? bs(a.costo_bs) : "—"}</td></tr>`).join("") + "</tbody>";
@@ -4367,11 +4387,12 @@ function pintarRep(){
   $("tab-abc-h").textContent = `${M.A.alta} repuestos importantes salen rápido y no pueden faltar; ${M.C.baja} sobran`;
   $("tab-abc-s").textContent = "Filas: cuánto vende cada repuesto en dinero. Columnas: qué tan rápido se vende su stock. Cada casilla dice cuántos repuestos hay.";
   $("tab-abc-g").innerHTML = `<div class="mat" role="img" aria-label="${esc($("tab-abc-h").textContent)}"><div class="mh"></div>` +
-    MAT_COL.map(([, t, d]) => `<div class="mh"><b>${t}</b><span>${d}</span></div>`).join("") +
-    MAT_FIL.map(([k, t, d]) => `<div class="mf"><b>${t}</b><span>${d}</span></div>` + MAT_COL.map(([c]) => { const [n, cl] = MAT_CEL[k][c];
+    MAT_COL.map(([, t]) => `<div class="mh"><b>${t}</b></div>`).join("") +
+    MAT_FIL.map(([k, t]) => `<div class="mf"><b>${t}</b></div>` + MAT_COL.map(([c]) => { const [n, cl] = MAT_CEL[k][c];
       return `<div class="mc ${cl}${M[k][c] ? "" : " cero"}"><b>${M[k][c]}</b><span>${n}</span></div>`; }).join("")).join("") + "</div>";
   const rev = R.repuestos.filter(f => f.clase_abc === "A" && f.clase_rot === "baja").sort((a, b) => b.valor12_bs - a.valor12_bs)[0];
-  $("tab-abc-n").textContent = `Los ${M.A.alta} de arriba a la izquierda se revisan cada semana. Los ${M.C.baja} de abajo a la derecha no se vuelven a comprar.` + (rev ? ` Ojo con ${nomCorto(rev.id)}: vende mucho en dinero pero sale lento.` : "");
+  const imp0 = R.repuestos.filter(f => f.clase_abc === "A" && f.clase_rot === "alta").sort((a, b) => b.valor12_bs - a.valor12_bs)[0];
+  $("tab-abc-n").textContent = (imp0 ? `${M.A.alta} imprescindibles; el que más vende, ${nomCorto(imp0.id)}. ` : "") + `${M.C.baja} sobran, con ${bs(R.repuestos.filter(f => f.clase_abc === "C" && f.clase_rot === "baja").reduce((s, f) => s + (f.valor_stock_bs || 0), 0))} en stock.` + (rev ? ` ${nomCorto(rev.id)} vende mucho en dinero pero sale lento.` : "");
   const COLT = {alta:"Rápido", media:"Normal", baja:"Lento"}, FILT = {A:"Mucho", B:"Algo", C:"Poco"};
   $("t-tab-abc").innerHTML = `<thead><tr><th>Repuesto</th><th>Vende en dinero</th><th>Qué tan rápido sale</th><th>Vendido en 12 meses</th><th>Le alcanza el stock para</th><th>Grupo</th></tr></thead><tbody>` +
     R.repuestos.map(f => `<tr><td><b>${esc(nomCorto(f.id))}</b><span class="ayuda">${f.id}</span></td><td>${FILT[f.clase_abc] || "—"}</td><td>${COLT[f.clase_rot] || "—"}</td><td>${bs(f.valor12_bs || 0)}</td><td>${f.cobertura_meses === null || !isFinite(f.cobertura_meses) ? "—" : nf(f.cobertura_meses, 1) + " meses"}</td><td>${MAT_CEL[f.clase_abc] && MAT_CEL[f.clase_abc][f.clase_rot] ? MAT_CEL[f.clase_abc][f.clase_rot][0] : "—"}</td></tr>`).join("") + "</tbody>";
@@ -4413,8 +4434,8 @@ function pintarCost(){
   const id = S.csRep, nom = nomCorto(id), {R, Q, T} = csCorrer(id), brecha = (PA.valor - tcHoy()) / tcHoy() * 100;
   $("cs-kpis").innerHTML = `
     <div class="kpi"><div class="t">Dólar oficial</div><div class="v">${nf(tcHoy(), 2)}<small>Bs</small></div><div class="d">Banco Central de Bolivia, ${fecha(OF.fecha)}</div></div>
-    <div class="kpi"><div class="t">Dólar paralelo</div><div class="v">${nf(PA.valor, 2)}<small>Bs</small></div><div class="d">referencia privada, ${fecha(PA.fecha)}</div></div>
-    <div class="kpi"><div class="t">Diferencia</div><div class="v">${brecha >= 0 ? "+" : "−"}${nf(Math.abs(brecha), 1)}<small>%</small></div><div class="d">paralelo frente al oficial</div></div>
+    <div class="kpi"><div class="t">Dólar paralelo</div><div class="v">${nf(PA.valor, 2)}<small>Bs</small></div><div class="d">${esc(String(PA.fuente || "").split(",")[0])}, ${fecha(PA.fecha)}</div></div>
+    <div class="kpi"><div class="t">Diferencia</div><div class="v">${brecha >= 0 ? "+" : "−"}${nf(Math.abs(brecha), 1)}<small>%</small></div><div class="d">${nf(Math.abs(PA.valor - tcHoy()), 2)} Bs ${PA.valor >= tcHoy() ? "más" : "menos"} por dólar</div></div>
     <div class="kpi"><div class="t">¿Desde qué dólar comprar más?</div><div class="v">${Q ? nf(Q.valor, 2) + "<small>Bs</small>" : "—"}</div><div class="d">${Q ? `para ${esc(nom)}` : "no depende del dólar"}</div></div>`;
 
   // 1. El dólar en el tiempo.
@@ -4435,10 +4456,11 @@ function pintarCost(){
 
   // 2. Cuánto pedir: de cada 100 casos, cuál gana.
   const L = ["A","B","C","D"], m = R.mejor;
-  $("tab-gana-h").textContent = `Para ${nom}, conviene ${ALT[m].t.toLowerCase()}: gana en ${R[m].puntaje} de cada 100 casos`;
+  $("tab-gana-h").textContent = `Para ${nom}, conviene ${ALT[m].t.toLowerCase()} (${R[m].cantidad === 1 ? "1 unidad" : nf(R[m].cantidad) + " unidades"}, ${bs(R[m].costo.total_bs)}): gana en ${R[m].puntaje} de cada 100 casos`;
   $("tab-gana-s").textContent = "Se probaron 1.500 futuros posibles de 90 días, cada uno con otro dólar, otra venta y otra demora. La barra dice en cuántos de cada 100 esa forma de comprar dejó más ganancia.";
   $("tab-gana-g").innerHTML = svgBarras(L.map(k => ({e:`${k}. ${ALT[k].t}`, v:R[k].puntaje, txt:`${R[k].puntaje} de 100`, c:k === m ? "var(--brand)" : "#c9cec8"})), Math.max(300, $("tab-gana-g").clientWidth || 600), null, $("tab-gana-h").textContent);
-  $("tab-gana-n").innerHTML = `Pedir ${R[m].cantidad === 1 ? "1 unidad" : nf(R[m].cantidad) + " unidades"} cuesta ${bs(R[m].costo.total_bs)} puesto en Santa Cruz. <a class="ir" href="#simulador" id="cs-abrir">Abrir el simulador con este repuesto →</a>`;
+  $("tab-gana-n").textContent = `Pedir ${R[m].cantidad === 1 ? "1 unidad" : nf(R[m].cantidad) + " unidades"} cuesta ${bs(R[m].costo.total_bs)} puesto en Santa Cruz.`;
+  $("tab-gana-g").insertAdjacentHTML("beforeend", `<p style="margin:10px 0 0"><a class="ir" href="#simulador" id="cs-abrir">Abrir el simulador con este repuesto →</a></p>`);
   $("cs-abrir").addEventListener("click", e => { e.preventDefault(); abrirEnSimulador(id); });
   $("t-tab-gana").innerHTML = `<thead><tr><th>Forma de comprar</th><th>Gana de cada 100</th><th>Cantidad</th><th>Costo final</th><th>Riesgo de quedarse sin stock</th><th>Dinero parado</th><th>Ganancia esperada en 90 días</th></tr></thead><tbody>` +
     L.map(k => { const o = R[k]; return `<tr><td><b>${k}. ${esc(ALT[k].t)}</b></td><td>${o.puntaje}</td><td>${nf(o.cantidad)}</td><td>${bs(o.costo.total_bs)}</td><td>${nf(o.riesgo_quiebre)} %</td><td>${bs(o.capital_inmovilizado_bs)}</td><td>${bs(o.ganancia_media_bs)}</td></tr>`; }).join("") + "</tbody>";
@@ -4463,7 +4485,7 @@ function pintarCost(){
   $("tab-sens-h").textContent = `${fr[T[0].supuesto]} es lo que más mueve la ganancia: hasta ${bs(T[0].rango_bs)} de diferencia`;
   $("tab-sens-s").textContent = "Cuánto cambia la ganancia esperada al llevar cada supuesto de un extremo al otro.";
   $("tab-sens-g").innerHTML = svgBarras(T.map(t => ({e:SUP[t.supuesto][0], v:t.rango_bs, txt:bs(t.rango_bs)})), Math.max(300, $("tab-sens-g").clientWidth || 600), {}, $("tab-sens-h").textContent);
-  $("tab-sens-n").textContent = "";
+  $("tab-sens-n").textContent = `Del extremo bajo al alto de ${SUP[T[0].supuesto][0].toLowerCase()}, la ganancia de ${nom} va de ${bs(T[0].de)} a ${bs(T[0].a)}.`;
   $("t-tab-sens").innerHTML = `<thead><tr><th>Supuesto</th><th>Rango probado</th><th>Ganancia en un extremo</th><th>En el otro</th><th>Diferencia</th></tr></thead><tbody>` +
     T.map(t => `<tr><td>${SUP[t.supuesto][0]}</td><td>${SUP[t.supuesto][1]}</td><td>${bs(t.de)}</td><td>${bs(t.a)}</td><td>${bs(t.rango_bs)}</td></tr>`).join("") + "</tbody>";
 
@@ -4472,7 +4494,7 @@ function pintarCost(){
   $("tab-cap-h").textContent = `${ALT[lo2].t} deja ${bs(R[lo2].capital_inmovilizado_bs)} parados; ${ALT[hi2].t.toLowerCase()}, ${bs(R[hi2].capital_inmovilizado_bs)}`;
   $("tab-cap-s").textContent = `Dinero en mercadería todavía sin vender, en promedio durante los 90 días, para ${nom}.`;
   $("tab-cap-g").innerHTML = svgBarras(L.map(k => ({e:`${k}. ${ALT[k].t}`, v:R[k].capital_inmovilizado_bs, txt:bs(R[k].capital_inmovilizado_bs), c:k === m ? "var(--brand)" : "#c9cec8"})), Math.max(300, $("tab-cap-g").clientWidth || 600), null, $("tab-cap-h").textContent);
-  $("tab-cap-n").textContent = "";
+  $("tab-cap-n").textContent = `Con ${ALT[m].t.toLowerCase()}, lo que queda parado en ${nom} equivale a ${nf(R[m].dias_venta_capital)} ${pal(R[m].dias_venta_capital, "día", "días")} de venta.`;
   $("t-tab-cap").innerHTML = `<thead><tr><th>Forma de comprar</th><th>Dinero parado</th></tr></thead><tbody>` + L.map(k => `<tr><td>${k}. ${esc(ALT[k].t)}</td><td>${bs(R[k].capital_inmovilizado_bs)}</td></tr>`).join("") + "</tbody>";
 
   // 6. Qué proveedor sale más barato para este repuesto.
@@ -4489,11 +4511,12 @@ function pintarCost(){
   // 7. Cuánto sube cada repuesto con el paralelo.
   const PRV2 = {}; D.proveedores.forEach(p => PRV2[p.proveedor_id] = p);
   const dif = D.repuestos.map(r => ({id:r.repuesto_id, o:Motor.costoPuesto(r, PRV2[r.proveedor_id], tcHoy()).total_bs, p:Motor.costoPuesto(r, PRV2[r.proveedor_id], PA.valor).total_bs})).sort((a, b) => (b.p - b.o) - (a.p - a.o));
-  $("tab-dif-h").textContent = `Con el dólar paralelo, ${nomCorto(dif[0].id)} es el que más sube: ${bs(dif[0].p - dif[0].o)} por unidad`;
+  const dElegido = dif.find(f => f.id === id), dPos = dif.indexOf(dElegido) + 1;
+  $("tab-dif-h").textContent = `Con el dólar paralelo, ${nom} sube ${bs(dElegido.p - dElegido.o)} por unidad; el que más sube, ${nomCorto(dif[0].id)} (${bs(dif[0].p - dif[0].o)})`;
   $("tab-dif-s").textContent = "Diferencia por unidad entre pagar con el paralelo y con el oficial. Los 10 que más cambian.";
-  $("tab-dif-g").innerHTML = svgBarras(dif.slice(0, 10).map(f => ({e:nomCorto(f.id), v:f.p - f.o, txt:"+" + bs(f.p - f.o)})), Math.max(300, $("tab-dif-g").clientWidth || 600), {}, $("tab-dif-h").textContent);
+  $("tab-dif-g").innerHTML = svgBarras(dif.slice(0, 10).concat(dPos > 10 ? [dElegido] : []).map(f => ({e:nomCorto(f.id), v:f.p - f.o, txt:"+" + bs(f.p - f.o), c:f === dElegido ? "var(--brand)" : "#c9cec8"})), Math.max(300, $("tab-dif-g").clientWidth || 600), {}, $("tab-dif-h").textContent);
   const so = dif.reduce((s, f) => s + f.o, 0), sp = dif.reduce((s, f) => s + f.p, 0);
-  $("tab-dif-n").textContent = `Una unidad de cada uno de los ${dif.length} repuestos cuesta ${bs(so)} con el oficial y ${bs(sp)} con el paralelo.`;
+  $("tab-dif-n").textContent = `${nom} es el ${dPos}.º de ${dif.length} en lo que sube: ${bs(dElegido.o)} con el oficial y ${bs(dElegido.p)} con el paralelo.`;
   $("t-tab-dif").innerHTML = `<thead><tr><th>Repuesto</th><th>Con el oficial</th><th>Con el paralelo</th><th>Diferencia por unidad</th></tr></thead><tbody>` +
     dif.map(f => `<tr><td><b>${esc(nomCorto(f.id))}</b><span class="ayuda">${f.id}</span></td><td>${bs(f.o)}</td><td>${bs(f.p)}</td><td>+${bs(f.p - f.o)}</td></tr>`).join("") + "</tbody>";
   tecCards($("mn-f-cost"));
