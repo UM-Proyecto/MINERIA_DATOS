@@ -14,12 +14,26 @@ class ConfirmarVenta(unittest.TestCase):
 
     def test_dialogo_con_repuesto_cantidad_y_stock(self):
         self.assertIn('<dialog id="vt-dlg"', self.p)
-        i = self.p.index('$("t-cz").addEventListener("click", e => { const b = e.target.closest("button[data-venta]")')
+        # El diálogo lo pinta pintarDialogoVenta, que el clic en la tabla llama al abrirlo.
+        i = self.p.index("function pintarDialogoVenta(f, antes)")
         bloque = self.p[i:self.p.index('$("vt-cancelar")', i)]
+        self.assertIn('$("t-cz").addEventListener("click"', bloque)
         for pieza in ("f.cantidad", "nombreRep(f.repuesto_id)", "antes", "despues", 'showModal()'):
             self.assertIn(pieza, bloque)
         # El clic en la tabla solo abre el diálogo: la venta sale del botón del diálogo.
         self.assertNotIn("marcarVenta(", bloque)
+
+    def test_stock_viejo_pasa_a_forzar(self):
+        # 27-11-2026: si la lista tenía un stock viejo, el servidor responde 409 con el stock real. Antes el botón seguía
+        # enviando sin «forzar» y repetía el mismo rechazo. Ahora el error conserva los datos del servidor y el diálogo
+        # se vuelve a pintar con ese stock, lo que pone forzar y cambia el texto del botón.
+        self.assertIn("e.status = r.status; e.datos = d; throw e;", self.p)
+        i = self.p.index('$("vt-ok").addEventListener("click"')
+        bloque = self.p[i:self.p.index('$("cz-csv")', i)]
+        for pieza in ("err.status === 409", "typeof d.stock === \"number\"", "pintarDialogoVenta(VT.f, d.stock)", "STOCK_REAL[VT.f.repuesto_id] = d.stock"):
+            self.assertIn(pieza, bloque)
+        j = self.p.index("function pintarDialogoVenta(f, antes)")
+        self.assertIn("VT.forzar = falta;", self.p[j:self.p.index("$(\"t-cz\")", j)])
 
     def test_sin_confirm_nativo(self):
         # Control positivo: el patrón encuentra la forma anterior.
