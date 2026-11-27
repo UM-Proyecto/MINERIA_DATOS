@@ -3771,26 +3771,29 @@ function dona(partes, centro, sub){
 function pintarTab(){
   const tc = tcHoy(), Dm = DM(), T = Motor.dashboard(Dm, tc); if(!T.meses.length) return;
   const precio = {}; Dm.repuestos.forEach(r => precio[r.repuesto_id] = Math.round(r.precio_venta_usd * tc * 100) / 100);
-  const dm = T.demanda_mes, ult = dm.slice(-12), prev = dm.slice(-24, -12), desde = ult[0].mes;
+  // Período: los 12 últimos meses CERRADOS de la base (los del pronóstico). En el portal publicado entran también las
+  // ventas de la tienda web del mes en curso; ese mes está incompleto y correría el pronóstico un mes (medido el 27-11-2026).
+  const V = valDatos(), fin = V.meses[V.meses.length - 1];
+  const dm = T.demanda_mes, dmC = dm.filter(x => x.mes <= fin), ult = dmC.slice(-12), prev = dmC.slice(-24, -12), desde = ult[0].mes;
   const porRep = {}, porCli = {};
-  Dm.clientes.ventas.forEach(v => { const q = Number(v[3]); if(String(v[0]) < desde || !(v[1] in precio) || !isFinite(q)) return;
+  Dm.clientes.ventas.forEach(v => { const q = Number(v[3]); if(String(v[0]) < desde || String(v[0]) > fin || !(v[1] in precio) || !isFinite(q)) return;
     porRep[v[1]] = (porRep[v[1]] || 0) + q * precio[v[1]]; porCli[v[2]] = (porCli[v[2]] || 0) + q * precio[v[1]]; });
   const suma = (a, k) => a.reduce((s, x) => s + x[k], 0), u12 = suma(ult, "unidades"), p12 = suma(prev, "unidades");
-  const per = `${mesL(ult[0].mes)} a ${mesL(T.ultimo_mes)}`;
+  const b12 = suma(ult, "monto_bs"), bP = suma(prev, "monto_bs"), per = `${mesL(ult[0].mes)} a ${mesL(fin)}`;
   // Cifras de arriba (las cuatro del boceto) y la línea que explica por qué el dinero y las piezas van en sentidos opuestos.
   const al = alertas(), ya = al.filter(a => a.est === 0), R = Motor.rotacion(Dm, tc);
   const col = (a, b) => a >= b ? "c-ok" : "c-bad";
   $("tab-kpis").innerHTML = `
-    <div class="kpi"><div class="t">¿Cuánto vendimos?</div><div class="v">${bs(T.ult12_bs)}</div><div class="d ${col(T.ult12_bs, T.prev12_bs)}">${varTxt(T.ult12_bs, T.prev12_bs)}</div></div>
+    <div class="kpi"><div class="t">¿Cuánto vendimos?</div><div class="v">${bs(b12)}</div><div class="d ${col(b12, bP)}">${varTxt(b12, bP)}</div></div>
     <div class="kpi"><div class="t">¿Cuántas piezas salieron?</div><div class="v">${nf(u12)}<small>piezas</small></div><div class="d ${col(u12, p12)}">${varTxt(u12, p12)}</div></div>
     <div class="kpi"><div class="t">¿Qué hay que comprar ya?</div><div class="v c-bad">${ya.length}<small>${pal(ya.length, "repuesto", "repuestos")}</small></div><div class="d">por agotarse · reponerlos cuesta ${bs(ya.reduce((s, a) => s + a.costo_bs, 0))}</div></div>
     <div class="kpi"><div class="t">¿Cuánto dinero está parado?</div><div class="v">${bs(R.valor_acumulado_bs)}</div><div class="d">en ${R.acumulacion} ${pal(R.acumulacion, "repuesto", "repuestos")} que casi no se venden</div></div>`;
-  const pm = u12 ? T.ult12_bs / u12 : 0, pmA = p12 ? T.prev12_bs / p12 : 0, opuesto = (T.ult12_bs >= T.prev12_bs) !== (u12 >= p12);
+  const pm = u12 ? b12 / u12 : 0, pmA = p12 ? bP / p12 : 0, opuesto = (b12 >= bP) !== (u12 >= p12);
   $("tab-precio").innerHTML = `<b>Precio medio por pieza:</b> ${bs(pm)} en los últimos 12 meses (${per}), contra ${bs(pmA)} en los 12 anteriores.` +
-    (opuesto ? ` Por eso ${T.ult12_bs >= T.prev12_bs ? "el dinero subió aunque salieron menos piezas: se vendieron repuestos más caros" : "salieron más piezas pero entró menos dinero: se vendieron repuestos más baratos"}.` : "");
+    (opuesto ? ` Por eso ${b12 >= bP ? "el dinero subió aunque salieron menos piezas: se vendieron repuestos más caros" : "salieron más piezas pero entró menos dinero: se vendieron repuestos más baratos"}.` : "");
 
   // 1. Ventas de cada mes, el mismo mes del año anterior y el pronóstico del mes que viene con su margen.
-  const V = valDatos(), ids = V.ids, sig = mesSig(T.ultimo_mes);
+  const ids = V.ids, sig = mesSig(fin);
   const pron = ids.reduce((s, id) => s + Motor.pronostico(Dm.ventas[id], REP[id].tipo_demanda).unidades_mes * precio[id], 0);
   const bt = V.meses.map((m, i) => ({mes:m, real:ids.reduce((s, id) => s + V.por[id][i].real * precio[id], 0), pron:ids.reduce((s, id) => s + V.por[id][i].pron * precio[id], 0)}));
   const mae = bt.reduce((s, b) => s + Math.abs(b.real - b.pron), 0) / bt.length, errPct = suma(bt, "real") ? bt.reduce((s, b) => s + Math.abs(b.real - b.pron), 0) / suma(bt, "real") * 100 : 0;
@@ -3814,7 +3817,7 @@ function pintarTab(){
       `<path d="M${X(12) + bw / 2} ${M.Y(hi).toFixed(1)}V${M.Y(lo).toFixed(1)}M${X(12) + bw * .35} ${M.Y(hi).toFixed(1)}h${(bw * .3).toFixed(1)}M${X(12) + bw * .35} ${M.Y(lo).toFixed(1)}h${(bw * .3).toFixed(1)}" stroke="var(--ink-2)" stroke-width="1.5" fill="none"/>` +
       `<text x="${X(12) + bw / 2}" y="${H - 26}" text-anchor="middle" style="fill:var(--brand-dark);font-weight:600">${MES[+sig.slice(5, 7) - 1]}*</text></svg>`; }
   $("tab-mes-n").innerHTML = `${capital(flojos.map(x => nomMes(x.mes)).join(", ").replace(/, ([^,]*)$/, " y $1"))} fueron los meses más flojos: buen momento para recibir pedidos sin quedarse corto. ` +
-    `*El pronóstico de ${nomMes(sig)} se equivocó en promedio ${bs(mae)} por mes (${nf(errPct)} % de lo vendido) en los últimos 12 meses; por eso se espera entre ${bs(lo)} y ${bs(hi)}.`;
+    `*En los últimos 12 meses, el pronóstico hecho antes de cada mes se equivocó en promedio ${bs(mae)} (${nf(errPct)} % de lo vendido); por eso, para ${nomMes(sig)}, se espera entre ${bs(lo)} y ${bs(hi)}.`;
   $("t-tab-mes").innerHTML = `<thead><tr><th>Mes</th><th>Vendido</th><th>Mismo mes del año anterior</th><th>Diferencia</th><th>Pronóstico hecho antes del mes</th><th>Error del pronóstico</th></tr></thead><tbody>` +
     ult.map(x => { const a = ant(x), b = BT[x.mes];
       return `<tr><td>${mesL(x.mes)}</td><td>${bs(x.monto_bs)}</td><td>${a === undefined ? "—" : bs(a)}</td><td>${a ? (x.monto_bs >= a ? "+" : "−") + nf(Math.abs(x.monto_bs - a) / a * 100) + " %" : "—"}</td><td>${b ? bs(b.pron) : "—"}</td><td>${b ? (b.real >= b.pron ? "+" : "−") + bs(Math.abs(b.real - b.pron)) : "—"}</td></tr>`; }).join("") +

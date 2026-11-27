@@ -16,6 +16,9 @@ with sync_playwright() as p:
         m = w < 500
         pg = br.new_context(viewport={"width": w, "height": 844 if m else 1080}, is_mobile=m, has_touch=m).new_page()
         errs = []; pg.on("pageerror", lambda e: errs.append(str(e)))
+        if url.startswith("http"):   # portal publicado: entra con el usuario de demostración (docs/portal/LEEME.md)
+            pg.goto(url + "#entrar"); pg.wait_for_timeout(1500)
+            pg.fill("#ent-u", "importador"); pg.fill("#ent-c", "demo-importador"); pg.click("#ent-b"); pg.wait_for_timeout(2500)
         for v in ("m1", "m2", "m3", "tablas"):
             pg.goto(url + "#" + v); pg.wait_for_timeout(2500)
             chk(pg.evaluate("document.documentElement.scrollWidth") <= w, f"{w} {v}: sin desborde a lo ancho")
