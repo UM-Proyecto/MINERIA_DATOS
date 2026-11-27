@@ -434,6 +434,43 @@ body.entrada .inner{max-width:none}
 .tecnica b{color:var(--ink);font-weight:600}
 .db-dos{margin-top:18px;gap:18px;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr)}
 .db-dos .card+.card{margin-top:0}
+/* SCRUM-79, tablero empresarial. Verde de MULTIPARTES y verdes más claros; gris para lo incompleto. Rojo, amarillo y
+   verde de semáforo solo en «¿Cómo está el almacén?». Los colores que hay que distinguir difieren también en claridad. */
+.db{--db-claro:#9fd0b0;--db-t1:#015a2a;--db-t2:#01863e;--db-t3:#6dbb8a;--db-t4:#c3e3cf;--db-gris:#c9cec8;
+  --db-rojo:#b42318;--db-amarillo:#f2c230;--db-verde:#5fb27f}
+.db-per{min-width:340px}.db-per .lab{display:block;margin-bottom:6px}.db-per .chip{white-space:nowrap;padding:0 14px}
+.db-rango{font-size:13px;color:var(--ink-3);margin:-4px 0 0}
+.db-k .kpi .v{font-size:28px}
+.db-k .kpi .d b{font-weight:600}
+.db-sube{color:var(--ok)}.db-baja{color:var(--bad)}
+.db-k .kpi a{color:var(--brand-dark);font-weight:600;font-size:12.5px;display:inline-block;margin-top:6px}
+.db-card{margin-top:18px}
+.db-par{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:18px}
+.db-par .db-card{margin-top:0;display:flex;flex-direction:column}
+.db-par .db-concl{margin-top:auto}
+.db-par .chartbox,.db-par .db-dona{margin-bottom:14px}
+.db-concl:empty{display:none}
+.sw.db-sw-linea{background:none;border-top:2px dashed var(--graphite);height:0;width:16px;border-radius:0;vertical-align:3px}
+.db-dona{display:flex;align-items:center;gap:24px;flex-wrap:wrap}
+.db-dona svg{width:180px;height:180px;flex:none}
+.db-dona ul{list-style:none;padding:0;margin:0;flex:1;min-width:190px;display:grid;gap:10px}
+.db-dona li{display:grid;grid-template-columns:12px minmax(0,1fr) auto;column-gap:8px;align-items:baseline;font-size:13.5px}
+.db-dona li .sw{margin:0}
+.db-dona li b{font-variant-numeric:tabular-nums}
+.db-dona li small{grid-column:2/4;color:var(--ink-3);font-size:12px}
+.db-dona .c1{font:700 22px Poppins,system-ui,sans-serif;fill:var(--ink)}
+.db-dona .c2{font:500 11px Poppins,system-ui,sans-serif;fill:var(--ink-3)}
+.db-link{margin-top:10px;font-weight:600}.db-link a{color:var(--brand-dark)}
+svg.chart .db-col{fill:var(--db-claro)}svg.chart .db-col.top{fill:var(--brand)}svg.chart .db-col.inc{fill:var(--db-gris)}
+svg.chart .db-bar{fill:var(--brand)}svg.chart .db-bar.top{fill:var(--db-t1)}
+svg.chart .db-prom{stroke:var(--graphite);stroke-width:1.6;stroke-dasharray:6 4}
+svg.chart .db-val{font-weight:600;fill:var(--ink)}
+svg.chart .db-nom{fill:var(--ink-2);font-size:12.5px}
+.db-det{margin-top:18px}
+.db-det summary{cursor:pointer;font-weight:600;min-height:44px;display:flex;align-items:center}
+.db-det h3{font-size:14px;margin:18px 0 8px}
+@media (max-width:1100px){.db-par{grid-template-columns:1fr}}
+@media (max-width:560px){.db-k{grid-template-columns:1fr}.db-per{min-width:0;width:100%}.db-dona{justify-content:center}}
 .cli-t td.trend{text-align:left;white-space:nowrap}
 /* Regla de Fio (16-11-2026): solo barras, histograma, líneas o torta, y cada gráfico con título y ejes con nombre. */
 svg.chart .axt,.spark svg .axt{font-size:11.5px;font-weight:600;fill:var(--ink-2)}
@@ -821,30 +858,67 @@ details.tecnico[open]>summary::before{transform:rotate(90deg)}
   </section>
 
   <!-- ============ DASHBOARD (SCRUM-79) ============ -->
-  <section class="vista" id="v-dashboard" hidden aria-labelledby="h1-db">
-    <div class="hero"><div><div class="eyebrow">Resumen de ventas hasta la fecha</div><h1 id="h1-db">¿Cómo van las ventas?</h1>
-      <p id="db-intro">Qué clientes compran más, qué repuestos se venden más, cómo cambia la demanda de un mes a otro y cuánto se ha vendido en bolivianos.</p></div></div>
-    <div class="grid-k" id="db-kpis" aria-live="polite"></div>
-    <section class="card" style="margin-top:18px">
-      <div class="card-h"><div><h2>Unidades vendidas por mes<button type="button" class="info" aria-label="Qué es: Unidades vendidas por mes" aria-expanded="false" data-tema="Unidades vendidas por mes" data-info="Cada barra es la cantidad de unidades vendidas en un mes, sumando los 30 repuestos. La línea oscura es el promedio de los 12 meses anteriores: si sube, la demanda está creciendo.">i</button></h2><p id="db-dem-sub"></p></div></div>
+  <section class="vista db" id="v-dashboard" hidden aria-labelledby="h1-db">
+    <!-- SCRUM-79, versión empresarial (27-11-2026): para un gerente que no sabe de estadística. Todas las cifras y las
+         frases de conclusión salen de Motor.tableroEmpresa; la página solo las dibuja. Las tablas de antes quedan en
+         «Ver detalle», al final. -->
+    <div class="hero"><div><div class="eyebrow">Resumen para la gerencia</div><h1 id="h1-db">Tablero de ventas</h1>
+      <p id="db-intro">Cómo van las ventas, quién nos compra y qué hay que reponer.</p></div>
+      <div class="db-per"><span class="lab" id="db-per-lab">Período</span>
+        <div class="seg" role="group" aria-labelledby="db-per-lab" id="db-per"><button class="chip" type="button" data-v="12m" aria-pressed="true">Últimos 12 meses</button><button class="chip" type="button" data-v="todo" aria-pressed="false">Todo el período</button></div></div></div>
+    <p class="db-rango" id="db-rango" aria-live="polite"></p>
+    <div class="grid-k db-k" id="db-kpis" aria-live="polite"></div>
+    <section class="card db-card">
+      <div class="card-h"><div><h2 id="db-meses-tit">Ventas de cada mes</h2><p id="db-meses-sub"></p></div></div>
       <div class="chartbox" id="chart-db"></div>
-      <div class="legend"><span><i class="sw" style="background:var(--brand)"></i>Unidades vendidas en el mes (los 30 repuestos)</span><span><i class="sw" style="background:var(--graphite);height:2px;vertical-align:3px"></i>Tendencia: promedio del último año</span></div>
-      <details><summary>Ver los datos del gráfico como tabla</summary><div class="scroll"><table id="t-db-mes"></table></div></details>
-      <p class="nota-sit" style="margin-top:14px" id="db-nota"></p>
+      <div class="legend"><span><i class="sw" style="background:var(--db-claro)"></i>Ventas del mes</span><span><i class="sw" style="background:var(--brand)"></i>El mejor mes</span><span><i class="sw db-sw-linea"></i>Promedio del período</span></div>
+      <p class="nota-sit db-concl" id="db-c-meses"></p>
     </section>
-    <div class="dos db-dos">
-      <section class="card">
-        <div class="card-h"><div><h2>¿Cuánto vendimos cada año?<button type="button" class="info" aria-label="Qué es: Ventas por año" aria-expanded="false" data-tema="Ventas por año" data-info="Suma de las ventas de cada año calendario, en bolivianos a precio de lista de hoy. El primer y el último año tienen menos de 12 meses con datos, por eso se ven más bajos.">i</button></h2><p class="lectura" id="db-anio-lec"></p><p id="db-anio-sub"></p></div></div>
-        <div class="scroll"><table id="t-db-anio" class="cli-t"></table></div>
+    <div class="db-par">
+      <section class="card db-card">
+        <div class="card-h"><div><h2>¿Quiénes nos compran?<span id="db-i-tipos"></span></h2><p>Parte de las ventas en bolivianos que deja cada tipo de cliente.</p></div></div>
+        <div class="db-dona" id="chart-db-tipos"></div>
+        <p class="nota-sit db-concl" id="db-c-tipos"></p>
       </section>
-      <section class="card">
-        <div class="card-h"><div><h2 id="db-rep-tit">Los 10 repuestos que más se venden</h2><p class="lectura" id="db-rep-lec"></p><p>Unidades vendidas desde ago-2022. El botón «Mostrar los 30» abre la lista completa.</p></div></div>
-        <div class="scroll"><table id="t-db-rep" class="cli-t"></table></div>
-        <button class="btn2 mas" id="b-db-rep" type="button" aria-expanded="false">Mostrar los 30</button>
+      <section class="card db-card">
+        <div class="card-h"><div><h2>¿Cómo está el almacén?<span id="db-i-alm"></span></h2><p id="db-alm-sub"></p></div></div>
+        <div class="db-dona" id="chart-db-alm"></div>
+        <p class="nota-sit db-concl" id="db-c-alm"></p>
+        <p class="db-link"><a href="#alertas">Ver qué pedir →</a></p>
       </section>
     </div>
-    <!-- «Evolución de las compras por cliente» se quitó del tablero (veredicto #6, decisión D2 del 24-11-2026): repetía la
-         tabla de Clientes. Su columna «Tendencia» pasó a la tabla de la pantalla Clientes. -->
+    <div class="db-par">
+      <section class="card db-card">
+        <div class="card-h"><div><h2>¿Qué tipo de repuesto vendemos más?<span id="db-i-cat"></span></h2><p>Ventas en bolivianos de cada tipo de repuesto.</p></div></div>
+        <div class="chartbox" id="chart-db-cat"></div>
+        <p class="nota-sit db-concl" id="db-c-cat"></p>
+      </section>
+      <section class="card db-card">
+        <div class="card-h"><div><h2>Nuestros 5 mejores clientes<span id="db-i-cli"></span></h2><p>Lo que compró cada uno, en bolivianos.</p></div></div>
+        <div class="chartbox" id="chart-db-cli5"></div>
+        <p class="nota-sit db-concl" id="db-c-cli"></p>
+      </section>
+    </div>
+    <div class="db-par">
+      <section class="card db-card">
+        <div class="card-h"><div><h2>Los 10 repuestos estrella<span id="db-i-rep"></span></h2><p>Los que más venden en bolivianos.</p></div></div>
+        <div class="chartbox" id="chart-db-rep"></div>
+        <p class="nota-sit db-concl" id="db-c-rep"></p>
+      </section>
+      <section class="card db-card">
+        <div class="card-h"><div><h2>Ventas por año<span id="db-i-anio"></span></h2><p>En bolivianos. En gris, los años de los que no hay los 12 meses. Este gráfico no cambia con el período.</p></div></div>
+        <div class="chartbox" id="chart-db-anio"></div>
+        <p class="nota-sit db-concl" id="db-c-anio"></p>
+      </section>
+    </div>
+    <details class="card db-det" id="db-det">
+      <summary>Ver detalle: las cifras de cada gráfico en tablas</summary>
+      <h3>Ventas de cada mes</h3><div class="scroll"><table id="t-db-mes" class="cli-t"></table></div>
+      <h3>Ventas por año</h3><div class="scroll"><table id="t-db-anio" class="cli-t"></table></div>
+      <h3 id="db-rep-tit">Repuestos</h3><div class="scroll"><table id="t-db-rep" class="cli-t"></table></div>
+      <button class="btn2 mas" id="b-db-rep" type="button" aria-expanded="false">Mostrar todos</button>
+      <h3>Clientes</h3><div class="scroll"><table id="t-db-cli" class="cli-t"></table></div>
+    </details>
   </section>
 
   <!-- ============ PREDICCIONES (SCRUM-80) ============ -->
@@ -1115,6 +1189,9 @@ details.tecnico[open]>summary::before{transform:rotate(90deg)}
 
     <!-- Módulo 1: tablero de ventas (base: boceto de Sabrina del 27-11-2026; temporada y predicción fundidas el mismo día) -->
     <section class="mn-fn" id="mn-f-tab" hidden>
+      <div class="db-per" style="margin-bottom:12px"><span class="lab" id="tab-per-lab">Período</span>
+        <div class="seg" role="group" aria-labelledby="tab-per-lab" id="tab-per"><button class="chip" type="button" data-v="12m" aria-pressed="true">Últimos 12 meses</button><button class="chip" type="button" data-v="todo" aria-pressed="false">Todo el período</button></div>
+        <span class="ayuda">Cambia las cifras de ventas, clientes y repuestos. Lo que hay que comprar hoy y el gráfico de cada mes no cambian.</span></div>
       <div class="grid-k" id="tab-kpis" aria-live="polite" style="margin-top:0"></div>
       <p class="tab-precio" id="tab-precio"></p>
       <div class="tab-grid">
@@ -2005,8 +2082,8 @@ var Motor = (function () {
   // Todo sale de las compras por cliente (datos.clientes.ventas): suman lo mismo que las ventas reales por repuesto y,
   // en el portal, incluyen las cotizaciones marcadas como venta. Dinero = unidades × precio de lista con el dólar
   // oficial del día, igual que el cotizador y el tablero de clientes (carparts no trae precios históricos).
-  function dashboard(datos, tc) {
-    tc = num(tc);
+  // Ventas válidas, una fila por mes, repuesto y cliente, con su monto en Bs. La usan dashboard y tableroEmpresa.
+  function filasDeVentas(datos, tc) {
     var precio = {};
     datos.repuestos.forEach(function (r) { precio[r.repuesto_id] = redondear(num(r.precio_venta_usd) * tc, 2); });
     var nombre = {};
@@ -2017,6 +2094,12 @@ var Motor = (function () {
       if (u === null || !(v[1] in precio) || !(v[2] in nombre) || !/^\d{4}-\d{2}$/.test(mes)) return;
       filas.push({ mes: mes, rep: v[1], cli: v[2], u: u, bs: u * precio[v[1]] });
     });
+    return { filas: filas, nombre: nombre };
+  }
+
+  function dashboard(datos, tc) {
+    tc = num(tc);
+    var V = filasDeVentas(datos, tc), filas = V.filas, nombre = V.nombre;
     var total = { unidades: 0, monto_bs: 0 };
     if (!filas.length) return { meses: [], demanda_mes: [], por_anio: [], total: total, repuestos: [], clientes: [], trimestres: [],
       ultimo_mes: null, ult12_bs: 0, prev12_bs: 0, top5_pct: null };
@@ -2063,6 +2146,182 @@ var Motor = (function () {
       meses: lista, demanda_mes: lista.map(function (m) { return dm[m]; }), por_anio: porAnio, total: total,
       repuestos: repuestos, clientes: clientes, trimestres: trims, ultimo_mes: ultimo,
       ult12_bs: ult12, prev12_bs: prev12, top5_pct: total.monto_bs > 0 ? top5 / total.monto_bs * 100 : null
+    };
+  }
+
+  // ---------------------------------------------------------------- tablero para la gerencia (SCRUM-79, versión empresarial)
+
+  // El tablero de ventas en lenguaje simple. Junta dashboard (ventas), alertas (qué pedir) y rotacion (dinero parado)
+  // y lo resume para un período: "12m" (los 12 meses que terminan en el último mes con ventas) o "todo".
+  // Devuelve también una frase de conclusión por gráfico, armada con estas mismas cifras: la página solo la muestra.
+  // Lo que es de hoy (almacén, qué pedir, dinero parado) y las ventas por año no dependen del período.
+  var TIPO_PLURAL = { "Taller mecánico": "los talleres mecánicos", "Repuestera": "las repuesteras",
+    "Flota de empresa": "las flotas de empresa", "Particular": "los particulares", "Tienda web": "las ventas de la tienda web" };
+  var MES_LARGO = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+  var DONA_MAX = 5, NOMBRE_CORTO_MAX = 44, CONECTORES = ["con", "de", "del", "para", "y", "a", "en"];
+
+  // Entero con punto de miles: 13445.4 -> "13.445". Formato boliviano, igual en motor_ref.py.
+  function miles(x) {
+    var n = redondear(Math.abs(x), 0), s = String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return (x < 0 && n !== 0 ? "−" : "") + s;
+  }
+  function bsTxt(x) { return "Bs " + miles(x); }
+  function pl(n, uno, varios) { return n === 1 ? uno : varios; }
+  function mayuscula(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+  function minuscula(s) { return s.charAt(0).toLowerCase() + s.slice(1); }
+  function mesLargo(m) { return MES_LARGO[Number(m.slice(5, 7)) - 1] + " de " + m.slice(0, 4); }
+
+  // Porcentajes enteros que suman exactamente 100 (método del resto mayor). Sin total, todos 0.
+  function enteros100(valores) {
+    var tot = valores.reduce(function (s, v) { return s + v; }, 0);
+    if (!(tot > 0)) return valores.map(function () { return 0; });
+    var crudo = valores.map(function (v) { return v / tot * 100; });
+    var base = crudo.map(function (c) { return Math.floor(c); });
+    var resto = 100 - base.reduce(function (s, v) { return s + v; }, 0);
+    var orden = crudo.map(function (c, i) { return i; }).sort(function (a, b) {
+      return (crudo[b] - base[b]) - (crudo[a] - base[a]) || a - b;
+    });
+    for (var k = 0; k < resto; k++) base[orden[k]] += 1;
+    return base;
+  }
+
+  // Nombre para las barras: entero si entra; si no, se corta en una palabra (sin dejar un conector al final) y lleva «…».
+  function nombreCorto(s) {
+    s = String(s);
+    if (s.length <= NOMBRE_CORTO_MAX) return s;
+    var p = s.slice(0, s.lastIndexOf(" ", NOMBRE_CORTO_MAX - 1)).split(" ");
+    while (p.length > 1 && CONECTORES.indexOf(p[p.length - 1].toLowerCase()) >= 0) p.pop();
+    return p.join(" ").replace(/,$/, "") + "…";
+  }
+
+  // Suma por clave en el orden de las filas y ordena de mayor a menor monto (empate: por clave).
+  function sumarPor(filas, clave) {
+    var acc = {}, orden = [];
+    filas.forEach(function (f) {
+      var k = clave(f);
+      if (!acc[k]) { acc[k] = { clave: k, monto_bs: 0, unidades: 0 }; orden.push(k); }
+      acc[k].monto_bs += f.bs; acc[k].unidades += f.u;
+    });
+    return orden.map(function (k) { return acc[k]; })
+      .sort(function (a, b) { return b.monto_bs - a.monto_bs || porClave(a.clave, b.clave); });
+  }
+
+  function variacion(ahora, antes) { return antes > 0 ? (ahora - antes) / antes * 100 : null; }
+
+  function tableroEmpresa(datos, tc, periodo) {
+    periodo = periodo === "todo" ? "todo" : "12m";
+    tc = num(tc);
+    // Hoy: semáforo del almacén, qué pedir ya y dinero parado. No dependen del período.
+    var sem = [0, 0, 0, 0], costoPedir = 0;
+    alertas(datos, tc).forEach(function (a) { sem[a.est] += 1; if (a.est === 0) costoPedir += num(a.costo_bs); });
+    var R = rotacion(datos, tc);
+    var estados = [["pedir", "Pedir ya", sem[0]], ["vigilar", "Vigilar", sem[1]], ["suficiente", "Con stock suficiente", sem[2]],
+      ["sin_datos", "Sin datos para decidir", sem[3]]].filter(function (e) { return e[0] !== "sin_datos" || e[2] > 0; });
+    var pctAlm = enteros100(estados.map(function (e) { return e[2]; }));
+    var almacen = estados.map(function (e, i) { return { clave: e[0], etiqueta: e[1], repuestos: e[2], pct: pctAlm[i] }; });
+    var nRep = sem[0] + sem[1] + sem[2] + sem[3];
+    var conclAlm = (sem[0] > 0 ? sem[0] + " " + pl(sem[0], "repuesto está por agotarse y hay que pedirlo ya.", "repuestos están por agotarse y hay que pedirlos ya.")
+      : "Ningún repuesto está por agotarse.") +
+      (sem[1] > 0 ? " " + sem[1] + " más " + pl(sem[1], "hay que vigilarlo", "hay que vigilarlos") + "." : "") +
+      " " + mayuscula(sem[2] + " " + pl(sem[2], "tiene", "tienen") + " stock suficiente.") +
+      (sem[3] > 0 ? " De " + sem[3] + " no hay datos para decidir." : "");
+    var hoy = {
+      pedir_ya: { repuestos: sem[0], costo_bs: costoPedir },
+      dinero_parado: { valor_bs: R.valor_acumulado_bs, repuestos: R.acumulacion },
+      almacen: almacen, almacen_total: nRep
+    };
+
+    var T = dashboard(datos, tc), V = filasDeVentas(datos, tc);
+    if (!T.meses.length) {
+      return { periodo: periodo, vacio: true, hoy: hoy, conclusiones: { almacen: conclAlm } };
+    }
+    var ultimo = T.ultimo_mes, desde = periodo === "todo" ? T.meses[0] : mesMenos(ultimo, 11);
+    if (desde < T.meses[0]) desde = T.meses[0];
+    var filas = V.filas.filter(function (f) { return f.mes >= desde; });
+
+    // Tarjetas: período y comparación de los últimos 12 meses contra los 12 anteriores (siempre la misma).
+    var r12 = mesMenos(ultimo, 11), p12 = mesMenos(ultimo, 23), c = { ult12_bs: 0, prev12_bs: 0, ult12_u: 0, prev12_u: 0 };
+    V.filas.forEach(function (f) {
+      if (f.mes >= r12) { c.ult12_bs += f.bs; c.ult12_u += f.u; } else if (f.mes >= p12) { c.prev12_bs += f.bs; c.prev12_u += f.u; }
+    });
+    c.var_bs_pct = variacion(c.ult12_bs, c.prev12_bs); c.var_u_pct = variacion(c.ult12_u, c.prev12_u);
+    var totBs = filas.reduce(function (s, f) { return s + f.bs; }, 0), totU = filas.reduce(function (s, f) { return s + f.u; }, 0);
+
+    // Ventas de cada mes del período, promedio y mejor mes (empate: el primero).
+    var meses = T.demanda_mes.filter(function (x) { return x.mes >= desde; })
+      .map(function (x) { return { mes: x.mes, monto_bs: x.monto_bs, unidades: x.unidades }; });
+    var mejor = meses[0];
+    meses.forEach(function (x) { if (x.monto_bs > mejor.monto_bs) mejor = x; });
+    var promMes = totBs / meses.length;
+
+    // Tipos de cliente (dona): si hubiera más de DONA_MAX, los menores se juntan en «Otros».
+    var tipoDe = {};
+    datos.clientes.lista.forEach(function (x) { tipoDe[x.cliente_id] = x.tipo || "Sin tipo"; });
+    var tipos = sumarPor(filas, function (f) { return tipoDe[f.cli]; });
+    if (tipos.length > DONA_MAX) {
+      var otros = { clave: "Otros", monto_bs: 0, unidades: 0 };
+      tipos.slice(DONA_MAX - 1).forEach(function (t) { otros.monto_bs += t.monto_bs; otros.unidades += t.unidades; });
+      tipos = tipos.slice(0, DONA_MAX - 1).concat([otros]);
+    }
+    var pctTipos = enteros100(tipos.map(function (t) { return t.monto_bs; }));
+    tipos = tipos.map(function (t, i) { return { tipo: t.clave, monto_bs: t.monto_bs, unidades: t.unidades, pct: pctTipos[i] }; });
+
+    // Categorías del catálogo, clientes y repuestos del período, ordenados por monto.
+    var cat = {}, nomRep = {};
+    ((datos.catalogo && datos.catalogo.repuestos) || []).forEach(function (x) { cat[x.repuesto_id] = x.categoria; nomRep[x.repuesto_id] = x.nombre; });
+    var conPct = function (lista) { return lista.map(function (x) { x.pct = totBs > 0 ? x.monto_bs / totBs * 100 : 0; return x; }); };
+    var categorias = conPct(sumarPor(filas, function (f) { return cat[f.rep] || "Sin categoría"; })
+      .map(function (x) { return { categoria: x.clave, monto_bs: x.monto_bs, unidades: x.unidades }; }));
+    var clientes = conPct(sumarPor(filas, function (f) { return f.cli; }).map(function (x) {
+      return { id: x.clave, nombre: String(V.nombre[x.clave]).replace(" (ficticio)", ""), monto_bs: x.monto_bs, unidades: x.unidades }; }));
+    var repuestos = conPct(sumarPor(filas, function (f) { return f.rep; }).map(function (x) {
+      var n = nomRep[x.clave] || x.clave;
+      return { id: x.clave, nombre: n, nombre_corto: nombreCorto(n), monto_bs: x.monto_bs, unidades: x.unidades }; }));
+    var suma = function (lista) { return lista.reduce(function (s, x) { return s + x.monto_bs; }, 0); };
+    var top5 = clientes.slice(0, 5), top10 = repuestos.slice(0, 10);
+    var top5Pct = totBs > 0 ? suma(top5) / totBs * 100 : 0, top10Pct = totBs > 0 ? suma(top10) / totBs * 100 : 0;
+
+    var porAnio = T.por_anio.map(function (a) { return { anio: a.anio, monto_bs: a.monto_bs, unidades: a.unidades, meses: a.meses, completo: a.meses >= 12 }; });
+
+    // Conclusiones, una por gráfico.
+    var tipo0 = tipos[0], quien = TIPO_PLURAL[tipo0.tipo] || "los clientes de tipo «" + tipo0.tipo + "»";
+    var conclTipos = tipo0.pct > 50 ? "Más de la mitad de lo que vendemos se lo llevan " + quien + " (" + tipo0.pct + " %)."
+      : mayuscula(quien) + " son los que más compran: se llevan el " + tipo0.pct + " % de lo que vendemos.";
+    var cat0 = categorias[0], catN = categorias[categorias.length - 1];
+    var conclCat = "Lo que más vendemos es " + minuscula(cat0.categoria) + ": el " + miles(cat0.pct) + " % de las ventas." +
+      (categorias.length > 1 ? " Lo que menos, " + minuscula(catN.categoria) + " (" + miles(catN.pct) + " %)." : "");
+    var conclCli = "Estos " + top5.length + " clientes (de " + clientes.length + ") dejan el " + miles(top5Pct) + " % de las ventas." +
+      (top5Pct >= 50 ? " Si uno deja de comprar, se nota." : " Las ventas están repartidas entre muchos clientes.");
+    var conclRep = "Estos " + top10.length + " repuestos (de " + repuestos.length + ") dejan el " + miles(top10Pct) + " % de las ventas." +
+      (top10Pct >= 50 ? " Conviene no quedarse nunca sin ellos." : "");
+    var comp = porAnio.filter(function (a) { return a.completo; }), conclAnio;
+    if (comp.length >= 2) {
+      var x = comp[comp.length - 2], y = comp[comp.length - 1], dBs = variacion(y.monto_bs, x.monto_bs), dU = variacion(y.unidades, x.unidades);
+      if (Math.abs(dBs) < 5) {
+        conclAnio = Math.abs(dU) < 5 ? x.anio + " y " + y.anio + " vendieron casi lo mismo, en dinero y en piezas."
+          : x.anio + " y " + y.anio + " vendieron lo mismo en dinero, aunque en " + y.anio + " salieron " + (dU > 0 ? "más" : "menos") +
+            " piezas: se vendieron repuestos más " + (dU > 0 ? "baratos" : "caros") + ".";
+      } else {
+        conclAnio = y.anio + " vendió " + miles(Math.abs(dBs)) + " % " + (dBs > 0 ? "más" : "menos") + " que " + x.anio + " en dinero.";
+      }
+    } else if (comp.length === 1) {
+      conclAnio = comp[0].anio + " es el único año completo: " + bsTxt(comp[0].monto_bs) + ".";
+    } else {
+      conclAnio = "Todavía no hay un año completo para comparar.";
+    }
+
+    return {
+      periodo: periodo, vacio: false, desde: desde, hasta: ultimo, meses_periodo: meses.length,
+      tarjetas: { ventas_bs: totBs, unidades: totU, comparacion: c },
+      hoy: hoy,
+      meses: meses, promedio_mes_bs: promMes, mejor_mes: { mes: mejor.mes, monto_bs: mejor.monto_bs },
+      tipos_cliente: tipos, categorias: categorias, clientes: clientes, clientes_total: clientes.length,
+      top_clientes: top5, top_clientes_pct: top5Pct, repuestos: repuestos, repuestos_total: repuestos.length,
+      top_repuestos: top10, top_repuestos_pct: top10Pct, por_anio: porAnio,
+      conclusiones: {
+        meses: mayuscula(mesLargo(mejor.mes)) + " fue el mejor mes (" + bsTxt(mejor.monto_bs) + "). En promedio, cada mes se venden " + bsTxt(promMes) + ".",
+        tipos_cliente: conclTipos, almacen: conclAlm, categorias: conclCat, top_clientes: conclCli, top_repuestos: conclRep, anios: conclAnio
+      }
     };
   }
 
@@ -2130,7 +2389,7 @@ var Motor = (function () {
     costoPuesto: costoPuesto, pronostico: pronostico, simular: simular, quiebreDolar: quiebreDolar,
     sensibilidad: sensibilidad, alertas: alertas, planPresupuesto: planPresupuesto,
     compararProveedores: compararProveedores, pasado: pasado, temporadas: temporadas, cotizar: cotizar, tableroClientes: tableroClientes,
-    dashboard: dashboard, rotacion: rotacion,
+    dashboard: dashboard, tableroEmpresa: tableroEmpresa, rotacion: rotacion,
     TRAMOS_EJEMPLO: TRAMOS_EJEMPLO,
     _interno: { mulberry32: mulberry32, normalIH: normalIH, expSerie: expSerie, redondear: redondear, volatilidadDiaria: volatilidadDiaria }
   };
@@ -3025,65 +3284,142 @@ const mesL = m => MES[+m.slice(5,7) - 1] + "-" + m.slice(0,4);
 const pct = (x, d = 0) => x === null || x === undefined ? "—" : nf(x, d) + " %";
 
 /* ==================== DASHBOARD (SCRUM-79) ==================== */
+/* Versión empresarial (27-11-2026): para un gerente que no sabe de estadística. Todo lo que se muestra sale de
+   Motor.tableroEmpresa: las cifras, los porcentajes de las donas (enteros que suman 100) y la frase de conclusión de
+   cada gráfico. Aquí solo se dibuja y se da formato. */
 if(S.dbRep === undefined) S.dbRep = false;
+if(S.dbPer === undefined) S.dbPer = "12m";
+const DB_TIPO_COLOR = ["var(--db-t1)", "var(--db-t2)", "var(--db-t3)", "var(--db-t4)", "var(--db-gris)"];
+const DB_ALM_COLOR = {pedir:"var(--db-rojo)", vigilar:"var(--db-amarillo)", suficiente:"var(--db-verde)", sin_datos:"var(--db-gris)"};
+const dbAncho = id => Math.max(280, Math.round($(id).clientWidth || 560));
+const dbFlecha = (p, txt) => p === null ? "sin 12 meses anteriores para comparar" :
+  `<b class="${p >= 0 ? "db-sube" : "db-baja"}">${p >= 0 ? "▲" : "▼"} ${nf(Math.abs(p))} %</b> ${txt}`;
+const dbMil = v => "Bs " + nf(v / 1000) + " mil";
+// Tres marcas del eje en números redondos (1, 2 o 5 por una potencia de 10).
+function dbMarcas(mx){
+  const paso0 = mx / 3, p10 = Math.pow(10, Math.floor(Math.log10(Math.max(paso0, 1)))), paso = [1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10].map(k => k * p10).find(s => s >= paso0);
+  return [0, paso, 2 * paso, 3 * paso];
+}
+// Dona con pathLength=100: cada porción mide su porcentaje. Los porcentajes vienen del motor.
+function dbDona(id, partes, centro, aria){
+  let ac = 0;
+  const arcos = partes.filter(p => p.pct > 0).map(p => {
+    const largo = partes.length > 1 && p.pct < 100 ? Math.max(p.pct - .6, .4) : p.pct;
+    const s = `<circle cx="90" cy="90" r="68" fill="none" stroke="${p.color}" stroke-width="28" pathLength="100" stroke-dasharray="${largo} ${100 - largo}" stroke-dashoffset="${-ac}" transform="rotate(-90 90 90)"><title>${esc(p.etiqueta)}: ${p.pct} %</title></circle>`;
+    ac += p.pct; return s; }).join("");
+  $(id).innerHTML = `<svg viewBox="0 0 180 180" role="img" aria-label="${esc(aria)}">${arcos || '<circle cx="90" cy="90" r="68" fill="none" stroke="var(--line)" stroke-width="28"/>'}
+      <text class="c1" x="90" y="92" text-anchor="middle">${esc(centro[0])}</text><text class="c2" x="90" y="111" text-anchor="middle">${esc(centro[1])}</text></svg>
+    <ul>${partes.map(p => `<li><i class="sw" style="background:${p.color}"></i><span>${esc(p.etiqueta)}</span><b>${p.pct} %</b><small>${p.detalle}</small></li>`).join("")}</ul>`;
+}
+// Columnas con eje en bolivianos. cols: [{lab, sub, v, cls, arriba, tit}]. prom: línea punteada opcional.
+function dbColumnas(id, cols, aria, prom){
+  const W = dbAncho(id), H = 260, pl = 58, pr = prom ? 70 : 10, pb = 46, n = cols.length;
+  const mx = Math.max(...cols.map(c => c.v), prom || 0, 1) * 1.15, marcas = dbMarcas(mx), tope = marcas[3];
+  const bw = (W - pl - pr) / n, X = i => pl + i * bw, Y = v => 14 + (1 - v / tope) * (H - pb - 14);
+  const eje = v => W < 480 || tope >= 1e5 ? (v ? nf(v / 1000) + " mil" : "0") : nf(v);
+  $(id).innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(aria)}">
+    ${marcas.filter(t => t <= tope).map(t => `<line class="grid" x1="${pl}" x2="${W - pr}" y1="${Y(t).toFixed(1)}" y2="${Y(t).toFixed(1)}"/><text x="${pl - 6}" y="${(Y(t) + 4).toFixed(1)}" text-anchor="end">${eje(t)}</text>`).join("")}
+    ${cols.map((c, i) => `<rect class="db-col ${c.cls || ""}" x="${(X(i) + bw * .15).toFixed(1)}" y="${Y(c.v).toFixed(1)}" width="${Math.max(1, bw * .7).toFixed(1)}" height="${Math.max(0, H - pb - Y(c.v)).toFixed(1)}" rx="${bw > 14 ? 3 : 1}"><title>${esc(c.tit)}</title></rect>` +
+      (c.arriba ? `<text class="db-val" x="${(X(i) + bw / 2).toFixed(1)}" y="${(Y(c.v) - 6).toFixed(1)}" text-anchor="middle">${esc(c.arriba)}</text>` : "") +
+      // En pantallas angostas los nombres de los meses no entran todos: va uno sí y uno no (el título de cada columna los tiene todos).
+      (c.lab && (bw >= 30 || i % 2 === 0) ? `<text x="${(X(i) + bw / 2).toFixed(1)}" y="${H - pb + 16}" text-anchor="middle">${esc(c.lab)}</text>` : "") +
+      (c.sub ? `<text x="${(X(i) + bw / 2).toFixed(1)}" y="${H - pb + 31}" text-anchor="middle">${esc(c.sub)}</text>` : "")).join("")}
+    ${prom ? `<line class="db-prom" x1="${pl}" x2="${W - pr}" y1="${Y(prom).toFixed(1)}" y2="${Y(prom).toFixed(1)}"/><text x="${W - pr + 4}" y="${(Y(prom) - 2).toFixed(1)}">Promedio</text><text class="db-val" x="${W - pr + 4}" y="${(Y(prom) + 12).toFixed(1)}">${dbMil(prom)}</text>` : ""}
+    <text class="axt" transform="translate(12 ${(H - pb) / 2}) rotate(-90)" text-anchor="middle">Bolivianos</text></svg>`;
+}
+// Barras horizontales con el nombre encima de cada barra (así se leen bien en el celular). filas: [{nombre, v, txt, tit}]
+function dbBarras(id, filas, aria){
+  const W = dbAncho(id), fila = 44, H = filas.length * fila + 4, txtW = W < 480 ? 74 : 92, bmax = W - txtW - 4;
+  const mx = Math.max(...filas.map(f => f.v), 1);
+  $(id).innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(aria)}">${filas.map((f, i) => { const y = i * fila, w = Math.max(2, f.v / mx * bmax);
+    return `<g><title>${esc(f.tit || f.nombre)}</title><text class="db-nom" x="0" y="${y + 14}">${esc(f.nombre)}</text>
+      <rect class="db-bar${i === 0 ? " top" : ""}" x="0" y="${y + 20}" width="${w.toFixed(1)}" height="16" rx="3"/>
+      <text class="db-val" x="${(w + 6).toFixed(1)}" y="${y + 33}">${esc(f.txt)}</text></g>`; }).join("")}</svg>`;
+}
 function pintarDashboard(){
-  const T = seguro(() => Motor.dashboard(DM(), tcHoy()), $("chart-db")); if(!T) return;
-  if(!T.meses.length){ $("db-kpis").innerHTML = ""; $("chart-db").innerHTML = '<p class="err">No hay ventas registradas: el dashboard no tiene qué mostrar.</p>'; return; }
-  const top = T.clientes[0], rep = T.repuestos[0], empate = T.repuestos.filter(r => r.unidades === rep.unidades);
-  const var12 = T.prev12_bs > 0 ? (T.ult12_bs - T.prev12_bs) / T.prev12_bs * 100 : null;
+  const T = seguro(() => Motor.tableroEmpresa(DM(), tcHoy(), S.dbPer), $("chart-db")); if(!T) return;
+  document.querySelectorAll("#db-per button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === T.periodo)));
+  const H = T.hoy, doce = T.periodo === "12m";
+  // Tarjetas 3 y 4: lo de hoy, no dependen del período.
+  const pedir = H.pedir_ya.repuestos, parado = H.dinero_parado.repuestos;
+  const kpiHoy = `
+    <div class="kpi"><div class="t">¿Qué hay que comprar ya?${info("Qué hay que comprar ya", "Repuestos por agotarse: con lo que hay en el almacén y lo que ya viene en camino no alcanzan hasta que llegue un pedido nuevo. Debajo, cuánto cuesta reponerlos, con el flete y la aduana incluidos.")}</div>
+      <div class="v">${nf(pedir)}<small>${pal(pedir, "repuesto", "repuestos")}</small></div><div class="d">${pedir ? "Reponerlos cuesta " + bs(H.pedir_ya.costo_bs) : "Nada que pedir por ahora"}</div><a href="#alertas">Ver qué pedir →</a></div>
+    <div class="kpi"><div class="t">¿Cuánto dinero está parado?${info("Dinero parado", "Lo que costó el stock de los repuestos que tienen más de lo que se vende en dos años, o más de lo que conviene tener. Es dinero que está en el almacén y no se mueve.")}</div>
+      <div class="v">${bs(H.dinero_parado.valor_bs)}</div><div class="d">en ${nf(parado)} ${pal(parado, "repuesto", "repuestos")} con más stock del que se vende</div></div>`;
+  // Semáforo del almacén
+  const alm = H.almacen, pedirAlm = alm.find(a => a.clave === "pedir");
+  $("db-i-alm").innerHTML = info("Cómo está el almacén", "Los repuestos según su stock de hoy. Rojo: hay que pedirlos ya. Amarillo: hay que vigilarlos, porque se acercan al momento de pedir. Verde: tienen stock suficiente. No cambia con el período.");
+  $("db-alm-sub").textContent = `Los ${H.almacen_total} repuestos según su stock de hoy.`;
+  dbDona("chart-db-alm", alm.map(a => ({etiqueta:a.etiqueta, pct:a.pct, color:DB_ALM_COLOR[a.clave], detalle:`${nf(a.repuestos)} ${pal(a.repuestos, "repuesto", "repuestos")}`})),
+    [nf(pedirAlm.repuestos), "pedir ya"], "¿Cómo está el almacén?: " + alm.map(a => `${a.etiqueta}, ${a.repuestos} ${pal(a.repuestos, "repuesto", "repuestos")} (${a.pct} %)`).join("; "));
+  $("db-c-alm").textContent = T.conclusiones.almacen;
+  if(T.vacio){
+    $("db-kpis").innerHTML = kpiHoy; $("db-rango").textContent = "";
+    $("chart-db").innerHTML = '<p class="err">Todavía no hay ventas registradas: no hay qué mostrar en los gráficos de ventas.</p>';
+    ["chart-db-tipos","chart-db-cat","chart-db-cli5","chart-db-rep","chart-db-anio","db-c-meses","db-c-tipos","db-c-cat","db-c-cli","db-c-rep","db-c-anio"].forEach(id => $(id).innerHTML = "");
+    return;
+  }
+  const C = T.tarjetas.comparacion;
+  $("db-rango").textContent = `${doce ? "Últimos 12 meses" : "Todo el período"}: de ${mesL(T.desde)} a ${mesL(T.hasta)}. Montos en bolivianos a precio de lista de hoy, con el dólar oficial de ${nf(tcHoy(), 2)} Bs.`;
   $("db-kpis").innerHTML = `
-    <div class="kpi"><div class="t">Ventas totales${info("Ventas totales", `Unidades vendidas desde ${mesL(T.meses[0])} multiplicadas por el precio de lista de hoy, en bolivianos con el dólar oficial del Banco Central de Bolivia. Se usa un solo precio para poder comparar períodos.`)}</div><div class="v">${bs(T.total.monto_bs)}</div><div class="d">${nf(T.total.unidades)} ${pal(T.total.unidades, "unidad", "unidades")}, de ${mesL(T.meses[0])} a ${mesL(T.ultimo_mes)}</div></div>
-    <div class="kpi"><div class="t">Ventas de los últimos 12 meses${info("Ventas de los últimos 12 meses", `Ventas en bolivianos de los 12 meses que terminan en ${mesL(T.ultimo_mes)}, el último mes con datos, comparadas con los 12 meses anteriores. Un porcentaje positivo indica que se vendió más.`)}</div><div class="v">${bs(T.ult12_bs)}</div><div class="d">${var12 === null ? "sin año anterior para comparar" : (var12 >= 0 ? "+" : "−") + nf(Math.abs(var12)) + " % respecto de los 12 meses anteriores"}</div></div>
-    <div class="kpi"><div class="t">Repuesto más vendido${info("Repuesto más vendido", `El repuesto con más unidades vendidas desde ${mesL(T.meses[0])}. Si dos repuestos empatan en unidades, va primero el que vendió más en bolivianos.`)}</div><div class="v txt">${esc(nombreRep(rep.id))}</div><div class="d">${rep.id} · ${nf(rep.unidades)} ${pal(rep.unidades, "unidad", "unidades")} (${nf(rep.pct_unidades,1)} %)</div><span class="ayuda">${empate.length > 1 ? `Empata en unidades con ${empate.slice(1).map(r => r.id).join(", ")}; va primero por el monto vendido.` : "Unidades vendidas desde " + mesL(T.meses[0]) + "."}</span></div>
-    <div class="kpi"><div class="t">Cliente que más compra${info("Cliente que más compra", "El cliente con más compras en bolivianos desde el inicio de los datos. Debajo, su parte del total.")}</div><div class="v txt">${esc(nomCli(top.nombre))}</div><div class="d">${bs(top.monto_bs)} · ${nf(top.pct_total,1)} % del total</div><span class="ayuda">Los 5 clientes que más compran suman el ${nf(T.top5_pct)} % de las ventas.</span></div>`;
-  // Demanda por mes, con promedio móvil de 12 meses para ver la tendencia sin el ruido de cada mes.
-  const dm = T.demanda_mes, W = Math.max(320, Math.round($("chart-db").clientWidth || 900)), H = 270, pl = 48, pb = 46, pr = 12;
-  const mx = Math.max(...dm.map(x => x.unidades), 1) * 1.12, bw = (W - pl - pr) / dm.length;
-  const X = i => pl + i * bw, Y = v => 10 + (1 - v / mx) * (H - pb - 10);
-  const pm = dm.map((x,i) => i < 11 ? null : dm.slice(i - 11, i + 1).reduce((s,y) => s + y.unidades, 0) / 12);
-  const pico = dm.reduce((b,x,i) => x.unidades > dm[b].unidades ? i : b, 0);
-  const ticks = [0, Math.round(mx / 2.24), Math.round(mx / 1.12)];
-  const etiq = dm.map((x,i) => x.mes.slice(5) === "01" || (i === 0 && W >= 640) ? `<text x="${X(i) + bw/2}" y="${H-26}" text-anchor="${i === 0 ? "start" : "middle"}">${i === 0 ? mesL(x.mes) : x.mes.slice(0,4)}</text>` : "").join("");
-  $("chart-db").innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Unidades vendidas por mes de ${mesL(dm[0].mes)} a ${mesL(T.ultimo_mes)}. Mes más alto: ${mesL(dm[pico].mes)} con ${nf(dm[pico].unidades)} ${pal(dm[pico].unidades, "unidad", "unidades")}">
-    ${ticks.map(t => `<line class="grid" x1="${pl}" x2="${W-pr}" y1="${Y(t)}" y2="${Y(t)}"/><text x="${pl-6}" y="${Y(t)+4}" text-anchor="end">${t}</text>`).join("")}
-    ${dm.map((x,i) => `<rect class="bd" x="${(X(i) + bw*.14).toFixed(1)}" y="${Y(x.unidades).toFixed(1)}" width="${Math.max(1, bw*.72).toFixed(1)}" height="${Math.max(0, H - pb - Y(x.unidades)).toFixed(1)}" rx="${bw > 10 ? 2 : 1}"><title>${mesL(x.mes)}: ${nf(x.unidades)} ${pal(x.unidades, "unidad", "unidades")} · ${bs(x.monto_bs)}</title></rect>`).join("")}
-    <path class="pm" d="${pm.map((v,i) => v === null ? "" : `${pm[i-1] === null || i === 0 ? "M" : "L"}${(X(i) + bw/2).toFixed(1)},${Y(v).toFixed(1)}`).join("")}"/>
-    <text x="${X(pico) + bw/2}" y="${Y(dm[pico].unidades) - 6}" text-anchor="middle" style="fill:var(--brand-dark);font-weight:600">${nf(dm[pico].unidades)}</text>
-    ${etiq}
-    <text class="axt" x="${(pl + W - pr) / 2}" y="${H-4}" text-anchor="middle">Mes</text>
-    <text class="axt" transform="translate(12 ${(H - pb) / 2}) rotate(-90)" text-anchor="middle">Unidades vendidas</text></svg>`;
-  $("db-dem-sub").textContent = `Unidades vendidas de los 30 repuestos, de ${mesL(dm[0].mes)} a ${mesL(T.ultimo_mes)} (${dm.length} meses). Las cifras de cada mes están en la tabla debajo del gráfico.`;
-  $("t-db-mes").innerHTML = "<thead><tr><th>Mes</th><th>Unidades</th><th>Dinero</th><th>Promedio de los últimos 12 meses</th></tr></thead><tbody>" +
-    dm.map((x,i) => `<tr><td>${mesL(x.mes)}</td><td>${nf(x.unidades)}</td><td>${bs(x.monto_bs)}</td><td>${pm[i] === null ? "—" : nf(pm[i],1)}</td></tr>`).join("") + "</tbody>";
-  const pmUlt = pm[pm.length - 1], pmPrev = pm.length > 12 ? pm[pm.length - 13] : null;
-  $("db-nota").innerHTML = `<strong>Conclusión:</strong> el mes con más ventas fue ${mesL(dm[pico].mes)}, con ${nf(dm[pico].unidades)} ${pal(dm[pico].unidades, "unidad", "unidades")}. En promedio se venden ${nf(T.total.unidades / dm.length,1)} ${pal(T.total.unidades / dm.length, "unidad", "unidades", 1)} por mes.` +
-    (pmUlt !== null && pmPrev ? ` El promedio de los últimos 12 meses es ${nf(pmUlt,1)} por mes, ${pmUlt >= pmPrev ? "más" : "menos"} que los ${nf(pmPrev,1)} del año anterior: en unidades, la demanda ${Math.abs(pmUlt - pmPrev) / pmPrev < .05 ? "se mantiene" : pmUlt > pmPrev ? "sube" : "baja"}.` +
-      (var12 !== null && (var12 >= 0) !== (pmUlt >= pmPrev) ? ` En dinero pasa lo contrario (${var12 >= 0 ? "+" : "−"}${nf(Math.abs(var12))} %), porque cambió la mezcla: se vendieron ${var12 >= 0 ? "menos unidades pero más caras" : "más unidades pero más baratas"}.` : "") : "");
-  // Dinero por año
-  const mxA = Math.max(...T.por_anio.map(a => a.monto_bs), 1);
-  // Veredicto #4: sin la columna «Meses con datos»; los años sin los 12 meses se marcan como incompletos.
-  const incomp = T.por_anio.filter(a => a.meses < 12), comp = T.por_anio.filter(a => a.meses >= 12);
-  $("db-anio-sub").textContent = `En bolivianos, a precio de lista con el dólar oficial de hoy.`;
-  $("t-db-anio").innerHTML = `<thead><tr><th>Año</th><th>Monto vendido</th><th>Unidades</th></tr></thead><tbody>` +
-    T.por_anio.map(a => `<tr><td><b>${a.anio}</b>${a.meses < 12 ? `<span class="ayuda">año incompleto (${a.meses} ${a.meses === 1 ? "mes" : "meses"})</span>` : ""}</td><td>${bs(a.monto_bs)}<span class="barra" style="width:${Math.round(a.monto_bs / mxA * 100)}%"></span></td><td>${nf(a.unidades)}</td></tr>`).join("") +
-    `<tr><td><b>Total</b></td><td><b>${bs(T.total.monto_bs)}</b></td><td><b>${nf(T.total.unidades)}</b></td></tr></tbody>`;
-  const yy = a => a.map(x => x.anio).join(" y ");
-  let lecA = "";
-  if(comp.length >= 2){ const [x, y] = comp.slice(-2), dif = (y.monto_bs - x.monto_bs) / x.monto_bs * 100;
-    lecA = Math.abs(dif) < 5 ? `${x.anio} y ${y.anio} vendieron casi lo mismo (${bs((x.monto_bs + y.monto_bs) / 2)} por año).` : `${y.anio} vendió ${nf(Math.abs(dif))} % ${dif > 0 ? "más" : "menos"} que ${x.anio}.`; }
-  else if(comp.length === 1) lecA = `${comp[0].anio} es el único año completo: ${bs(comp[0].monto_bs)}.`;
-  $("db-anio-lec").textContent = lecA + (incomp.length ? ` ${yy(incomp)} no ${incomp.length === 1 ? "tiene" : "tienen"} el año completo.` : "");
-  // Repuestos
-  const reps = S.dbRep ? T.repuestos : T.repuestos.slice(0, 10), mxR = Math.max(...T.repuestos.map(r => r.unidades), 1);
-  $("db-rep-tit").textContent = S.dbRep ? `Los ${T.repuestos.length} repuestos, del que más se vende al que menos` : "Los 10 repuestos que más se venden";
-  const p10 = T.repuestos.slice(0, 10).reduce((s, r) => s + r.pct_unidades, 0);
-  $("db-rep-lec").textContent = `Los 10 primeros suman el ${nf(p10)} % de las unidades vendidas.`;
-  $("t-db-rep").innerHTML = `<thead><tr><th>#</th><th>Repuesto${info("Código", "Debajo del nombre va el código del repuesto. Su importancia en las ventas se ve en la pantalla Importancia y ritmo de venta.")}</th><th>Unidades</th><th>Parte del total${info("Parte del total", "Porcentaje de todas las unidades vendidas que corresponde a este repuesto.")}</th><th>Monto vendido</th></tr></thead><tbody>` +
-    reps.map((r,i) => `<tr><td>${i + 1}</td><td><b>${esc(nombreRep(r.id))}</b><span class="ayuda">${r.id}</span></td><td>${nf(r.unidades)}<span class="barra" style="width:${Math.round(r.unidades / mxR * 100)}%"></span></td><td>${nf(r.pct_unidades,1)} %</td><td>${bs(r.monto_bs)}</td></tr>`).join("") + "</tbody>";
-  $("b-db-rep").textContent = S.dbRep ? "Mostrar solo los 10 primeros" : `Mostrar los ${T.repuestos.length}`;
+    <div class="kpi"><div class="t">¿Cuánto vendimos?${info("Cuánto vendimos", "Lo que se vendió en el período, en bolivianos, a precio de lista de hoy con el dólar oficial del día. La flecha compara los últimos 12 meses con los 12 anteriores: verde si se vendió más, roja si se vendió menos.")}</div>
+      <div class="v">${bs(T.tarjetas.ventas_bs)}</div><div class="d">${doce ? dbFlecha(C.var_bs_pct, "contra los 12 meses anteriores") : `en ${T.meses_periodo} meses · últimos 12: ${dbFlecha(C.var_bs_pct, "contra los 12 anteriores")}`}</div></div>
+    <div class="kpi"><div class="t">¿Cuántas piezas salieron?${info("Cuántas piezas salieron", "Cantidad de repuestos vendidos en el período, sumando todos. La flecha compara los últimos 12 meses con los 12 anteriores.")}</div>
+      <div class="v">${nf(T.tarjetas.unidades)}<small>${pal(T.tarjetas.unidades, "pieza", "piezas")}</small></div><div class="d">${doce ? dbFlecha(C.var_u_pct, "contra los 12 meses anteriores") : `en ${T.meses_periodo} meses · últimos 12: ${dbFlecha(C.var_u_pct, "contra los 12 anteriores")}`}</div></div>` + kpiHoy;
+  // Ventas de cada mes
+  const M = T.meses, cada = M.length > 18;
+  $("db-meses-tit").innerHTML = "Ventas de cada mes" + info("Ventas de cada mes", "Cada columna es lo que se vendió en un mes, en bolivianos. La línea punteada es el promedio de los meses del período. El mejor mes va en verde más oscuro.");
+  $("db-meses-sub").textContent = `De ${mesL(T.desde)} a ${mesL(T.hasta)}, en bolivianos.`;
+  dbColumnas("chart-db", M.map((x, i) => ({v:x.monto_bs, cls: x.mes === T.mejor_mes.mes ? "top" : "", tit:`${mesL(x.mes)}: ${bs(x.monto_bs)} · ${nf(x.unidades)} ${pal(x.unidades, "pieza", "piezas")}`,
+      arriba: x.mes === T.mejor_mes.mes ? (cada || dbAncho("chart-db") < 480 ? dbMil(x.monto_bs) : bs(x.monto_bs)) : "",
+      lab: cada ? (x.mes.slice(5) === "01" || i === 0 ? x.mes.slice(0, 4) : "") : MES[+x.mes.slice(5, 7) - 1],
+      sub: cada ? "" : (x.mes.slice(5) === "01" || i === 0 ? x.mes.slice(0, 4) : "")})),
+    `Ventas de cada mes, de ${mesL(T.desde)} a ${mesL(T.hasta)}. Mejor mes: ${mesL(T.mejor_mes.mes)}, ${bs(T.mejor_mes.monto_bs)}. Promedio: ${bs(T.promedio_mes_bs)} por mes.`, T.promedio_mes_bs);
+  $("db-c-meses").textContent = T.conclusiones.meses;
+  // ¿Quiénes nos compran?
+  const tipos = T.tipos_cliente;
+  $("db-i-tipos").innerHTML = info("Quiénes nos compran", "Qué parte de lo vendido en el período, en bolivianos, compró cada tipo de cliente. En el centro, el tipo que más compra.");
+  dbDona("chart-db-tipos", tipos.map((t, i) => ({etiqueta:t.tipo, pct:t.pct, color:DB_TIPO_COLOR[i] || "var(--db-gris)", detalle:bs(t.monto_bs)})),
+    [tipos[0].pct + " %", tipos[0].tipo], "¿Quiénes nos compran?: " + tipos.map(t => `${t.tipo} ${t.pct} % (${bs(t.monto_bs)})`).join("; "));
+  $("db-c-tipos").textContent = T.conclusiones.tipos_cliente;
+  // Tipos de repuesto, mejores clientes y repuestos estrella: barras horizontales.
+  const pctTxt = x => `${bs(x.monto_bs)} · ${nf(x.pct)} %`, corto = x => dbAncho("chart-db-cat") < 480 ? dbMil(x.monto_bs) : bs(x.monto_bs);
+  $("db-i-cat").innerHTML = info("Qué tipo de repuesto vendemos más", "Lo vendido en el período, en bolivianos, sumando los repuestos de cada tipo.");
+  dbBarras("chart-db-cat", T.categorias.map(c => ({nombre:c.categoria, v:c.monto_bs, txt:corto(c), tit:`${c.categoria}: ${pctTxt(c)} de las ventas`})),
+    "Ventas por tipo de repuesto: " + T.categorias.map(c => `${c.categoria} ${bs(c.monto_bs)}`).join("; "));
+  $("db-c-cat").textContent = T.conclusiones.categorias;
+  $("db-i-cli").innerHTML = info("Nuestros 5 mejores clientes", "Los 5 clientes que más compraron en el período, en bolivianos. Los nombres son de demostración.");
+  dbBarras("chart-db-cli5", T.top_clientes.map(c => ({nombre:c.nombre, v:c.monto_bs, txt:corto(c), tit:`${c.nombre}: ${pctTxt(c)} de las ventas`})),
+    "Nuestros 5 mejores clientes: " + T.top_clientes.map(c => `${c.nombre} ${bs(c.monto_bs)}`).join("; "));
+  $("db-c-cli").textContent = T.conclusiones.top_clientes;
+  $("db-i-rep").innerHTML = info("Los 10 repuestos estrella", "Los 10 repuestos que más dinero dejaron en el período. Los nombres largos van recortados; el nombre completo aparece al pasar el cursor y en «Ver detalle».");
+  dbBarras("chart-db-rep", T.top_repuestos.map(r => ({nombre:r.nombre_corto, v:r.monto_bs, txt:corto(r), tit:`${r.nombre} (${r.id}): ${pctTxt(r)} de las ventas`})),
+    "Los 10 repuestos estrella: " + T.top_repuestos.map(r => `${r.nombre} ${bs(r.monto_bs)}`).join("; "));
+  $("db-c-rep").textContent = T.conclusiones.top_repuestos;
+  // Ventas por año (no depende del período)
+  $("db-i-anio").innerHTML = info("Ventas por año", "Lo vendido en cada año, en bolivianos a precio de lista de hoy. Los años en gris no tienen los 12 meses: el primero empieza a mitad de año y el último llega hasta el último mes con datos, por eso se ven más bajos.");
+  dbColumnas("chart-db-anio", T.por_anio.map(a => ({v:a.monto_bs, cls:a.completo ? "" : "inc", lab:a.anio, sub:a.completo ? "" : `${a.meses} ${pal(a.meses, "mes", "meses")}`,
+      arriba:dbAncho("chart-db-anio") < 480 ? nf(a.monto_bs / 1000) + " mil" : dbMil(a.monto_bs), tit:`${a.anio}: ${bs(a.monto_bs)} · ${nf(a.unidades)} ${pal(a.unidades, "pieza", "piezas")}${a.completo ? "" : ` (${a.meses} ${pal(a.meses, "mes", "meses")})`}`})),
+    "Ventas por año: " + T.por_anio.map(a => `${a.anio} ${bs(a.monto_bs)}${a.completo ? "" : ` (${a.meses} ${pal(a.meses, "mes", "meses")})`}`).join("; "));
+  $("db-c-anio").textContent = T.conclusiones.anios;
+  // Ver detalle: las tablas de antes, con las cifras del mismo período.
+  $("t-db-mes").innerHTML = "<thead><tr><th style=\"text-align:left\">Mes</th><th>Dinero</th><th>Piezas</th></tr></thead><tbody>" +
+    M.map(x => `<tr><td style="text-align:left">${mesL(x.mes)}</td><td>${bs(x.monto_bs)}</td><td>${nf(x.unidades)}</td></tr>`).join("") + "</tbody>";
+  $("t-db-anio").innerHTML = "<thead><tr><th style=\"text-align:left\">Año</th><th>Dinero</th><th>Piezas</th></tr></thead><tbody>" +
+    T.por_anio.map(a => `<tr><td style="text-align:left"><b>${a.anio}</b>${a.completo ? "" : `<span class="ayuda">año incompleto (${a.meses} ${pal(a.meses, "mes", "meses")})</span>`}</td><td>${bs(a.monto_bs)}</td><td>${nf(a.unidades)}</td></tr>`).join("") + "</tbody>";
+  const reps = S.dbRep ? T.repuestos : T.repuestos.slice(0, 10);
+  $("db-rep-tit").textContent = S.dbRep ? `Los ${T.repuestos_total} repuestos que se vendieron en el período` : "Los 10 repuestos que más venden";
+  $("t-db-rep").innerHTML = `<thead><tr><th>#</th><th style="text-align:left">Repuesto</th><th>Dinero</th><th>Parte de las ventas</th><th>Piezas</th></tr></thead><tbody>` +
+    reps.map((r, i) => `<tr><td>${i + 1}</td><td style="text-align:left"><b>${esc(r.nombre)}</b><span class="ayuda">${r.id}</span></td><td>${bs(r.monto_bs)}</td><td>${nf(r.pct, 1)} %</td><td>${nf(r.unidades)}</td></tr>`).join("") + "</tbody>";
+  $("b-db-rep").hidden = T.repuestos_total <= 10;
+  $("b-db-rep").textContent = S.dbRep ? "Mostrar solo los 10 primeros" : `Mostrar los ${T.repuestos_total}`;
   $("b-db-rep").setAttribute("aria-expanded", String(S.dbRep));
+  $("t-db-cli").innerHTML = `<thead><tr><th>#</th><th style="text-align:left">Cliente</th><th>Dinero</th><th>Parte de las ventas</th><th>Piezas</th></tr></thead><tbody>` +
+    T.clientes.map((c, i) => `<tr><td>${i + 1}</td><td style="text-align:left">${esc(c.nombre)}</td><td>${bs(c.monto_bs)}</td><td>${nf(c.pct, 1)} %</td><td>${nf(c.unidades)}</td></tr>`).join("") + "</tbody>";
 }
 $("b-db-rep").addEventListener("click", () => { S.dbRep = !S.dbRep; pintarDashboard(); });
+$("db-per").addEventListener("click", e => { const b = e.target.closest("button[data-v]"); if(b && b.dataset.v !== S.dbPer){ S.dbPer = b.dataset.v; pintarDashboard(); } });
 
 /* ==================== PREDICCIONES (SCRUM-80) ==================== */
 if(S.prCorte === undefined) S.prCorte = "50";
@@ -3363,7 +3699,7 @@ async function api(ruta, opc){
   const r = await fetch(ruta, {method: opc.method || "GET", headers: h, body: opc.body === undefined ? undefined : JSON.stringify(opc.body)});
   if(opc.crudo) { if(!r.ok) throw new Error("El servidor respondió " + r.status); return r; }
   let d = null; try { d = await r.json(); } catch(e) {}
-  if(!r.ok){ const e = new Error((d && d.error) || "El servidor respondió " + r.status); e.status = r.status; throw e; }
+  if(!r.ok){ const e = new Error((d && d.error) || "El servidor respondió " + r.status); e.status = r.status; e.datos = d; throw e; }
   return d;
 }
 // «Jefatura de compras (demostración)»: la aclaración va aparte para poder ocultarla en pantallas angostas.
@@ -3569,15 +3905,21 @@ async function marcarVenta(n, forzar){ return api(`/api/cotizaciones/${n}/venta`
 // Antes de descontar se muestra qué se vende y cómo queda el stock. Si no alcanza, el botón lo dice y la venta va
 // con «forzar» (el servidor la rechaza con 409 sin él).
 let VT = null;
-$("t-cz").addEventListener("click", e => { const b = e.target.closest("button[data-venta]"); if(!b) return;
-  const f = CZ_FILAS[b.dataset.venta]; if(!f) return;
-  const antes = f.repuesto_id in STOCK_REAL ? STOCK_REAL[f.repuesto_id] : (REP[f.repuesto_id] ? REP[f.repuesto_id].stock_al_2026_11_10 : null);
+// Pinta el diálogo con el stock que se le pasa. Se llama al abrirlo (stock que tiene la pantalla) y otra vez si el
+// servidor responde que no alcanza (stock real): así el botón pasa a «Confirmar aunque falte stock» y envía forzar.
+function pintarDialogoVenta(f, antes){
   const despues = antes === null ? null : antes - f.cantidad, falta = despues !== null && despues < 0;
-  VT = {n: f.numero, boton: b, forzar: falta};
+  VT.forzar = falta;
   $("vt-cuerpo").innerHTML = `<p>Cotización N° ${f.numero}: <b>${nf(f.cantidad)} ${(f.cantidad === 1 ? "unidad" : "unidades")}</b> de <b>${esc(nombreRep(f.repuesto_id))}</b> (${f.repuesto_id}).</p>
     <p>Stock en el almacén: <b>${antes === null ? "sin dato" : nf(antes)}</b> → <b class="${falta ? "c-bad" : ""}">${despues === null ? "sin dato" : nf(despues)}</b> después de la venta.</p>` +
     (falta ? `<p class="nota-sit"><strong>No alcanza el stock.</strong> Confirme solo si las unidades salieron igual del almacén; el stock quedará en negativo hasta que se registre un ingreso.</p>` : "");
   $("vt-ok").textContent = falta ? "Confirmar aunque falte stock" : "Confirmar venta";
+}
+$("t-cz").addEventListener("click", e => { const b = e.target.closest("button[data-venta]"); if(!b) return;
+  const f = CZ_FILAS[b.dataset.venta]; if(!f) return;
+  const antes = f.repuesto_id in STOCK_REAL ? STOCK_REAL[f.repuesto_id] : (REP[f.repuesto_id] ? REP[f.repuesto_id].stock_al_2026_11_10 : null);
+  VT = {n: f.numero, f: f, boton: b, forzar: false};
+  pintarDialogoVenta(f, antes);
   $("vt-msg").textContent = ""; $("vt-msg").className = "msg";
   $("vt-dlg").showModal(); $("vt-cancelar").focus();
 });
@@ -3590,7 +3932,22 @@ $("vt-ok").addEventListener("click", async () => { if(!VT) return;
     await cargarServidor(); await pintarCotizaciones();
     $("cz-msg").className = "msg ok";
     $("cz-msg").textContent = `Venta registrada: la cotización N° ${r.numero} descontó ${nf(r.cantidad)} ${(r.cantidad === 1 ? "unidad" : "unidades")} de ${nombreRep(r.repuesto_id)}. Stock: ${nf(r.stock_antes)} → ${nf(r.stock_despues)}.`;
-  } catch(err){ $("vt-msg").className = "msg mal"; $("vt-msg").textContent = err.message; }
+  } catch(err){
+    // La pantalla tenía un stock viejo (otra persona vendió o ajustó en el medio) y no alcanza: se muestra el stock
+    // real que mandó el servidor y el botón pasa a forzar. Sin esto, «Confirmar venta» repetía el mismo rechazo.
+    const d = err.datos;
+    if(err.status === 409 && VT && d && typeof d.stock === "number"){
+      STOCK_REAL[VT.f.repuesto_id] = d.stock;
+      pintarDialogoVenta(VT.f, d.stock);
+      $("vt-msg").className = "msg mal";
+      $("vt-msg").textContent = `El stock cambió desde que se abrió esta lista: hoy hay ${nf(d.stock)}. Revise y confirme otra vez.`;
+      cargarServidor().catch(() => {});
+    } else {
+      $("vt-msg").className = "msg mal"; $("vt-msg").textContent = err.message;
+      // Si la cotización ya se vendió desde otra pantalla, se recarga la lista para que el botón desaparezca.
+      if(err.status === 404 || err.status === 409) cargarServidor().then(pintarCotizaciones).catch(() => {});
+    }
+  }
   finally { $("vt-ok").disabled = false; } });
 $("cz-csv").addEventListener("click", async () => {
   try { const q = filtrosCz(); q.set("formato", "csv"); const r = await api("/api/cotizaciones?" + q.toString(), {crudo:true});
@@ -3816,29 +4173,29 @@ function dona(partes, centro, sub){
     sub.map((t, i) => `<text x="80" y="${(sub.length > 1 ? 94 : 100) + i * 13}" text-anchor="middle" style="font:11px Poppins,system-ui,sans-serif;fill:var(--ink-3)">${esc(t)}</text>`).join("") + "</svg>";
 }
 function pintarTab(){
+  // Revisión del 27-11-2026: las cifras, porcentajes y frases que comparte con el «Tablero de ventas» de Sabrina
+  // (SCRUM-79) salen de Motor.tableroEmpresa, igual que allá. Lo propio del módulo (pronóstico, temporada,
+  // predicción y la curva de clientes) se calcula aquí.
   const tc = tcHoy(), Dm = DM(), T = Motor.dashboard(Dm, tc); if(!T.meses.length) return;
+  const TE = Motor.tableroEmpresa(Dm, tc, S.dbPer), C = TE.tarjetas.comparacion, todo = TE.periodo === "todo";
+  document.querySelectorAll("#tab-per button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === TE.periodo)));
   const precio = {}; Dm.repuestos.forEach(r => precio[r.repuesto_id] = Math.round(r.precio_venta_usd * tc * 100) / 100);
-  // Período: los 12 últimos meses CERRADOS de la base (los del pronóstico). En el portal publicado entran también las
-  // ventas de la tienda web del mes en curso; ese mes está incompleto y correría el pronóstico un mes (medido el 27-11-2026).
+  // Gráfico de cada mes: los 12 últimos meses CERRADOS de la base (los del pronóstico). En el portal publicado entran también
+  // las ventas de la tienda web del mes en curso; ese mes está incompleto y correría el pronóstico un mes (medido el 27-11-2026).
   const V = valDatos(), fin = V.meses[V.meses.length - 1];
-  const dm = T.demanda_mes, dmC = dm.filter(x => x.mes <= fin), ult = dmC.slice(-12), prev = dmC.slice(-24, -12), desde = ult[0].mes;
-  const porRep = {}, porCli = {};
-  Dm.clientes.ventas.forEach(v => { const q = Number(v[3]); if(String(v[0]) < desde || String(v[0]) > fin || !(v[1] in precio) || !isFinite(q)) return;
-    porRep[v[1]] = (porRep[v[1]] || 0) + q * precio[v[1]]; porCli[v[2]] = (porCli[v[2]] || 0) + q * precio[v[1]]; });
-  const suma = (a, k) => a.reduce((s, x) => s + x[k], 0), u12 = suma(ult, "unidades"), p12 = suma(prev, "unidades");
-  const b12 = suma(ult, "monto_bs"), bP = suma(prev, "monto_bs"), per = `${mesL(ult[0].mes)} a ${mesL(fin)}`;
-  // Cifras de arriba (las cuatro del boceto) y la línea que explica por qué el dinero y las piezas van en sentidos opuestos.
-  const al = alertas(), ya = al.filter(a => a.est === 0), R = Motor.rotacion(Dm, tc);
+  const dm = T.demanda_mes, dmC = dm.filter(x => x.mes <= fin), ult = dmC.slice(-12);
+  const suma = (a, k) => a.reduce((s, x) => s + x[k], 0), per = `${mesL(ult[0].mes)} a ${mesL(fin)}`;
+  const perTE = todo ? `de ${mesL(TE.desde)} a ${mesL(TE.hasta)}` : "de los últimos 12 meses", tot = TE.tarjetas.ventas_bs || 1;
   const col = (a, b) => a >= b ? "c-ok" : "c-bad";
   $("tab-kpis").innerHTML = `
-    <div class="kpi"><div class="t">¿Cuánto vendimos?</div><div class="v">${bs(b12)}</div><div class="d ${col(b12, bP)}">${varTxt(b12, bP)}</div></div>
-    <div class="kpi"><div class="t">¿Cuántas piezas salieron?</div><div class="v">${nf(u12)}<small>piezas</small></div><div class="d ${col(u12, p12)}">${varTxt(u12, p12)}</div></div>
-    <div class="kpi"><div class="t">¿Qué hay que comprar ya?</div><div class="v c-bad">${ya.length}<small>${pal(ya.length, "repuesto", "repuestos")}</small></div><div class="d">por agotarse · reponerlos cuesta ${bs(ya.reduce((s, a) => s + a.costo_bs, 0))}</div></div>
-    <div class="kpi"><div class="t">¿Cuánto dinero está parado?</div><div class="v">${bs(R.valor_acumulado_bs)}</div><div class="d">en ${R.acumulacion} ${pal(R.acumulacion, "repuesto", "repuestos")} que casi no se venden</div></div>`;
+    <div class="kpi"><div class="t">¿Cuánto vendimos?</div><div class="v">${bs(TE.tarjetas.ventas_bs)}</div><div class="d ${todo ? "" : col(C.ult12_bs, C.prev12_bs)}">${todo ? perTE : varTxt(C.ult12_bs, C.prev12_bs)}</div></div>
+    <div class="kpi"><div class="t">¿Cuántas piezas salieron?</div><div class="v">${nf(TE.tarjetas.unidades)}<small>piezas</small></div><div class="d ${todo ? "" : col(C.ult12_u, C.prev12_u)}">${todo ? perTE : varTxt(C.ult12_u, C.prev12_u)}</div></div>
+    <div class="kpi"><div class="t">¿Qué hay que comprar ya?</div><div class="v c-bad">${TE.hoy.pedir_ya.repuestos}<small>${pal(TE.hoy.pedir_ya.repuestos, "repuesto", "repuestos")}</small></div><div class="d">por agotarse · reponerlos cuesta ${bs(TE.hoy.pedir_ya.costo_bs)}</div></div>
+    <div class="kpi"><div class="t">¿Cuánto dinero está parado?</div><div class="v">${bs(TE.hoy.dinero_parado.valor_bs)}</div><div class="d">en ${TE.hoy.dinero_parado.repuestos} ${pal(TE.hoy.dinero_parado.repuestos, "repuesto", "repuestos")} que casi no se venden</div></div>`;
+  const b12 = C.ult12_bs, bP = C.prev12_bs, u12 = C.ult12_u, p12 = C.prev12_u;
   const pm = u12 ? b12 / u12 : 0, pmA = p12 ? bP / p12 : 0, opuesto = (b12 >= bP) !== (u12 >= p12);
-  $("tab-precio").innerHTML = `<b>Precio medio por pieza:</b> ${bs(pm)} en los últimos 12 meses (${per}), contra ${bs(pmA)} en los 12 anteriores.` +
+  $("tab-precio").innerHTML = `<b>Precio medio por pieza:</b> ${bs(pm)} en los últimos 12 meses, contra ${bs(pmA)} en los 12 anteriores.` +
     (opuesto ? ` Por eso ${b12 >= bP ? "el dinero subió aunque salieron menos piezas: se vendieron repuestos más caros" : "salieron más piezas pero entró menos dinero: se vendieron repuestos más baratos"}.` : "");
-
   // 1. Ventas de cada mes, el mismo mes del año anterior y el pronóstico del mes que viene con su margen.
   const ids = V.ids, sig = mesSig(fin);
   const pron = ids.reduce((s, id) => s + Motor.pronostico(Dm.ventas[id], REP[id].tipo_demanda).unidades_mes * precio[id], 0);
@@ -3849,8 +4206,8 @@ function pintarTab(){
   const mejor = ult.reduce((a, x) => x.monto_bs > a.monto_bs ? x : a, ult[0]), prom = suma(ult, "monto_bs") / ult.length;
   const flojos = ult.slice().sort((a, b) => a.monto_bs - b.monto_bs).slice(0, 3).sort((a, b) => a.mes < b.mes ? -1 : 1);
   const nomMes = m => ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"][+m.slice(5, 7) - 1];
-  $("tab-mes-h").textContent = `${capital(nomMes(mejor.mes))} fue el mejor mes (${bs(mejor.monto_bs)}); para ${nomMes(sig)} se esperan unos ${bs(pron)}`;
-  $("tab-mes-s").textContent = `En bolivianos, de ${per}. La línea punteada es el promedio: ${bs(prom)} por mes.`;
+  $("tab-mes-h").textContent = `Para ${nomMes(sig)} se esperan unos ${bs(pron)}, entre ${bs(lo)} y ${bs(hi)}`;
+  $("tab-mes-s").textContent = (!todo && TE.hasta === fin ? TE.conclusiones.meses + " " : "") + `En bolivianos, de ${per}. La línea punteada es el promedio.`;
   { const g = $("tab-mes-g"), W = Math.max(320, g.clientWidth || 900), H = 290, pl = 74, pr = 10, pb = 44, n = 13, bw = (W - pl - pr) / n, angosto = W < 560;
     const mx = Math.max(hi, ...ult.map(x => Math.max(x.monto_bs, ant(x) || 0))) * 1.1, M = marco(W, H, pl, pr, pb, mx, t => bs(t), "Bs por mes", "Mes"), X = i => pl + i * bw;
     const base = H - pb, alto = v => Math.max(0, base - M.Y(v));
@@ -3870,67 +4227,59 @@ function pintarTab(){
       return `<tr><td>${mesL(x.mes)}</td><td>${bs(x.monto_bs)}</td><td>${a === undefined ? "—" : bs(a)}</td><td>${a ? (x.monto_bs >= a ? "+" : "−") + nf(Math.abs(x.monto_bs - a) / a * 100) + " %" : "—"}</td><td>${b ? bs(b.pron) : "—"}</td><td>${b ? (b.real >= b.pron ? "+" : "−") + bs(Math.abs(b.real - b.pron)) : "—"}</td></tr>`; }).join("") +
     `<tr><td><b>${mesL(sig)} (pronóstico)</b></td><td>—</td><td>${ant({mes:sig}) === undefined ? "—" : bs(ant({mes:sig}))}</td><td>—</td><td><b>${bs(pron)}</b><span class="ayuda">entre ${bs(lo)} y ${bs(hi)}</span></td><td>error promedio ${bs(mae)}</td></tr></tbody>`;
 
-  // 2. Quiénes nos compran (por tipo de cliente, 12 meses).
-  const tipoDe = {}; Dm.clientes.lista.forEach(c => tipoDe[c.cliente_id] = c.tipo);
-  const porTipo = {}; Object.entries(porCli).forEach(([c, v]) => { const t = tipoDe[c] || "Otro"; porTipo[t] = (porTipo[t] || 0) + v; });
-  const tot12 = Object.values(porCli).reduce((s, v) => s + v, 0) || 1, COLT = ["var(--brand)", "#4fa36e", "#a8d5b5", "#c9cec8", "#e3e6e2"];
-  const tipos = Object.entries(porTipo).sort((a, b) => b[1] - a[1]).map(([e, v], i) => ({e, v, c:COLT[Math.min(i, 4)], txt:nf(v / tot12 * 100, 1) + " %"}));
-  $("tab-tipo-h").textContent = `${nf(tipos[0].v / tot12 * 100)} de cada 100 bolivianos los compran los clientes de tipo «${tipos[0].e.toLowerCase()}»`;
-  $("tab-tipo-s").textContent = `Parte de las ventas de los últimos 12 meses por tipo de cliente.`;
-  $("tab-tipo-g").innerHTML = `<div class="dona">${dona(tipos, nf(tipos[0].v / tot12 * 100) + " %", [tipos[0].e.toLowerCase().split(" ")[0]])}<ul>${tipos.map(t => `<li><i style="background:${t.c}"></i>${esc(t.e)} · <b>${t.txt}</b></li>`).join("")}</ul></div>`;
-  $("tab-tipo-n").textContent = tipos[0].v / tot12 > .5 ? `Más de la mitad de lo que se vende se lo llevan los clientes de tipo «${tipos[0].e.toLowerCase()}»: son los que hay que cuidar.` : `Ningún tipo de cliente se lleva más de la mitad: las ventas están repartidas.`;
-  $("t-tab-tipo").innerHTML = `<thead><tr><th>Tipo de cliente</th><th>Compras en 12 meses</th><th>Parte del total</th></tr></thead><tbody>` + tipos.map(t => `<tr><td>${esc(t.e)}</td><td>${bs(t.v)}</td><td>${t.txt}</td></tr>`).join("") + "</tbody>";
+  // 2. Quiénes nos compran (por tipo de cliente; los porcentajes del motor suman 100).
+  const COLT = ["var(--brand)", "#4fa36e", "#a8d5b5", "#c9cec8", "#e3e6e2"];
+  const tipos = TE.tipos_cliente.map((t, i) => ({e:t.tipo, v:t.pct, bsv:t.monto_bs, c:COLT[Math.min(i, 4)], txt:t.pct + " %"}));
+  $("tab-tipo-h").textContent = TE.conclusiones.tipos_cliente;
+  $("tab-tipo-s").textContent = `Parte de las ventas ${perTE} por tipo de cliente.`;
+  $("tab-tipo-g").innerHTML = `<div class="dona">${dona(tipos, tipos[0].txt, [tipos[0].e.toLowerCase().split(" ")[0]])}<ul>${tipos.map(t => `<li><i style="background:${t.c}"></i>${esc(t.e)} · <b>${t.txt}</b></li>`).join("")}</ul></div>`;
+  $("tab-tipo-n").textContent = tipos[0].v > 50 ? "Son los clientes que hay que cuidar." : "Las ventas están repartidas entre varios tipos de cliente.";
+  $("t-tab-tipo").innerHTML = `<thead><tr><th>Tipo de cliente</th><th>Compras</th><th>Parte del total</th></tr></thead><tbody>` + tipos.map(t => `<tr><td>${esc(t.e)}</td><td>${bs(t.bsv)}</td><td>${t.txt}</td></tr>`).join("") + "</tbody>";
 
-  // 4. Qué tipo de repuesto vendemos más (categoría del catálogo, 12 meses).
-  const catDe = {}; D.catalogo.repuestos.forEach(c => catDe[c.repuesto_id] = c.categoria);
-  const porCat = {}; Object.entries(porRep).forEach(([id, v]) => { const c = catDe[id] || "Otros"; porCat[c] = (porCat[c] || 0) + v; });
-  const cats = Object.entries(porCat).sort((a, b) => b[1] - a[1]).map(([e, v]) => ({e, v, txt:bs(v)})), c0 = cats[0], pc0 = c0.v / tot12 * 100;
-  $("tab-cat-h").textContent = `${c0.e}: ${nf(pc0)} de cada 100 bolivianos vendidos`;
-  $("tab-cat-s").textContent = `Ventas de los últimos 12 meses por tipo de repuesto, en bolivianos.`;
+  // 4. Qué tipo de repuesto vendemos más.
+  const cats = TE.categorias.map(c => ({e:c.categoria, v:c.monto_bs, pct:c.pct, txt:bs(c.monto_bs)})), c0 = cats[0];
+  $("tab-cat-h").textContent = TE.conclusiones.categorias;
+  $("tab-cat-s").textContent = `Ventas ${perTE} por tipo de repuesto, en bolivianos.`;
   $("tab-cat-g").innerHTML = svgBarras(cats, Math.max(300, $("tab-cat-g").clientWidth || 600), c0, $("tab-cat-h").textContent);
-  $("tab-cat-n").textContent = `${c0.e} y ${cats[1] ? cats[1].e.toLowerCase() : ""} suman el ${nf((c0.v + (cats[1] ? cats[1].v : 0)) / tot12 * 100)} % de lo vendido: son los que no pueden faltar.`;
-  $("t-tab-cat").innerHTML = `<thead><tr><th>Tipo de repuesto</th><th>Ventas en 12 meses</th><th>Parte del total</th></tr></thead><tbody>` + cats.map(c => `<tr><td>${esc(c.e)}</td><td>${c.txt}</td><td>${nf(c.v / tot12 * 100, 1)} %</td></tr>`).join("") + "</tbody>";
+  $("tab-cat-n").textContent = `${c0.e} y ${cats[1] ? cats[1].e.toLowerCase() : ""} suman el ${nf(c0.pct + (cats[1] ? cats[1].pct : 0))} % de lo vendido: son los que no pueden faltar.`;
+  $("t-tab-cat").innerHTML = `<thead><tr><th>Tipo de repuesto</th><th>Ventas</th><th>Parte del total</th></tr></thead><tbody>` + cats.map(c => `<tr><td>${esc(c.e)}</td><td>${c.txt}</td><td>${nf(c.pct, 1)} %</td></tr>`).join("") + "</tbody>";
 
-  // 5. Pareto de clientes: cuánto deja cada cliente y el acumulado.
-  const cls = Object.entries(porCli).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).map(([id, v]) => ({id, v, e:nomCli((Dm.clientes.lista.find(c => c.cliente_id === id) || {nombre:id}).nombre)}));
-  let acum = 0; cls.forEach(c => { acum += c.v; c.ac = acum / tot12 * 100; });
-  const n80 = cls.findIndex(c => c.ac >= 80) + 1, p5 = cls.length >= 5 ? cls[4].ac : 100;
+  // 5. De cuántos clientes dependen las ventas: cuánto deja cada cliente y el acumulado.
+  const cls = TE.clientes.filter(c => c.monto_bs > 0).map(c => ({id:c.id, v:c.monto_bs, e:nomCli(c.nombre)}));
+  let acum = 0; cls.forEach(c => { acum += c.v; c.ac = acum / tot * 100; });
+  const n80 = cls.findIndex(c => c.ac >= 80) + 1;
   $("tab-par-h").textContent = `${n80} de ${cls.length} clientes dejan el 80 % de las ventas`;
-  $("tab-par-s").textContent = `Compras de los últimos 12 meses de cada cliente, de mayor a menor. La línea suma lo que dejan, del primero al último.`;
+  $("tab-par-s").textContent = `Compras ${perTE} de cada cliente, de mayor a menor. La línea suma lo que dejan, del primero al último.`;
   { const g = $("tab-par-g"), W = Math.max(300, g.clientWidth || 600), H = 250, pl = 86, pr = 40, pb = 40, n = cls.length, bw = (W - pl - pr) / n;
-    const mx = cls[0].v * 1.1, M = marco(W, H, pl, pr, pb, mx, t => bs(t), "Bs en 12 meses", "Clientes, del que más compra al que menos"), X = i => pl + i * bw, Yp = p => 10 + (1 - p / 100) * (H - pb - 10);
+    const mx = cls[0].v * 1.1, M = marco(W, H, pl, pr, pb, mx, t => bs(t), "Bs por cliente", "Clientes, del que más compra al que menos"), X = i => pl + i * bw, Yp = p => 10 + (1 - p / 100) * (H - pb - 10);
     g.innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc($("tab-par-h").textContent)}">${M.svg}` +
       cls.map((c, i) => `<rect x="${(X(i) + bw * .15).toFixed(1)}" y="${M.Y(c.v).toFixed(1)}" width="${(bw * .7).toFixed(1)}" height="${(H - pb - M.Y(c.v)).toFixed(1)}" rx="2" fill="${i < n80 ? "var(--brand)" : "#c9cec8"}"><title>${i + 1}. ${esc(c.e)}: ${bs(c.v)} (acumulado ${nf(c.ac)} %)</title></rect>`).join("") +
       `<line class="pe" x1="${pl}" x2="${W - pr}" y1="${Yp(80)}" y2="${Yp(80)}"/><text x="${W - pr + 4}" y="${Yp(80) + 4}">80 %</text><text x="${W - pr + 4}" y="${Yp(100) + 4}">100 %</text>` +
       `<path class="ln" stroke="var(--ink-2)" d="${cls.map((c, i) => `${i ? "L" : "M"}${(X(i) + bw / 2).toFixed(1)} ${Yp(c.ac).toFixed(1)}`).join(" ")}"/>` +
       cls.map((c, i) => `<circle cx="${(X(i) + bw / 2).toFixed(1)}" cy="${Yp(c.ac).toFixed(1)}" r="3" fill="var(--ink-2)"/>`).join("") + "</svg>"; }
-  $("tab-par-n").textContent = `Los 5 primeros dejan el ${nf(p5)} % de las ventas; el que más compra es ${cls[0].e} (${bs(cls[0].v)}). Si uno de ellos deja de comprar, se nota: conviene cuidarlos.`;
+  $("tab-par-n").textContent = TE.conclusiones.top_clientes;
   $("tab-par-n").style.cssText = "background:var(--warn-soft);border-color:#f1d9a6;color:#5a3d00";
-  $("t-tab-par").innerHTML = `<thead><tr><th>#</th><th>Cliente</th><th>Compras en 12 meses</th><th>Parte del total</th><th>Acumulado</th></tr></thead><tbody>` +
-    cls.map((c, i) => `<tr><td>${i + 1}</td><td>${esc(c.e)}</td><td>${bs(c.v)}</td><td>${nf(c.v / tot12 * 100, 1)} %</td><td>${nf(c.ac, 1)} %</td></tr>`).join("") + "</tbody>";
+  $("t-tab-par").innerHTML = `<thead><tr><th>#</th><th>Cliente</th><th>Compras</th><th>Parte del total</th><th>Acumulado</th></tr></thead><tbody>` +
+    cls.map((c, i) => `<tr><td>${i + 1}</td><td>${esc(c.e)}</td><td>${bs(c.v)}</td><td>${nf(c.v / tot * 100, 1)} %</td><td>${nf(c.ac, 1)} %</td></tr>`).join("") + "</tbody>";
 
-  // 6. Los 10 repuestos estrella (los que más dinero dejaron en 12 meses).
-  const reps = Object.entries(porRep).sort((a, b) => b[1] - a[1]).slice(0, 10).map(([id, v]) => ({id, v, e:nombreRep(id), txt:bs(v)}));
+  // 6. Los 10 repuestos estrella.
+  const reps = TE.top_repuestos.map(r => ({id:r.id, v:r.monto_bs, pct:r.pct, e:r.nombre_corto || nombreRep(r.id), txt:bs(r.monto_bs)}));
   $("tab-rep-h").textContent = `${reps[0].e} es el que más dinero deja: ${bs(reps[0].v)}`;
-  $("tab-rep-s").textContent = `Los que más dinero dejaron en los últimos 12 meses, en bolivianos.`;
+  $("tab-rep-s").textContent = `Los que más dinero dejaron ${perTE}, en bolivianos.`;
   $("tab-rep-g").innerHTML = svgBarras(reps, Math.max(300, $("tab-rep-g").clientWidth || 600), reps[0], $("tab-rep-h").textContent);
-  $("tab-rep-n").textContent = `Estos 10 suman el ${nf(suma(reps, "v") / tot12 * 100)} % de lo vendido: su stock se revisa primero.`;
-  $("t-tab-rep").innerHTML = `<thead><tr><th>#</th><th>Repuesto</th><th>Ventas en 12 meses</th><th>Parte del total</th></tr></thead><tbody>` +
-    reps.map((r, i) => `<tr><td>${i + 1}</td><td><b>${esc(r.e)}</b><span class="ayuda">${r.id}</span></td><td>${r.txt}</td><td>${nf(r.v / tot12 * 100, 1)} %</td></tr>`).join("") + "</tbody>";
+  $("tab-rep-n").textContent = TE.conclusiones.top_repuestos;
+  $("t-tab-rep").innerHTML = `<thead><tr><th>#</th><th>Repuesto</th><th>Ventas</th><th>Parte del total</th></tr></thead><tbody>` +
+    reps.map((r, i) => `<tr><td>${i + 1}</td><td><b>${esc(r.e)}</b><span class="ayuda">${r.id}</span></td><td>${r.txt}</td><td>${nf(r.pct, 1)} %</td></tr>`).join("") + "</tbody>";
 
   // 7. Ventas por año (en gris, los años incompletos).
-  const an = T.por_anio, comp = an.filter(a => a.meses >= 12);
-  let tit = `${an.length} años de ventas`, nota = "";
-  if(comp.length >= 2){ const [x, y] = comp.slice(-2), dif = (y.monto_bs - x.monto_bs) / x.monto_bs * 100, du = y.unidades - x.unidades;
-    tit = Math.abs(dif) < 5 ? `${x.anio} y ${y.anio} vendieron casi lo mismo en dinero` : `${y.anio} vendió ${nf(Math.abs(dif))} % ${dif > 0 ? "más" : "menos"} que ${x.anio}`;
-    nota = `En ${y.anio} salieron ${nf(Math.abs(du))} ${pal(Math.abs(du), "pieza", "piezas")} ${du >= 0 ? "más" : "menos"} que en ${x.anio}` + (Math.abs(dif) < 5 && du > 0 ? ": se vendieron repuestos más baratos." : Math.abs(dif) < 5 && du < 0 ? ": se vendieron repuestos más caros." : "."); }
+  const an = TE.por_anio, tit = TE.conclusiones.anios || `${an.length} años de ventas`, nota = "";
   $("tab-anio-h").textContent = tit;
   $("tab-anio-s").textContent = `En bolivianos. En gris, los años incompletos.`;
   { const g = $("tab-anio-g"), W = Math.max(300, g.clientWidth || 600), H = 240, pb = 44, n = an.length, bw = W / n, mx = Math.max(...an.map(a => a.monto_bs)) * 1.15, Y = v => 22 + (1 - v / mx) * (H - pb - 22);
     g.innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(tit)}">` + an.map((a, i) => `<rect x="${(i * bw + bw * .15).toFixed(1)}" y="${Y(a.monto_bs).toFixed(1)}" width="${(bw * .7).toFixed(1)}" height="${(H - pb - Y(a.monto_bs)).toFixed(1)}" rx="3" fill="${a.meses < 12 ? "#c9cec8" : "var(--brand)"}"><title>${a.anio}: ${bs(a.monto_bs)}</title></rect>` +
       `<text x="${(i * bw + bw / 2).toFixed(1)}" y="${(Y(a.monto_bs) - 6).toFixed(1)}" text-anchor="middle" class="lbl" style="fill:var(--ink)">${W < 500 ? nf(a.monto_bs / 1000) + " mil" : bs(a.monto_bs)}</text>` +
       `<text x="${(i * bw + bw / 2).toFixed(1)}" y="${H - 26}" text-anchor="middle">${a.anio}</text>` + (a.meses < 12 ? `<text x="${(i * bw + bw / 2).toFixed(1)}" y="${H - 12}" text-anchor="middle">${a.meses} meses</text>` : "")).join("") + "</svg>"; }
-  $("tab-anio-n").textContent = nota || "Hace falta más de un año completo para comparar.";
+  $("tab-anio-n").textContent = "Los años en gris no tienen sus 12 meses: no se comparan con los demás.";
   $("t-tab-anio").innerHTML = `<thead><tr><th>Año</th><th>Vendido</th><th>Piezas</th><th>Meses con datos</th></tr></thead><tbody>` +
     an.map(a => `<tr><td>${a.anio}</td><td>${bs(a.monto_bs)}</td><td>${nf(a.unidades)}</td><td>${a.meses}</td></tr>`).join("") + "</tbody>";
   // 8. En qué meses se vende más (temporada de los 30 repuestos juntos).
@@ -4145,6 +4494,7 @@ function pintarCost(){
     dif.map(f => `<tr><td><b>${esc(nomCorto(f.id))}</b><span class="ayuda">${f.id}</span></td><td>${bs(f.o)}</td><td>${bs(f.p)}</td><td>+${bs(f.p - f.o)}</td></tr>`).join("") + "</tbody>";
   tecCards($("mn-f-cost"));
 }
+$("tab-per").addEventListener("click", e => { const b = e.target.closest("button[data-v]"); if(b && b.dataset.v !== S.dbPer){ S.dbPer = b.dataset.v; seguro(pintarTab); prepararTablas($("m1-cont"), true); } });
 $("cs-rep").addEventListener("change", e => { S.csRep = e.target.value; seguro(pintarCost); prepararTablas($("m3-cont"), true); });
 
 /* ---- a. Pronóstico contra lo vendido (backtest de 12 meses) ---- */

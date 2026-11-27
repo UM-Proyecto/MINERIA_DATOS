@@ -61,7 +61,7 @@ motor de cálculo (`motor.js`, con su copia de prueba `motor_ref.py`) y la pági
 | SCRUM-75 | `src/simulador/motor.js` (`temporadas`), sin carpeta propia | Empresa › Temporadas de venta |
 | SCRUM-76 | `src/scrum-76` (clientes), cálculo en `src/simulador/motor.js` | Empresa › Clientes que más compran |
 | SCRUM-78 (mejora v2) | `src/tienda` (`plantilla_tienda.html`, `generar_tienda.py`) | Tienda (la raíz del sitio) |
-| SCRUM-79 | `src/simulador/motor.js` (`dashboard`) y la vista `dashboard` de `plantilla_app.html`, sin carpeta propia | Empresa › Tablero de ventas |
+| SCRUM-79 | `src/simulador/motor.js` (`dashboard` y `tableroEmpresa`, con su copia en `motor_ref.py`) y la vista `dashboard` de `plantilla_app.html`, sin carpeta propia; pruebas en `tests/test_tablero_empresa.py` | Empresa › Tablero de ventas: versión para la gerencia, con filtro de período, cuatro tarjetas, gráficos simples y una conclusión generada bajo cada uno |
 | SCRUM-80 | `src/scrum-80/predecir_venta.py` (modelo), vista `predicciones` de `plantilla_app.html` | Empresa › Predicción de ventas |
 | SCRUM-81 | `src/simulador/motor.js` (`rotacion`) y la vista `rotacion`, sin carpeta propia | Empresa › Importancia y rotación (ABC) |
 | SCRUM-82 | `src/simulador/plantilla_app.html` y `src/tienda/plantilla_tienda.html` (textos e íconos «i»), sin carpeta propia | Todas las pantallas |
