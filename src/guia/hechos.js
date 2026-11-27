@@ -106,6 +106,19 @@ pon("db_dir_u", Math.abs(du) / pm(dm.length - 13) < 0.05 ? "se mantiene" : du > 
 pon("db_dir_bs", dbv >= 0 ? "sube" : "baja");
 pon("db_mezcla", (du < 0) === (dbv >= 0) ? (dbv >= 0 ? ", porque se vendieron menos unidades pero más caras" : ", porque se vendieron más unidades pero más baratas") : "");
 
+// ---- tablero empresarial (Motor.tableroEmpresa, período por defecto: últimos 12 meses)
+const TE = M.tableroEmpresa(d, tc, "12m"), TT = M.tableroEmpresa(d, tc, "todo"), CE = TE.tarjetas.comparacion;
+const flecha = p => (p >= 0 ? "▲ " : "▼ ") + nf(Math.abs(p)) + " %";
+pon("te_desde", mesL(TE.desde)); pon("te_hasta", mesL(TE.hasta));
+pon("te_ventas", bs(TE.tarjetas.ventas_bs)); pon("te_var_bs", flecha(CE.var_bs_pct));
+pon("te_piezas", nf(TE.tarjetas.unidades)); pon("te_var_u", flecha(CE.var_u_pct));
+pon("te_pedir", TE.hoy.pedir_ya.repuestos); pon("te_pedir_bs", bs(TE.hoy.pedir_ya.costo_bs));
+pon("te_parado", bs(TE.hoy.dinero_parado.valor_bs)); pon("te_parado_n", TE.hoy.dinero_parado.repuestos);
+pon("te_alm", TE.hoy.almacen.map(a => `${a.etiqueta.toLowerCase()} ${a.repuestos}`).join(", "));
+pon("te_tipos", TE.tipos_cliente.map(t => `${t.tipo.toLowerCase()} ${t.pct} %`).join(", "));
+pon("te_todo_ventas", bs(TT.tarjetas.ventas_bs)); pon("te_todo_meses", TT.meses_periodo);
+["meses", "tipos_cliente", "almacen", "categorias", "top_clientes", "top_repuestos", "anios"].forEach(k => pon("te_c_" + k, TE.conclusiones[k]));
+
 // ---- rotación y ABC por dinero
 const R = M.rotacion(d, tc), A_ = R.repuestos.filter(f => f.clase_abc === "A");
 pon("rt_A", A_.length); pon("rt_A_pct", nf(A_.reduce((s, f) => s + f.valor12_bs, 0) / R.valor12_total_bs * 100) + " %");
