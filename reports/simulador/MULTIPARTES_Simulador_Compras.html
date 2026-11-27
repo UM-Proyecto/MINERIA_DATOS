@@ -591,7 +591,7 @@ svg.chart .pm{fill:none;stroke:var(--graphite);stroke-width:2}
 .modulo .solo-tablas{display:none}   /* tarjetas que solo respaldan (ventas por año; ingresos y gastos): van en Tablas */
 .tab-grid>.card{margin:0}
 /* 27-11-2026 (Sam): en los módulos no van textos fijos; el subtítulo y la técnica quedan solo en Tablas */
-.modulo .tab-sub,.modulo .tec-c{display:none}.nota-sit:empty{display:none}
+.modulo .tab-sub,.modulo .tec-c,.modulo .nota-sit{display:none}   /* 27-11 (Sam): sin cajas de nota en los módulos */.nota-sit:empty{display:none}
 .tec-c{font-size:11px;color:var(--ink-3);margin-top:8px}.tec-c:empty{display:none}
 .cs-sel{display:grid;gap:4px;max-width:520px;margin-bottom:12px}.cs-sel label{font-size:13px;font-weight:600}.cs-sel .ayuda{display:block;font-weight:400}
 .cs-sel select,.cs-sel input{min-height:40px;border:1px solid var(--line-2);border-radius:8px;padding:6px 10px;font:inherit;background:#fff;max-width:100%}
@@ -4217,7 +4217,7 @@ function pintarTab(){
   $("tab-mes-h").textContent = `Para ${nomMes(sig)} se esperan unos ${bs(pron)}; el mes más alto de ${perS} fue ${mesL(mejor.mes)}, con ${bs(mejor.monto_bs)}`;
   $("tab-mes-s").textContent = `En bolivianos, de ${perS}. La línea punteada es el promedio.`;
   $("tab-mes-ley").innerHTML = `<span><i class="sw" style="background:var(--brand)"></i>${perS}</span>` + (todo ? "" : `<span><i class="sw" style="background:#c9cec8"></i>${mesL(mesMenos12(ult[0].mes))} a ${mesL(mesMenos12(fin))}</span>`) +
-    `<span><i class="sw" style="background:var(--brand-soft);border:1px dashed var(--brand)"></i>Pronóstico de ${mesL(sig)}, entre ${bs(lo)} y ${bs(hi)}</span>`;
+    `<span><i class="sw" style="background:var(--brand-soft);border:1px dashed var(--brand)"></i>Pronóstico de ${mesL(sig)}, entre ${bs(lo)} y ${bs(hi)}</span><span>Promedio: ${bs(prom)} por mes</span>`;
   { const g = $("tab-mes-g"), W = Math.max(320, g.clientWidth || 900), H = 290, pl = 74, pr = 10, pb = 44, n = NB + 1, bw = (W - pl - pr) / n, angosto = W < 560;
     const mx = Math.max(hi, ...ser.map(x => Math.max(x.monto_bs, todo ? 0 : ant(x) || 0))) * 1.1, M = marco(W, H, pl, pr, pb, mx, t => bs(t), "Bs por mes", "Mes"), X = i => pl + i * bw;
     const base = H - pb, alto = v => Math.max(0, base - M.Y(v));
@@ -4456,10 +4456,11 @@ function pintarCost(){
 
   // 2. Cuánto pedir: de cada 100 casos, cuál gana.
   const L = ["A","B","C","D"], m = R.mejor;
-  $("tab-gana-h").textContent = `Para ${nom}, conviene ${ALT[m].t.toLowerCase()}: gana en ${R[m].puntaje} de cada 100 casos`;
+  $("tab-gana-h").textContent = `Para ${nom}, conviene ${ALT[m].t.toLowerCase()} (${R[m].cantidad === 1 ? "1 unidad" : nf(R[m].cantidad) + " unidades"}, ${bs(R[m].costo.total_bs)}): gana en ${R[m].puntaje} de cada 100 casos`;
   $("tab-gana-s").textContent = "Se probaron 1.500 futuros posibles de 90 días, cada uno con otro dólar, otra venta y otra demora. La barra dice en cuántos de cada 100 esa forma de comprar dejó más ganancia.";
   $("tab-gana-g").innerHTML = svgBarras(L.map(k => ({e:`${k}. ${ALT[k].t}`, v:R[k].puntaje, txt:`${R[k].puntaje} de 100`, c:k === m ? "var(--brand)" : "#c9cec8"})), Math.max(300, $("tab-gana-g").clientWidth || 600), null, $("tab-gana-h").textContent);
-  $("tab-gana-n").innerHTML = `Pedir ${R[m].cantidad === 1 ? "1 unidad" : nf(R[m].cantidad) + " unidades"} cuesta ${bs(R[m].costo.total_bs)} puesto en Santa Cruz. <a class="ir" href="#simulador" id="cs-abrir">Abrir el simulador con este repuesto →</a>`;
+  $("tab-gana-n").textContent = `Pedir ${R[m].cantidad === 1 ? "1 unidad" : nf(R[m].cantidad) + " unidades"} cuesta ${bs(R[m].costo.total_bs)} puesto en Santa Cruz.`;
+  $("tab-gana-g").insertAdjacentHTML("beforeend", `<p style="margin:10px 0 0"><a class="ir" href="#simulador" id="cs-abrir">Abrir el simulador con este repuesto →</a></p>`);
   $("cs-abrir").addEventListener("click", e => { e.preventDefault(); abrirEnSimulador(id); });
   $("t-tab-gana").innerHTML = `<thead><tr><th>Forma de comprar</th><th>Gana de cada 100</th><th>Cantidad</th><th>Costo final</th><th>Riesgo de quedarse sin stock</th><th>Dinero parado</th><th>Ganancia esperada en 90 días</th></tr></thead><tbody>` +
     L.map(k => { const o = R[k]; return `<tr><td><b>${k}. ${esc(ALT[k].t)}</b></td><td>${o.puntaje}</td><td>${nf(o.cantidad)}</td><td>${bs(o.costo.total_bs)}</td><td>${nf(o.riesgo_quiebre)} %</td><td>${bs(o.capital_inmovilizado_bs)}</td><td>${bs(o.ganancia_media_bs)}</td></tr>`; }).join("") + "</tbody>";
