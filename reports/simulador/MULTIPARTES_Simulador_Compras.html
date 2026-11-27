@@ -4123,8 +4123,10 @@ function pintarCost(){
   $("t-tab-cap").innerHTML = `<thead><tr><th>Forma de comprar</th><th>Dinero parado</th></tr></thead><tbody>` + L.map(k => `<tr><td>${k}. ${esc(ALT[k].t)}</td><td>${bs(R[k].capital_inmovilizado_bs)}</td></tr>`).join("") + "</tbody>";
 
   // 6. Qué proveedor sale más barato para este repuesto.
-  const pv = Motor.compararProveedores(D, id, tcHoy()).slice().sort((a, b) => a.total_bs - b.total_bs), b0 = pv[0];
-  $("tab-prov-h").textContent = `${nomProv(b0.nombre)} deja ${nom} más barato en Santa Cruz: ${bs(b0.total_bs)}`;
+  // Con empate al boliviano, desempata quien entrega más a tiempo y, después, el plazo más corto; el título lo dice.
+  const pv = Motor.compararProveedores(D, id, tcHoy()).slice().sort((a, b) => Math.round(a.total_bs) - Math.round(b.total_bs) || b.pct_entregas_a_tiempo - a.pct_entregas_a_tiempo || a.plazo_normal_dias - b.plazo_normal_dias), b0 = pv[0];
+  const emp = pv.filter(p => bs(p.total_bs) === bs(b0.total_bs)), lista = emp.map(p => nomProv(p.nombre)).join(", ").replace(/, ([^,]*)$/, " y $1");
+  $("tab-prov-h").textContent = emp.length > 1 ? `${lista} empatan en ${bs(b0.total_bs)} por ${nom}; conviene ${nomProv(b0.nombre)}, que ${emp[1].pct_entregas_a_tiempo < b0.pct_entregas_a_tiempo ? "entrega más a tiempo" : "tarda menos"}` : `${nomProv(b0.nombre)} deja ${nom} más barato en Santa Cruz: ${bs(b0.total_bs)}`;
   $("tab-prov-s").textContent = "Costo final de una unidad: fábrica, flete y aduana, con el dólar oficial de hoy.";
   $("tab-prov-g").innerHTML = svgBarras(pv.map(p => ({e:nomProv(p.nombre), v:p.total_bs, txt:bs(p.total_bs), c:p === b0 ? "var(--brand)" : "#c9cec8"})), Math.max(300, $("tab-prov-g").clientWidth || 600), null, $("tab-prov-h").textContent);
   $("tab-prov-n").textContent = `Tarda ${b0.plazo_normal_dias} días y entrega a tiempo ${b0.pct_entregas_a_tiempo} de cada 100 pedidos.` + (b0.asignado ? " Es el proveedor de hoy." : "");
