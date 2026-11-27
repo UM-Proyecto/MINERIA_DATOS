@@ -27,6 +27,7 @@ const MAX_CUERPO = 8192;
 const MAX_CSV = 256 * 1024;
 const MAX_FILAS_CSV = 500;
 const REPO = "https://raw.githubusercontent.com/UM-Proyecto/MINERIA_DATOS/";
+const SIN_CACHE = { cf: { cacheTtl: 30 } };   // raw.githubusercontent pide 5 min de caché; 30 s alcanza
 const TC_URL = REPO + "main/data/processed/scrum-54/tco_bcb_diario.csv";
 const TIPOS_CLIENTE = ["Taller mecánico", "Flota de empresa", "Repuestera", "Particular"];
 const CLIENTE_WEB = "CLI-WEB";   // ventas de cotizaciones de la tienda, que no tienen cliente registrado
@@ -145,12 +146,13 @@ async function exigir(env, req, rol) {
 let DATOS = null, APP_HTML = null, TIENDA_HTML = null, recursosT = 0;
 async function cargarRecursos(env) {
   if (typeof DATOS_INCLUIDOS !== "undefined") { DATOS = DATOS_INCLUIDOS; APP_HTML = APP_INCLUIDA; TIENDA_HTML = TIENDA_INCLUIDA; return; }
-  if (DATOS && Date.now() - recursosT < 600e3) return;
+  // 27-11-2026: 60 s (antes 10 min). Con 10 min, después de un merge cada instancia mostraba su copia vieja hasta 15 min.
+  if (DATOS && Date.now() - recursosT < 60e3) return;
   const ref = env.FUENTE_REF || "main";
   try {
-    const [d, h, t] = await Promise.all([fetch(REPO + ref + "/data/processed/simulador/datos_app.json"),
-                                         fetch(REPO + ref + "/reports/simulador/MULTIPARTES_Simulador_Compras.html"),
-                                         fetch(REPO + ref + "/reports/tienda/MULTIPARTES_Tienda.html")]);
+    const [d, h, t] = await Promise.all([fetch(REPO + ref + "/data/processed/simulador/datos_app.json", SIN_CACHE),
+                                         fetch(REPO + ref + "/reports/simulador/MULTIPARTES_Simulador_Compras.html", SIN_CACHE),
+                                         fetch(REPO + ref + "/reports/tienda/MULTIPARTES_Tienda.html", SIN_CACHE)]);
     if (!d.ok || !h.ok || !t.ok) throw new Error("GitHub respondió " + d.status + ", " + h.status + " y " + t.status);
     const datos = await d.json(), html = await h.text(), tienda = await t.text();
     if (!datos.repuestos || !html.includes("</head>") || !tienda.includes("</head>")) throw new Error("archivos inesperados");
