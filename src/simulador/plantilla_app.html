@@ -590,6 +590,8 @@ svg.chart .pm{fill:none;stroke:var(--graphite);stroke-width:2}
 .nota-sit.alerta{background:var(--bad-soft);border-color:#f1c9c2;color:#6b2219}
 .modulo .solo-tablas{display:none}   /* tarjetas que solo respaldan (ventas por año; ingresos y gastos): van en Tablas */
 .tab-grid>.card{margin:0}
+/* 27-11-2026 (Sam): en los módulos no van textos fijos; el subtítulo y la técnica quedan solo en Tablas */
+.modulo .tab-sub,.modulo .tec-c{display:none}.nota-sit:empty{display:none}
 .tec-c{font-size:11px;color:var(--ink-3);margin-top:8px}.tec-c:empty{display:none}
 .cs-sel{display:grid;gap:4px;max-width:520px;margin-bottom:12px}.cs-sel label{font-size:13px;font-weight:600}.cs-sel .ayuda{display:block;font-weight:400}
 .cs-sel select,.cs-sel input{min-height:40px;border:1px solid var(--line-2);border-radius:8px;padding:6px 10px;font:inherit;background:#fff;max-width:100%}
@@ -1159,18 +1161,15 @@ details.tecnico[open]>summary::before{transform:rotate(90deg)}
 
   <!-- ============ TRES MÓDULOS Y TABLAS (pedido del docente, 27-11-2026) ============ -->
   <section class="vista modulo" id="v-m1" hidden aria-labelledby="h1-m1">
-    <div class="hero"><div><div class="eyebrow">Módulo 1 de 3 · Demanda</div><h1 id="h1-m1">¿Cómo se vende?</h1>
-      <p>Qué se vende, a quién, en qué meses y qué se venderá el mes que viene. Debajo de cada gráfico, «Ver la tabla» lleva a los números de donde sale.</p></div></div>
+    <div class="hero"><div><div class="eyebrow">Módulo 1 de 3 · Demanda</div><h1 id="h1-m1">¿Cómo se vende?</h1></div></div>
     <div id="m1-cont"></div>
   </section>
   <section class="vista modulo" id="v-m2" hidden aria-labelledby="h1-m2">
-    <div class="hero"><div><div class="eyebrow">Módulo 2 de 3 · Reposición</div><h1 id="h1-m2">¿Qué y cuánto pedir?</h1>
-      <p>Qué repuestos pedir esta semana, cuáles cuidar y cuáles frenar, qué comprar primero con el presupuesto y cuánto dinero queda parado.</p></div></div>
+    <div class="hero"><div><div class="eyebrow">Módulo 2 de 3 · Reposición</div><h1 id="h1-m2">¿Qué y cuánto pedir?</h1></div></div>
     <div id="m2-cont"></div>
   </section>
   <section class="vista modulo" id="v-m3" hidden aria-labelledby="h1-m3">
-    <div class="hero"><div><div class="eyebrow">Módulo 3 de 3 · Costo y riesgo</div><h1 id="h1-m3">¿A quién comprar y con qué dólar?</h1>
-      <p>Cuánto conviene pedir si el dólar cambia, qué proveedor sale más barato, cuánto pesa el dólar paralelo y con cuántas empresas se cubren los gastos del servicio.</p></div></div>
+    <div class="hero"><div><div class="eyebrow">Módulo 3 de 3 · Costo y riesgo</div><h1 id="h1-m3">¿A quién comprar y con qué dólar?</h1></div></div>
     <div id="m3-cont"></div>
   </section>
   <section class="vista" id="v-tablas" hidden aria-labelledby="h1-tb">
@@ -1190,8 +1189,7 @@ details.tecnico[open]>summary::before{transform:rotate(90deg)}
     <!-- Módulo 1: tablero de ventas (base: boceto de Sabrina del 27-11-2026; temporada y predicción fundidas el mismo día) -->
     <section class="mn-fn" id="mn-f-tab" hidden>
       <div class="db-per" style="margin-bottom:12px"><span class="lab" id="tab-per-lab">Período</span>
-        <div class="seg" role="group" aria-labelledby="tab-per-lab" id="tab-per"><button class="chip" type="button" data-v="12m" aria-pressed="true">Últimos 12 meses</button><button class="chip" type="button" data-v="todo" aria-pressed="false">Todo el período</button></div>
-        <span class="ayuda">Cambia las cifras de ventas, clientes y repuestos. Lo que hay que comprar hoy y el gráfico de cada mes no cambian.</span></div>
+        <div class="seg" role="group" aria-labelledby="tab-per-lab" id="tab-per"><button class="chip" type="button" data-v="12m" aria-pressed="true">Últimos 12 meses</button><button class="chip" type="button" data-v="todo" aria-pressed="false">Todo el período</button></div></div>
       <div class="grid-k" id="tab-kpis" aria-live="polite" style="margin-top:0"></div>
       <p class="tab-precio" id="tab-precio"></p>
       <div class="tab-grid">
@@ -1236,7 +1234,7 @@ details.tecnico[open]>summary::before{transform:rotate(90deg)}
         <div class="chartbox" id="tab-abc-g"></div><p class="nota-sit" id="tab-abc-n"></p><p class="tec-c"></p>
         <details><summary>Ver los datos como tabla</summary><div class="scroll"><table id="t-tab-abc"></table></div></details></article>
       <article class="card tab-c" id="tab-plan"><div class="eyebrow">¿Qué conviene comprar primero con el presupuesto?</div><h2 id="tab-plan-h"></h2><p class="tab-sub" id="tab-plan-s"></p>
-        <div class="cs-sel"><label for="rp-presu">Presupuesto para comprar<span class="ayuda">En bolivianos, con el dólar oficial de hoy.</span></label><input id="rp-presu" type="number" min="0" step="500" inputmode="numeric"></div><div class="chartbox" id="tab-plan-g"></div><p class="nota-sit" id="tab-plan-n"></p><p class="tec-c"></p>
+        <div class="cs-sel"><label for="rp-presu">Presupuesto para comprar, en Bs</label><input id="rp-presu" type="number" min="0" step="500" inputmode="numeric"></div><div class="chartbox" id="tab-plan-g"></div><p class="nota-sit" id="tab-plan-n"></p><p class="tec-c"></p>
         <details><summary>Ver los datos como tabla</summary><div class="scroll"><table id="t-tab-plan"></table></div></details></article>
       <article class="card tab-c" id="tab-sobra"><div class="eyebrow">¿Qué repuestos sobran?</div><h2 id="tab-sobra-h"></h2><p class="tab-sub" id="tab-sobra-s"></p>
         <div class="chartbox" id="tab-sobra-g"></div><p class="nota-sit" id="tab-sobra-n"></p><p class="tec-c"></p>
@@ -1246,7 +1244,7 @@ details.tecnico[open]>summary::before{transform:rotate(90deg)}
 
     <!-- Módulo 3: tablero de costo y riesgo (27-11-2026). El simulador completo queda en #simulador. -->
     <section class="mn-fn" id="mn-f-cost" hidden>
-      <div class="cs-sel"><label for="cs-rep">Repuesto que quiere comprar<span class="ayuda">Las tarjetas de abajo se calculan para este repuesto, con el dólar de hoy.</span></label><select id="cs-rep"></select></div>
+      <div class="cs-sel"><label for="cs-rep">Repuesto que quiere comprar</label><select id="cs-rep"></select></div>
       <div class="grid-k" id="cs-kpis" aria-live="polite"></div>
       <div class="tab-grid">
       <article class="card tab-c ancha" id="tab-dol"><div class="eyebrow">¿Cómo se movió el dólar?</div><h2 id="tab-dol-h"></h2><p class="tab-sub" id="tab-dol-s"></p>
@@ -2909,12 +2907,16 @@ function pintarTab(){
   // (SCRUM-79) salen de Motor.tableroEmpresa, igual que allá. Lo propio del módulo (pronóstico, temporada,
   // predicción y la curva de clientes) se calcula aquí.
   const tc = tcHoy(), Dm = DM(), T = Motor.dashboard(Dm, tc); if(!T.meses.length) return;
-  const TE = Motor.tableroEmpresa(Dm, tc, S.dbPer), C = TE.tarjetas.comparacion, todo = TE.periodo === "todo";
+  // Un solo universo en todo el m1: los meses CERRADOS. En el portal publicado, las ventas del mes en curso (la tienda web
+  // empezó en nov-2026) entran recién cuando el mes cierra; si no, las cifras de arriba y el gráfico de cada mes no cuadran.
+  const fin = valDatos().meses.at(-1), cerr = m => String(m).slice(0, 7) <= fin;
+  const Dc = Object.assign({}, Dm, {clientes:Object.assign({}, Dm.clientes, {ventas:Dm.clientes.ventas.filter(v => cerr(v[0]))})});
+  const TE = Motor.tableroEmpresa(Dc, tc, S.dbPer), C = TE.tarjetas.comparacion, todo = TE.periodo === "todo";
   document.querySelectorAll("#tab-per button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === TE.periodo)));
   const precio = {}; Dm.repuestos.forEach(r => precio[r.repuesto_id] = Math.round(r.precio_venta_usd * tc * 100) / 100);
   // Gráfico de cada mes: los 12 últimos meses CERRADOS de la base (los del pronóstico). En el portal publicado entran también
   // las ventas de la tienda web del mes en curso; ese mes está incompleto y correría el pronóstico un mes (medido el 27-11-2026).
-  const V = valDatos(), fin = V.meses[V.meses.length - 1];
+  const V = valDatos();
   const dm = T.demanda_mes, dmC = dm.filter(x => x.mes <= fin), ult = dmC.slice(-12);
   const suma = (a, k) => a.reduce((s, x) => s + x[k], 0), per = `${mesL(ult[0].mes)} a ${mesL(fin)}`;
   const perTE = todo ? `de ${mesL(TE.desde)} a ${mesL(TE.hasta)}` : "de los últimos 12 meses", tot = TE.tarjetas.ventas_bs || 1;
@@ -2936,7 +2938,6 @@ function pintarTab(){
   const lo = Math.max(0, pron - mae), hi = pron + mae, BT = {}; bt.forEach(b => BT[b.mes] = b);
   const ant = x => (dm.find(y => y.mes === `${+x.mes.slice(0, 4) - 1}${x.mes.slice(4)}`) || {}).monto_bs;
   const mejor = ult.reduce((a, x) => x.monto_bs > a.monto_bs ? x : a, ult[0]), prom = suma(ult, "monto_bs") / ult.length;
-  const flojos = ult.slice().sort((a, b) => a.monto_bs - b.monto_bs).slice(0, 3).sort((a, b) => a.mes < b.mes ? -1 : 1);
   const nomMes = m => ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"][+m.slice(5, 7) - 1];
   $("tab-mes-h").textContent = `Para ${nomMes(sig)} se esperan unos ${bs(pron)}, entre ${bs(lo)} y ${bs(hi)}`;
   $("tab-mes-s").textContent = (!todo && TE.hasta === fin ? TE.conclusiones.meses + " " : "") + `En bolivianos, de ${per}. La línea punteada es el promedio.`;
@@ -2952,8 +2953,7 @@ function pintarTab(){
       `<rect x="${(X(12) + bw * .2).toFixed(1)}" y="${M.Y(pron).toFixed(1)}" width="${(bw * .6).toFixed(1)}" height="${alto(pron).toFixed(1)}" rx="2" fill="var(--brand-soft)" stroke="var(--brand)" stroke-dasharray="4 3"><title>Pronóstico de ${mesL(sig)}: ${bs(pron)} (entre ${bs(lo)} y ${bs(hi)})</title></rect>` +
       `<path d="M${X(12) + bw / 2} ${M.Y(hi).toFixed(1)}V${M.Y(lo).toFixed(1)}M${X(12) + bw * .35} ${M.Y(hi).toFixed(1)}h${(bw * .3).toFixed(1)}M${X(12) + bw * .35} ${M.Y(lo).toFixed(1)}h${(bw * .3).toFixed(1)}" stroke="var(--ink-2)" stroke-width="1.5" fill="none"/>` +
       `<text x="${X(12) + bw / 2}" y="${H - 26}" text-anchor="middle" style="fill:var(--brand-dark);font-weight:600">${MES[+sig.slice(5, 7) - 1]}*</text></svg>`; }
-  $("tab-mes-n").innerHTML = `${capital(flojos.map(x => nomMes(x.mes)).join(", ").replace(/, ([^,]*)$/, " y $1"))} fueron los meses más flojos: buen momento para recibir pedidos sin quedarse corto. ` +
-    `*En los últimos 12 meses, el pronóstico hecho antes de cada mes se equivocó en promedio ${bs(mae)} (${nf(errPct)} % de lo vendido); por eso, para ${nomMes(sig)}, se espera entre ${bs(lo)} y ${bs(hi)}.`;
+  $("tab-mes-n").textContent = (todo ? "" : TE.conclusiones.meses + " ") + `*El pronóstico se equivoca en promedio ±${bs(mae)}.`;
   $("t-tab-mes").innerHTML = `<thead><tr><th>Mes</th><th>Vendido</th><th>Mismo mes del año anterior</th><th>Diferencia</th><th>Pronóstico hecho antes del mes</th><th>Error del pronóstico</th></tr></thead><tbody>` +
     ult.map(x => { const a = ant(x), b = BT[x.mes];
       return `<tr><td>${mesL(x.mes)}</td><td>${bs(x.monto_bs)}</td><td>${a === undefined ? "—" : bs(a)}</td><td>${a ? (x.monto_bs >= a ? "+" : "−") + nf(Math.abs(x.monto_bs - a) / a * 100) + " %" : "—"}</td><td>${b ? bs(b.pron) : "—"}</td><td>${b ? (b.real >= b.pron ? "+" : "−") + bs(Math.abs(b.real - b.pron)) : "—"}</td></tr>`; }).join("") +
@@ -2965,7 +2965,13 @@ function pintarTab(){
   $("tab-tipo-h").textContent = TE.conclusiones.tipos_cliente;
   $("tab-tipo-s").textContent = `Parte de las ventas ${perTE} por tipo de cliente.`;
   $("tab-tipo-g").innerHTML = `<div class="dona">${dona(tipos, tipos[0].txt, [tipos[0].e.toLowerCase().split(" ")[0]])}<ul>${tipos.map(t => `<li><i style="background:${t.c}"></i>${esc(t.e)} · <b>${t.txt}</b></li>`).join("")}</ul></div>`;
-  $("tab-tipo-n").textContent = tipos[0].v > 50 ? "Son los clientes que hay que cuidar." : "Las ventas están repartidas entre varios tipos de cliente.";
+  // Qué tipo de cliente creció más frente a los 12 meses anteriores (solo con «Últimos 12 meses»).
+  const tipoDe = {}; Dc.clientes.lista.forEach(c => tipoDe[c.cliente_id] = c.tipo);
+  const r0 = ult[0].mes, p0 = `${+r0.slice(0, 4) - 1}${r0.slice(4)}`, crec = {};
+  Dc.clientes.ventas.forEach(v => { const m = String(v[0]).slice(0, 7), t = tipoDe[v[2]], q = Number(v[3]) * (precio[v[1]] || 0); if(!t || !isFinite(q) || m < p0) return;
+    crec[t] = crec[t] || [0, 0]; crec[t][m >= r0 ? 0 : 1] += q; });
+  const sube = Object.entries(crec).filter(([, x]) => x[1] > 0).map(([t, x]) => [t, (x[0] - x[1]) / x[1] * 100]).sort((a, b) => b[1] - a[1])[0];
+  $("tab-tipo-n").textContent = !todo && sube ? `${sube[1] >= 0 ? "El que más creció" : "Todos bajaron; el que menos"}: ${sube[0].toLowerCase()}, ${sube[1] >= 0 ? "+" : "−"}${nf(Math.abs(sube[1]))} % frente a los 12 meses anteriores.` : "";
   $("t-tab-tipo").innerHTML = `<thead><tr><th>Tipo de cliente</th><th>Compras</th><th>Parte del total</th></tr></thead><tbody>` + tipos.map(t => `<tr><td>${esc(t.e)}</td><td>${bs(t.bsv)}</td><td>${t.txt}</td></tr>`).join("") + "</tbody>";
 
   // 4. Qué tipo de repuesto vendemos más.
@@ -2999,7 +3005,7 @@ function pintarTab(){
   $("tab-rep-h").textContent = `${reps[0].e} es el que más dinero deja: ${bs(reps[0].v)}`;
   $("tab-rep-s").textContent = `Los que más dinero dejaron ${perTE}, en bolivianos.`;
   $("tab-rep-g").innerHTML = svgBarras(reps, Math.max(300, $("tab-rep-g").clientWidth || 600), reps[0], $("tab-rep-h").textContent);
-  $("tab-rep-n").textContent = TE.conclusiones.top_repuestos;
+  $("tab-rep-n").textContent = `Dejan el ${nf(TE.top_repuestos_pct)} % de lo vendido por los ${TE.repuestos_total} repuestos que tuvieron ventas ${perTE}.`;
   $("t-tab-rep").innerHTML = `<thead><tr><th>#</th><th>Repuesto</th><th>Ventas</th><th>Parte del total</th></tr></thead><tbody>` +
     reps.map((r, i) => `<tr><td>${i + 1}</td><td><b>${esc(r.e)}</b><span class="ayuda">${r.id}</span></td><td>${r.txt}</td><td>${nf(r.pct, 1)} %</td></tr>`).join("") + "</tbody>";
 
@@ -3011,7 +3017,7 @@ function pintarTab(){
     g.innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(tit)}">` + an.map((a, i) => `<rect x="${(i * bw + bw * .15).toFixed(1)}" y="${Y(a.monto_bs).toFixed(1)}" width="${(bw * .7).toFixed(1)}" height="${(H - pb - Y(a.monto_bs)).toFixed(1)}" rx="3" fill="${a.meses < 12 ? "#c9cec8" : "var(--brand)"}"><title>${a.anio}: ${bs(a.monto_bs)}</title></rect>` +
       `<text x="${(i * bw + bw / 2).toFixed(1)}" y="${(Y(a.monto_bs) - 6).toFixed(1)}" text-anchor="middle" class="lbl" style="fill:var(--ink)">${W < 500 ? nf(a.monto_bs / 1000) + " mil" : bs(a.monto_bs)}</text>` +
       `<text x="${(i * bw + bw / 2).toFixed(1)}" y="${H - 26}" text-anchor="middle">${a.anio}</text>` + (a.meses < 12 ? `<text x="${(i * bw + bw / 2).toFixed(1)}" y="${H - 12}" text-anchor="middle">${a.meses} meses</text>` : "")).join("") + "</svg>"; }
-  $("tab-anio-n").textContent = "Los años en gris no tienen sus 12 meses: no se comparan con los demás.";
+  $("tab-anio-n").textContent = "";
   $("t-tab-anio").innerHTML = `<thead><tr><th>Año</th><th>Vendido</th><th>Piezas</th><th>Meses con datos</th></tr></thead><tbody>` +
     an.map(a => `<tr><td>${a.anio}</td><td>${bs(a.monto_bs)}</td><td>${nf(a.unidades)}</td><td>${a.meses}</td></tr>`).join("") + "</tbody>";
   // 8. En qué meses se vende más (temporada de los 30 repuestos juntos).
@@ -3031,7 +3037,7 @@ function pintarTab(){
   const PRd = D.prediccion;
   if(PRd){ const NIV = {alta:["Probable","var(--brand)"], media:["Posible","#86c49c"], baja:["Poco probable","#c9cec8"]};
     const pr = PRd.predicciones.slice().sort((a, b) => b.probabilidad - a.probabilidad), alta = pr.filter(p => p.nivel === "alta").length, mesP = MES_L[+PRd.mes_predicho.slice(5, 7) - 1];
-    $("tab-pred-h").textContent = `${alta} ${pal(alta, "repuesto tiene", "repuestos tienen")} más de 50 % de probabilidad de venderse en ${mesP}`;
+    $("tab-pred-h").textContent = `De los ${pr.length} repuestos con historial, ${alta} ${pal(alta, "tiene", "tienen")} más de 50 % de probabilidad de venderse en ${mesP}`;
     $("tab-pred-s").textContent = `Los 10 repuestos con más probabilidad de vender al menos una unidad en ${mesP}, calculada con su historial de ventas.`;
     $("tab-pred-g").innerHTML = `<div class="legend">${Object.values(NIV).map(([t, c]) => `<span><i class="sw" style="background:${c}"></i>${t}</span>`).join("")}</div>` +
       svgBarras(pr.slice(0, 10).map(p => ({e:nombreRep(p.repuesto_id), v:p.probabilidad * 100, txt:nf(p.probabilidad * 100) + " %", c:NIV[p.nivel][1]})), Math.max(300, $("tab-pred-g").clientWidth || 600), null, $("tab-pred-h").textContent);
@@ -3070,7 +3076,7 @@ function pintarRep(){
   // 1. Estado del almacén.
   const EST = [["pedir ya", "var(--bad)"], ["vigilar", "var(--warn)"], ["con stock suficiente", "var(--brand)"], ["sin datos de venta", "#c9cec8"]];
   const cuenta = EST.map((x, e) => ({e:x[0], c:x[1], v:al.filter(a => a.est === e).length, txt:""})), bien = cuenta[2].v;
-  $("tab-alm-h").textContent = `${bien} de ${al.length} repuestos tienen stock suficiente; ${ya.length} hay que pedirlos ya`;
+  $("tab-alm-h").textContent = `${bien} de los ${al.length} repuestos del catálogo tienen stock suficiente; ${ya.length} hay que pedirlos ya`;
   $("tab-alm-s").textContent = `Los ${al.length} repuestos según su stock y lo que se espera vender mientras llega un pedido.`;
   $("tab-alm-g").innerHTML = `<div class="dona">${dona(cuenta.filter(x => x.v), String(bien), [`de ${al.length}`, "están bien"])}<ul>${cuenta.filter(x => x.v).map(x => `<li><i style="background:${x.c}"></i><b>${x.v}</b> ${x.e}</li>`).join("")}</ul></div>`;
   const porVenta = {}; R.repuestos.forEach(f => porVenta[f.id] = f.valor12_bs || 0);
@@ -3119,8 +3125,6 @@ function pintarRep(){
   $("tab-sobra-h").textContent = sob.length ? `${sob.length} repuestos sobran y dejan ${bs(R.valor_acumulado_bs)} parados; el que más, ${nomCorto(sob[0].id)}` : "Ningún repuesto tiene stock de más";
   $("tab-sobra-s").textContent = "Dinero en stock de los repuestos que tienen más de lo necesario o que no se venden hace un año.";
   $("tab-sobra-g").innerHTML = sob.length ? svgBarras(sob.map(f => ({e:nomCorto(f.id), v:f.valor_stock_bs, txt:bs(f.valor_stock_bs)})), Math.max(300, $("tab-sobra-g").clientWidth || 600), {}, $("tab-sobra-h").textContent) : "";
-  $("tab-sobra-n").textContent = sob.length ? "No volver a comprarlos hasta que bajen; conviene ofrecerlos en promoción para liberar dinero." : "";
-  $("tab-sobra-n").style.cssText = sob.length ? "background:var(--warn-soft);border-color:#f1d9a6;color:#5a3d00" : "";
   $("t-tab-sobra").innerHTML = `<thead><tr><th>Repuesto</th><th>Stock</th><th>Dinero parado</th><th>Meses sin venta</th><th>Por qué sobra</th></tr></thead><tbody>` +
     sob.map(f => `<tr><td><b>${esc(nomCorto(f.id))}</b><span class="ayuda">${f.id}</span></td><td>${nf(f.stock)}</td><td>${bs(f.valor_stock_bs)}</td><td>${f.meses_sin_venta}</td><td style="text-align:left">${esc(f.motivos_acumulacion.join("; "))}</td></tr>`).join("") + "</tbody>";
   tecCards($("mn-f-rep"));
@@ -3157,7 +3161,7 @@ function pintarCost(){
     ps.map(x => `<circle cx="${X(x[0]).toFixed(1)}" cy="${Y(x[1]).toFixed(1)}" r="3.5" fill="#8d938c"><title>Paralelo ${x[0]}: ${nf(x[1], 2)}</title></circle>`).join("") +
     [se[0], se[Math.floor(se.length / 2)], se[se.length - 1]].map((x, i) => `<text x="${X(x[0])}" y="${H - 24}" text-anchor="${["start","middle","end"][i]}">${fecha(x[0])}</text>`).join("") +
     `<text class="axt" x="${(pl + W - pr) / 2}" y="${H - 4}" text-anchor="middle">Fecha</text></svg>`;
-  $("tab-dol-n").textContent = `Cada 10 centavos que sube el dólar encarecen las compras. Los cálculos usan el oficial; el paralelo es solo una referencia.`;
+  $("tab-dol-n").textContent = "";
   const PAm = {}; ps.forEach(x => PAm[x[0]] = x[1]);
   $("t-tab-dol").innerHTML = `<thead><tr><th>Fecha</th><th>Oficial</th><th>Paralelo</th></tr></thead><tbody>` + se.slice().reverse().map(x => `<tr><td>${fecha(x[0])}</td><td>${nf(x[1], 2)}</td><td>${PAm[x[0]] ? nf(PAm[x[0]], 2) : "—"}</td></tr>`).join("") + "</tbody>";
 
@@ -3191,7 +3195,7 @@ function pintarCost(){
   $("tab-sens-h").textContent = `${fr[T[0].supuesto]} es lo que más mueve la ganancia: hasta ${bs(T[0].rango_bs)} de diferencia`;
   $("tab-sens-s").textContent = "Cuánto cambia la ganancia esperada al llevar cada supuesto de un extremo al otro.";
   $("tab-sens-g").innerHTML = svgBarras(T.map(t => ({e:SUP[t.supuesto][0], v:t.rango_bs, txt:bs(t.rango_bs)})), Math.max(300, $("tab-sens-g").clientWidth || 600), {}, $("tab-sens-h").textContent);
-  $("tab-sens-n").textContent = `Es el supuesto que conviene vigilar antes de comprar ${nom}.`;
+  $("tab-sens-n").textContent = "";
   $("t-tab-sens").innerHTML = `<thead><tr><th>Supuesto</th><th>Rango probado</th><th>Ganancia en un extremo</th><th>En el otro</th><th>Diferencia</th></tr></thead><tbody>` +
     T.map(t => `<tr><td>${SUP[t.supuesto][0]}</td><td>${SUP[t.supuesto][1]}</td><td>${bs(t.de)}</td><td>${bs(t.a)}</td><td>${bs(t.rango_bs)}</td></tr>`).join("") + "</tbody>";
 
@@ -3200,7 +3204,7 @@ function pintarCost(){
   $("tab-cap-h").textContent = `${ALT[lo2].t} deja ${bs(R[lo2].capital_inmovilizado_bs)} parados; ${ALT[hi2].t.toLowerCase()}, ${bs(R[hi2].capital_inmovilizado_bs)}`;
   $("tab-cap-s").textContent = `Dinero en mercadería todavía sin vender, en promedio durante los 90 días, para ${nom}.`;
   $("tab-cap-g").innerHTML = svgBarras(L.map(k => ({e:`${k}. ${ALT[k].t}`, v:R[k].capital_inmovilizado_bs, txt:bs(R[k].capital_inmovilizado_bs), c:k === m ? "var(--brand)" : "#c9cec8"})), Math.max(300, $("tab-cap-g").clientWidth || 600), null, $("tab-cap-h").textContent);
-  $("tab-cap-n").textContent = `Comprar de más protege del dólar, pero deja dinero quieto en el depósito.`;
+  $("tab-cap-n").textContent = "";
   $("t-tab-cap").innerHTML = `<thead><tr><th>Forma de comprar</th><th>Dinero parado</th></tr></thead><tbody>` + L.map(k => `<tr><td>${k}. ${esc(ALT[k].t)}</td><td>${bs(R[k].capital_inmovilizado_bs)}</td></tr>`).join("") + "</tbody>";
 
   // 6. Qué proveedor sale más barato para este repuesto.
